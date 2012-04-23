@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models, connection
+from django.db.models import Q
 from django.contrib.admin.models import User
 from probill.lib.networks import IPNetworkField,IPAddressField
 from datetime import datetime
@@ -61,10 +62,15 @@ class Subscriber(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        self.balance += self.value
+        """
+            При сохраннении обязательно проводить блокировку или разблокировку
+        """
         if self.balance < 0:
             for account in self.account_set.filter(active=True,auto_block=True):
                 account.block()
+        else:
+            for account in self.account_set.filter(active=False,auto_block=True):
+                account.unblock()
         super(Subscriber,self).save(*args,**kwargs)
 
 class AccountHistory(models.Model):
@@ -128,9 +134,14 @@ class QosAndCost(models.Model):
 
     class Meta:
         verbose_name_plural = u'Классы трафика'
+        ordering = ['-id']
 
     def __unicode__(self):
         return self.name
+
+    @property
+    def bit_speed(self):
+        return self.qos_speed*1024
 
     @property
     def subnets_iter(self):
@@ -155,8 +166,6 @@ class Tariff(models.Model):
     qos_speed = models.IntegerField('Основная скорость',default=0)
     qac_class = models.ManyToManyField(QosAndCost,blank=True,null=True,verbose_name=u'Классы трафика')
 
-
-
     class Meta:
         verbose_name_plural = u'Тарифные планы'
 
@@ -164,11 +173,14 @@ class Tariff(models.Model):
         return self.name
 
     @property
+    def bit_speed(self):
+        return self.qos_speed*1024
+
+    @property
     def qac_iter(self):
         if not hasattr(self,'_qac_class'):
             self._qac_class = self.qac_class.all()
         return self._qac_class
-
 
     def get_traffic_qac(self,src_ip):
         src_ip = IPAddress(src_ip)
@@ -177,6 +189,27 @@ class Tariff(models.Model):
                 if src_ip in net.network:
                     return qac
         return None
+
+    @classmethod
+    def doPeriodRental(cls,date=None):
+        if not date:
+            date = datetime.now()
+        if not date.hour:
+            q_filter = Q(rental_period='h')
+            if date.weekday == 1:
+                q_filter.add(Q(rental_period='w'),Q.OR)
+            if date.day == 1:
+                q_filter.add(Q(rental_period='m'),Q.OR)
+            for tariff in cls.objects.filter(q_filter).exclude(rental=0):
+                for account in tariff.account_set.filter(active=True):
+                    accHist = AccountHistory(
+                        datetime = date,
+                        owner_id = tariff.id,
+                        owner_type = 'per',
+                        subscriber = account.subscriber,
+                        value = -tariff.rental
+                    )
+                    accHist.save()
 
 
 class Account(models.Model):
@@ -206,6 +239,14 @@ class Account(models.Model):
         self.active = False
         self.save()
 
+    def unblock(self):
+        self.active = True
+        self.save()
+
+
+    @property
+    def CIDR(self):
+        return '/'.join([str(self.ip),'32'])
 
     @classmethod
     def process_traffic(cls,raw_traffic,traffic_datetime):
@@ -216,13 +257,13 @@ class Account(models.Model):
         traffic_details = []
         for row in raw_traffic:
             dst_ip = row[1]
-            src_ip = row[2]
+            src_ip = row[0]
             count = float(row[3])/1024/1024
-            if row[1] not in good_ip and row[1] not in bad_ip:
+            if dst_ip not in good_ip and dst_ip not in bad_ip:
                 try:
-                    good_ip[row[1]] = cls.objects.get(ip=row[1])
+                    good_ip[dst_ip] = cls.objects.get(ip=dst_ip)
                 except :
-                    bad_ip.append(row[1])
+                    bad_ip.append(dst_ip)
             traffic_details.append(
                 [traffic_datetime,
                 dst_ip,
@@ -230,29 +271,30 @@ class Account(models.Model):
                 count,
                 None]
             )
-            if row[1] in good_ip:
-                traffic_details[-1][-1] = good_ip[row[1]].id
-                qac = good_ip[row[1]].tariff.get_traffic_qac(row[0])
+            if dst_ip in good_ip:
+                traffic_details[-1][-1] = good_ip[dst_ip].id
+                qac = good_ip[dst_ip].tariff.get_traffic_qac(src_ip)
                 if qac:
-                    period_id = '_'.join([row[1], str(qac.id)])
+                    period_id = '_'.join([dst_ip, str(qac.id)])
                 else:
-                    period_id = row[1]
+                    period_id = dst_ip
                 if period_id in traffic_periods:
                     traffic_periods[period_id].count += count
                 else:
                     traffic_periods[period_id] = TrafficByPeriod(
-                        account = good_ip[row[1]],
+                        account = good_ip[dst_ip],
                         cost = 0,
                         count = count,
                         datetime = datetime.now(),
                         qac_class = qac,
-                        tariff = good_ip[row[1]].tariff
+                        tariff = good_ip[dst_ip].tariff
                     )
         query = '''
-        insert into main_trafficdetail (datetime,src_ip,dst_ip,"count",account_id)
+        insert into billing_trafficdetail (datetime,src_ip,dst_ip,"count",account_id)
         values (%s,%s,%s,%s,%s)
         '''
         cursor.executemany(query,traffic_details)
+        cursor.connection.commit()
         for i in traffic_periods:
             if traffic_periods[i].qac_class:
                 traffic_periods[i].cost = traffic_periods[i].count * traffic_periods[i].qac_class.traffic_cost
@@ -275,7 +317,7 @@ class TariffHistory(models.Model):
     """
         История смены тарифов
     """
-    set_data = models.DateTimeField('Вермя установки',auto_now=True)
+    set_data = models.DateTimeField('Время установки',auto_now=True)
     account = models.ForeignKey(Account,verbose_name=u'Учётная запись')
     tariff = models.ForeignKey(Tariff,verbose_name=u'Тариф')
 

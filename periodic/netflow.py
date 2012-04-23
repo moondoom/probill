@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
 from default_periodic import settings
-from probill.main.models import *
+from probill.billing.models import *
 import os, sys, re
 
 def main():

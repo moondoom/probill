@@ -1,5 +1,3 @@
-__author__ = 'animage'
-
 import os, sys
 from django.core.management import setup_environ
 
