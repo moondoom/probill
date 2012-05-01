@@ -140,9 +140,10 @@ LOGGING = {
 
 FLOW_CAT = '/usr/local/bin/flow-cat'
 FLOW_STAT = '/usr/local/bin/flow-stat'
+FLOW_PATH = '/usr/local/flowdata'
 
 IPFW_PATH = '/sbin/ipfw'
-IPFW_MIN_TABLE = 1
+IPFW_MIN_TABLE = 30
 IPFW_RULE_STEP = 10
 IPFW_START_IN = 21100
 IPFW_END_IN = 21800

@@ -20,7 +20,8 @@ class IpfwObject():
         pass
 
     def rewrite(self,id,arg):
-        pass
+        self.remove(id)
+        self.add(id,arg)
 
     def remove(self,id):
         pass
@@ -32,6 +33,7 @@ class IpfwObject():
         new_rows = standard.keys()
         for id, arg in self.list():
             if id in standard:
+                if DEBUG: print 'Compare: ',[arg,standard[id]]
                 if arg <> standard[id]:
                     self.rewrite(id,standard[id])
                 new_rows.remove(id)
@@ -90,34 +92,31 @@ class IpfwRuleSet(IpfwObject):
             self.rows.append([int(row[0]),' '.join(row[1:])])
         return self.rows
 
-class IpfwPipe(IpfwObject):
-    def __init__(self,name,speed=0,create=False):
-        self.name = name
-        self.speed = speed
-        if create:
-            self.add()
+class IpfwPipes(IpfwObject):
 
     def list(self):
         self.rows = []
         text = self.get('pipe show')
-        list = re.findall(r'(?sm).*\n(?P<id>\d+):\s*(?P<speed>[\d\.]+)\s(?P<speed_mux>.*)bit/s.*',text)
+        list = re.findall(r'(?m)(?P<id>\d+):\s*(?P<speed>[\d\.]+)\s(?P<speed_mux>.*)bit/s.*',text)
         for row in list:
+            print row
             id = int(row[0])
             speed = float(row[1])
             if row[2] == 'M':
-                speed *= 1024
+                speed *= 1000
             elif row[2] == '':
-                speed /= 1024
+                speed /= 1000
             self.rows.append([id,speed])
         return self.rows
 
+
     def add(self,id,arg):
-        self.get('pipe %s config bw %sKbit/s queue 20' % self.name)
+        self.get('pipe %s config bw %sKbit/s queue 100' % (id,arg))
 
     def remove(self,id):
-        self.get('pipe %s delete' % self.name)
+        self.get('pipe %s delete' % id)
 
-class IpfwQueue(IpfwObject):
+class IpfwQueues(IpfwObject):
 
     def list(self):
         self.rows = []
@@ -135,27 +134,28 @@ class IpfwQueue(IpfwObject):
             mask = 'src-ip'
         else:
             mask = 'dst-ip'
-        self.get('queue %s config pipe %s queue 20 mask %s 0xffffffff' % (id,arg,mask))
+        self.get('queue %s config pipe %s queue 100 mask %s 0xffffffff' % (id,arg,mask))
 
     def remove(self,id):
         self.get('queue %s delete' % id)
 
 
 def main():
-    def car_name(account,qac=0):
-        return account.id*1000000 + qac*10
     QOS_TABLE = IPFW_MIN_TABLE + 1
     ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{}}
     ipfw_rules_in = {
-        IPFW_START_IN : 'deny ip from not table(%s) to any' % IPFW_MIN_TABLE,
-        IPFW_END_IN : 'queue tablearg ip from table(%s) to any' % QOS_TABLE,
+        IPFW_START_IN : 'deny ip from table(%s) to any' % IPFW_MIN_TABLE,
+        IPFW_END_IN - IPFW_RULE_STEP : 'queue tablearg ip from table(%s) to any' % QOS_TABLE,
+        IPFW_END_IN : 'allow ip from any to any',
         }
     ipfw_rules_out = {
-        IPFW_START_OUT : 'deny ip from any to not table(%s)' % IPFW_MIN_TABLE,
-        IPFW_END_OUT : 'queue tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
+        IPFW_START_OUT : 'deny ip from any to table(%s)' % IPFW_MIN_TABLE,
+        IPFW_END_OUT - IPFW_RULE_STEP : 'queue tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
+        IPFW_END_OUT : 'allow ip from any to any',
         }
     qos_maps = {}
-    account_qos = {}
+    queue_map = {}
+    queue_map_id = 1
     table_number = QOS_TABLE + 1
     rule_offset = 0
     qacs = QosAndCost.objects.all().exclude(qos_speed=0)[:100]
@@ -170,21 +170,39 @@ def main():
         ipfw_rules_out[rule_offset + IPFW_START_OUT] = 'queue tablearg ip from %s to table(%s)' % (nets,table_number+1)
 
 
-    for account in Account.objects.filter(active=True):
+    for account in Account.objects.filter(active=False):
         ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
+    for account in Account.objects.filter(active=True):
         if account.tariff.qos_speed:
-            account_qos[car_name(account)] = [account.tariff.bit_speed,account.tariff.bit_speed]
-            ipfw_tables[QOS_TABLE][account.CIDR] = car_name(account)
-            ipfw_tables[QOS_TABLE+1][account.CIDR] = car_name(account) + 1
+            speed_id = str(account.tariff.qos_speed)
+            if speed_id not in queue_map:
+                queue_map[speed_id] = queue_map_id
+                queue_map_id += 2
+            ipfw_tables[QOS_TABLE][account.CIDR] = queue_map[speed_id]
+            ipfw_tables[QOS_TABLE+1][account.CIDR] = queue_map[speed_id]+1
+
         qacs = account.tariff.qac_class.all().exclude(qos_speed=0)
         if qacs:
             for qac in qacs:
-                account_qos[car_name(account,qac.id)] = [qac.bit_speed,qac.bit_speed]
-                ipfw_tables[qos_maps[qac.id]][account.CIDR] = car_name(account,qac.id)
-                ipfw_tables[qos_maps[qac.id]+1][account.CIDR] = car_name(account,qac.id) + 1
+                speed_id = '_'.join([str(qac.qos_speed),str(qac.id)])
+                if speed_id not in queue_map:
+                    queue_map_id += 2
+                    queue_map[speed_id] = queue_map_id
+                ipfw_tables[qos_maps[qac.id]][account.CIDR] = queue_map[speed_id]
+                ipfw_tables[qos_maps[qac.id]+1][account.CIDR] = queue_map[speed_id]
 
-    ng_car = NetGraphCar()
-    ng_car.check(account_qos)
+    pipe_std = {}
+    queue_std = {}
+    for x in queue_map:
+        pipe_std[queue_map[x]] = int(x.split('_')[0])
+        pipe_std[queue_map[x]+1] = int(x.split('_')[0])
+        queue_std[queue_map[x]] = queue_map[x]
+        queue_std[queue_map[x]+1] = queue_map[x]+1
+
+    Pipes = IpfwPipes()
+    Pipes.check(pipe_std)
+    Queues = IpfwQueues()
+    Queues.check(queue_std)
 
     for num in ipfw_tables:
         ipfw_table = IpfwTable(num)
@@ -194,11 +212,6 @@ def main():
     rule_in.check(ipfw_rules_in)
     rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT)
     rule_out.check(ipfw_rules_out)
-
-
-
-
-
 
 
 

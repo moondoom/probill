@@ -7,6 +7,25 @@ from probill.lib.networks import IPNetworkField,IPAddressField
 from datetime import datetime
 from ipaddr import IPAddress
 
+
+class PeriodicLog(models.Model):
+    datetime = models.DateTimeField()
+    code = models.IntegerField(default=0)
+    message = models.TextField()
+
+
+    class Meta():
+        verbose_name_plural = 'Переодические логи'
+
+    @classmethod
+    def log(cls,message,code=0):
+        obj = cls(datetime=datetime.now(),message=message,code=code)
+        obj.save()
+
+    def __unicode__(self):
+        return ' '.join(map(unicode,[self.datetime,self.message[:30]]))
+
+
 class Manager(models.Model):
     """
     Системный пользователь способный управлять (Менеджер)
@@ -192,6 +211,8 @@ class Tariff(models.Model):
 
     @classmethod
     def doPeriodRental(cls,date=None):
+        account_count = 0
+        rental_sum = 0
         if not date:
             date = datetime.now()
         if not date.hour:
@@ -210,6 +231,13 @@ class Tariff(models.Model):
                         value = -tariff.rental
                     )
                     accHist.save()
+                    account_count += 1
+                    rental_sum += tariff.rental
+            return 'Переодическое списание завершено успешно. Снять %s c %s пользователей' % \
+                   (rental_sum,account_count), 100
+        else:
+            return 'Сейчас не 0 часов. Проверьте параметры запуска скрипта или настройки cron', 100
+
 
 
 class Account(models.Model):
@@ -304,13 +332,13 @@ class Account(models.Model):
             if traffic_periods[i].cost > 0:
                 accHist = AccountHistory(
                     datetime=datetime.now(),
-                    owner_id = traffic_details[i].id,
+                    owner_id = traffic_periods[i].id,
                     owner_type = 'tra',
                     subscriber = traffic_periods[i].account.subscriber,
                     value = -traffic_periods[i].cost
                 )
                 accHist.save()
-
+        PeriodicLog.log('Обработка трафика. Снято %s с %s учётных записей' % (1,1))
 
 
 class TariffHistory(models.Model):
@@ -360,6 +388,7 @@ class TrafficDetail(models.Model):
 
     def __unicode__(self):
         return  ' '.join([unicode(self.datetime),unicode(self.src_ip),unicode(self.dst_ip)])
+
 
 
 
