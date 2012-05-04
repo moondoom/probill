@@ -144,12 +144,14 @@ def main():
     QOS_TABLE = IPFW_MIN_TABLE + 1
     ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{}}
     ipfw_rules_in = {
-        IPFW_START_IN : 'deny ip from table(%s) to any' % IPFW_MIN_TABLE,
+        IPFW_START_IN : 'skipto %s ip from table(%s) to any' % (IPFW_START_IN + IPFW_RULE_STEP * 2,IPFW_MIN_TABLE),
+        IPFW_START_IN + IPFW_RULE_STEP : 'deny ip from any to any',
         IPFW_END_IN - IPFW_RULE_STEP : 'queue tablearg ip from table(%s) to any' % QOS_TABLE,
         IPFW_END_IN : 'allow ip from any to any',
         }
     ipfw_rules_out = {
-        IPFW_START_OUT : 'deny ip from any to table(%s)' % IPFW_MIN_TABLE,
+        IPFW_START_OUT : 'skipto %s ip from any to table(%s)' % (IPFW_START_OUT + IPFW_RULE_STEP * 2,IPFW_MIN_TABLE),
+        IPFW_START_OUT + IPFW_RULE_STEP: 'deny ip from any to any',
         IPFW_END_OUT - IPFW_RULE_STEP : 'queue tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
         IPFW_END_OUT : 'allow ip from any to any',
         }
@@ -157,7 +159,7 @@ def main():
     queue_map = {}
     queue_map_id = 1
     table_number = QOS_TABLE + 1
-    rule_offset = 0
+    rule_offset = IPFW_RULE_STEP
     qacs = QosAndCost.objects.all().exclude(qos_speed=0)[:100]
     for qac in qacs:
         rule_offset += IPFW_RULE_STEP
