@@ -172,7 +172,7 @@ def main():
         ipfw_rules_out[rule_offset + IPFW_START_OUT] = 'queue tablearg ip from %s to table(%s)' % (nets,table_number+1)
 
 
-    for account in Account.objects.filter(active=False):
+    for account in Account.objects.filter(active=True):
         ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
     for account in Account.objects.filter(active=True):
         if account.tariff.qos_speed:
