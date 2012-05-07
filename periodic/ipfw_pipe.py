@@ -144,16 +144,14 @@ def main():
     QOS_TABLE = IPFW_MIN_TABLE + 1
     ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{}}
     ipfw_rules_in = {
-        IPFW_START_IN : 'skipto %s ip from table(%s) to any' % (IPFW_START_IN + IPFW_RULE_STEP * 2,IPFW_MIN_TABLE),
-        IPFW_START_IN + IPFW_RULE_STEP : 'deny ip from any to any',
-        IPFW_END_IN - IPFW_RULE_STEP : 'queue tablearg ip from table(%s) to any' % QOS_TABLE,
-        IPFW_END_IN : 'allow ip from any to any',
+        IPFW_END_IN - IPFW_RULE_STEP*2 : 'queue tablearg ip from table(%s) to any' % QOS_TABLE,
+        IPFW_END_IN - IPFW_RULE_STEP: 'allow ip from table(%s) to any' % IPFW_MIN_TABLE,
+        IPFW_END_IN : 'deny ip from any to any',
         }
     ipfw_rules_out = {
-        IPFW_START_OUT : 'skipto %s ip from any to table(%s)' % (IPFW_START_OUT + IPFW_RULE_STEP * 2,IPFW_MIN_TABLE),
-        IPFW_START_OUT + IPFW_RULE_STEP: 'deny ip from any to any',
-        IPFW_END_OUT - IPFW_RULE_STEP : 'queue tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
-        IPFW_END_OUT : 'allow ip from any to any',
+        IPFW_END_OUT - IPFW_RULE_STEP*2 : 'queue tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
+        IPFW_END_OUT - IPFW_RULE_STEP: 'allow ip from any to table(%s)' % IPFW_MIN_TABLE,
+        IPFW_END_OUT : 'deny ip from any to any',
         }
     qos_maps = {}
     queue_map = {}
