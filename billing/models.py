@@ -15,7 +15,8 @@ class PeriodicLog(models.Model):
 
 
     class Meta():
-        verbose_name_plural = 'Переодические логи'
+        verbose_name_plural = u'Переодические логи'
+        verbose_name = u'Запись'
 
     @classmethod
     def log(cls,message,code=0):
@@ -69,6 +70,7 @@ class Subscriber(models.Model):
 
     class Meta:
         verbose_name_plural = u'Пользователи'
+        verbose_name = u'Пользователь'
 
     def __unicode__(self):
         return u' '.join(
@@ -76,7 +78,7 @@ class Subscriber(models.Model):
             self.last_name,
             self.address_street,
             self.address_house,
-            self.address_type,
+            self.get_address_type_display(),
             self.address_flat]
         )
 

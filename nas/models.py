@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from probill.lib.networks import IPAddressField,IPNetworkField
 
 
 class NasServer(models.Model):
+    name = models.CharField(max_length=50)
     mng_ip = IPAddressField()
     secret = models.CharField(max_length=50,null=True,blank=True)
 
@@ -28,7 +31,7 @@ class IPInterface(models.Model):
         verbose_name = u'IP интерефейс'
 
 
-class DHCPServer():
+class DHCPServer(models.Model):
     nas = models.ForeignKey(NasServer,verbose_name=u'Сервер Доступа')
     dns_first = models.IPAddressField(u'Первичный DNS')
     dns_second = models.IPAddressField(u'Вторичный DNS')
@@ -37,9 +40,9 @@ class DHCPServer():
         verbose_name_plural = u'Службы DHCP'
         verbose_name = u'Служба DHCP'
 
-class DHCPSubnet():
+class DHCPSubnet(models.Model):
     dhcp_server = models.ForeignKey(DHCPServer,verbose_name=u'Служба DHCP')
-    subnet = models.ForeignKey(u'Подсеть',IPInterface)
+    subnet = models.ForeignKey(IPInterface,verbose_name=u'Подсеть')
     default_router  = models.IPAddressField(u'Основной маршрут')
 
     class Meta():

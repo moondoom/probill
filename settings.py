@@ -1,4 +1,5 @@
 # Django settings for probill project.
+import django
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -45,7 +46,8 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = '/usr/local/probill/'
+#MEDIA_ROOT = '/usr/local/probill/'
+MEDIA_ROOT = '/home/animage/Moon/probill/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -65,7 +67,10 @@ STATIC_URL = '/static/'
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
 # Examples: "http://foo.com/static/admin/", "/static/admin/".
-ADMIN_MEDIA_PREFIX = '/media/admin/'
+if django.VERSION >= (1,4,0):
+    ADMIN_MEDIA_PREFIX = '/media/admin/'
+else:
+    ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -112,14 +117,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'probill.main',
     'probill.billing',
+    'probill.nas',
 )
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -151,3 +153,4 @@ IPFW_START_OUT = 22100
 IPFW_END_OUT = 22800
 
 NETGRAPH_PATH = '/usr/sbin/ngctl'
+LOCAL_NAS_ID = 1
