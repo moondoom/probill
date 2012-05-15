@@ -23,7 +23,6 @@ class NetworkInterface(models.Model):
 
 class IPInterface(models.Model):
     iface = models.ForeignKey(NetworkInterface,verbose_name=u'Интерфейс')
-    ip = IPAddressField(u'IP aдрес',null=True,blank=True)
     network = IPNetworkField(u'Сеть')
 
     class Meta():
