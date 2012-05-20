@@ -6,7 +6,7 @@ from django.contrib.admin.models import User
 from probill.lib.networks import IPNetworkField,IPAddressField
 from datetime import datetime
 from ipaddr import IPAddress
-
+import calendar
 
 class PeriodicLog(models.Model):
     datetime = models.DateTimeField()
@@ -81,6 +81,10 @@ class Subscriber(models.Model):
             self.get_address_type_display(),
             self.address_flat]
         )
+
+    @property
+    def addressString(self):
+        return self.address_street + ' ' + self.address_house + '-' + self.address_flat
 
     def save(self, *args, **kwargs):
         """
@@ -211,6 +215,19 @@ class Tariff(models.Model):
                     return qac
         return None
 
+    def getRentalDiff(self):
+        date = datetime.now()
+        if not self.rental:
+            return 0
+        if self.rental_period == 'h':
+            return self.rental
+        elif self.rental_period == 'w':
+            return self.rental - self.rental/7*date.weekday
+        elif self.rental_period == 'm':
+            days = calendar.mdays[date.month]
+            return self.rental - self.rental/days*date.day
+        return 0
+
     @classmethod
     def doPeriodRental(cls,date=None):
         account_count = 0
@@ -241,6 +258,17 @@ class Tariff(models.Model):
             return 'Сейчас не 0 часов. Проверьте параметры запуска скрипта или настройки cron', 100
 
 
+    @classmethod
+    def calcRentalDiff(cls,from_tar,to_tar):
+        if from_tar and to_tar:
+            return from_tar.getRentalDiff() - to_tar.getRentalDiff()
+        elif from_tar:
+
+            return from_tar.getRentalDiff()
+        elif to_tar:
+            return - to_tar.getRentalDiff()
+        else:
+            return 0
 
 class Account(models.Model):
     """
@@ -249,7 +277,7 @@ class Account(models.Model):
     subscriber = models.ForeignKey(Subscriber,verbose_name=u'Пользователь')
     login = models.CharField('Имя учётной записи',max_length=30,unique=True)
     password = models.CharField('Пароль',max_length=30,blank=True,null=True)
-    tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,verbose_name=u'Тариф')
+    tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name=u'Тариф')
     ip = IPAddressField('IP адрес',unique=True)
     mac = models.CharField('MAC адрес',max_length=17,blank=True,null=True)
     create_date = models.DateTimeField('Дата создания',auto_now=True)
@@ -263,6 +291,38 @@ class Account(models.Model):
 
     def __unicode__(self):
         return self.login
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old = Account.objects.get(id = self.id)
+            old_tariff = old.tariff
+        else:
+            old_tariff = None
+        if old_tariff <> self.tariff:
+            rentalDiff = Tariff.calcRentalDiff(old_tariff,self.tariff)
+            if rentalDiff:
+                accHist = AccountHistory(
+                    datetime=datetime.now(),
+                    owner_id = self.subscriber.id,
+                    owner_type = 'per',
+                    subscriber = self.subscriber,
+                    value = rentalDiff
+                )
+                accHist.save()
+        super(Account,self).save(*args,**kwargs)
+
+    def delete(self, *args, **kwargs):
+        rentalDiff = Tariff.calcRentalDiff(self.tariff,None)
+        if rentalDiff:
+            accHist = AccountHistory(
+                datetime=datetime.now(),
+                owner_id = self.id,
+                owner_type = 'per',
+                subscriber = self.subscriber,
+                value = rentalDiff
+            )
+            accHist.save()
+        super(Account,self).delete(*args,**kwargs)
 
     def block(self):
         self.block_date = datetime.now()
