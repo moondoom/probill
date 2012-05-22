@@ -10,6 +10,7 @@
             <div class="menu_block">
                 <a href="info">
                     <b>Информация и настройки</b>
+                    <br/>
                     <img src="{{ MEDIA_URL }}image/client/user_icon_1.png" alt=""/>
                     <br/>
                     <b>{{ user }}</b>
@@ -18,6 +19,7 @@
             <div  class="menu_block">
                 <a href="money">
                     <b>Ваш баланс</b>
+                    <br/>
                     <img src="{{ MEDIA_URL }}image/client/money_icon_1.png" alt=""/>
                     <br/>
                     <b {% if user.ballace < 0 %}class='redtext'{% endif %}>{{ user.balance }} р</b>
@@ -26,6 +28,7 @@
             <div  class="menu_block">
                 <a href="stat">
                     <b>Статистика по трафику</b>
+                    <br/>
                     <img src="{{ MEDIA_URL }}image/client/stat_icon_1.png" alt=""/>
                     <br/>
                 </a>
@@ -33,6 +36,7 @@
             <div  class="menu_block">
                 <a href="support">
                     <b>Техподдержка</b>
+                    <br/>
                     <img src="{{ MEDIA_URL }}image/client/support_icon_1.png" alt=""/>
                     <br/>
                     <b>975911</b>

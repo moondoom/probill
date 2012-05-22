@@ -4,7 +4,7 @@ body, html, form {
 }
 
 body {
-    background-color: #bbd2ef;
+    background-color: #a1c7c5;
 }
 
 #maket {
@@ -44,6 +44,7 @@ div.menu_block {
     height: 25%;
 }
 div.menu_block a {
+    vertical-align: middle;
     text-align: center;
     text-decoration: none;
     color: #2a31db;
@@ -53,9 +54,15 @@ div.menu_block a:hover {
     color: #b6514e;
 }
 
+div.menu_block a:hover img{
+    height: 68%;
+}
+
+
 div.menu_block img {
-    width: 128px;
-    height: 128px;
+    vertical-align: middle;
+    margin: 2%;
+    height: 65%
 }
 
 .redtext {
