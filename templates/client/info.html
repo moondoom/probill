@@ -1,0 +1,24 @@
+{% extends "client/main.html" %}
+
+{% block content %}
+    <ul>
+        <li>ФИО: {{ user.first_name }} {{ user.last_name }} {{ user.father_name }}</li>
+        <li>Адрес: {{ user.addressString }}</li>
+        <li>Баланс: {{ user.balance }} рублей</li>
+        {% if user.phone %}<li>Контактный номер: {{ user.phone }}</li>{% endif %}
+        {% if user.email %}<li>Адрес электроной почты: {{ user.email }}</li>{% endif %}
+        <li> Учётный записи:
+            <ul>
+            {% for account in user.account_set.all %}
+                <li>Логин: {{ account.login }}
+                    <ul>
+                        <li>IP: {{ account.ip }}</li>
+                        {% if account.mac %}<li>MAC: {{ account.mac }}</li>{% endif %}
+                        <li>Тариф: {{ account.tariff }}</li>
+                    </ul>
+                </li>
+            {% endfor %}
+            </ul>
+        </li>
+     </ul>
+{% endblock %}

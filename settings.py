@@ -1,6 +1,8 @@
 # Django settings for probill project.
 import django
 
+
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -46,7 +48,7 @@ USE_L10N = True
 
 
 
-PROBILL_PATH = '/usr/local/probill'
+PROBILL_PATH = '/home/animage/Moon/probill'
 
 
 MEDIA_ROOT = PROBILL_PATH + '/media/'
@@ -92,6 +94,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
+
 
 ROOT_URLCONF = 'probill.urls'
 

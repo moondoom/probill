@@ -1,0 +1,11 @@
+{% extends "client/main.html" %}
+
+{% block content %}
+    <p>Ваш текущий баланс: {{ user.balance }}</p>
+    <p>История списания: </p>
+    <ul>
+        {% for mon in user.accounthistory_set.all %}
+            <li>{{ mon }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

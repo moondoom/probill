@@ -7,36 +7,44 @@
 <div id="maket">
     <div id="left">
         {% block left_col %}
-            <div class="menu_block"><a href="info">Информация и настройки</a></div>
-            <div class="menu_block"><a href="money">Баланс и история списания</a></div>
-            <div class="menu_block"><a href="stat">Статистика по трафику</a></div>
-            <div class="menu_block"><a href="support">Техподдержка</a></div>
+            <div class="menu_block">
+                <a href="info">
+                    <b>Информация и настройки</b>
+                    <img src="{{ MEDIA_URL }}image/client/user_icon_1.png" alt=""/>
+                    <br/>
+                    <b>{{ user }}</b>
+                </a>
+            </div>
+            <div  class="menu_block">
+                <a href="money">
+                    <b>Ваш баланс</b>
+                    <img src="{{ MEDIA_URL }}image/client/money_icon_1.png" alt=""/>
+                    <br/>
+                    <b {% if user.ballace < 0 %}class='redtext'{% endif %}>{{ user.balance }} р</b>
+                </a>
+            </div>
+            <div  class="menu_block">
+                <a href="stat">
+                    <b>Статистика по трафику</b>
+                    <img src="{{ MEDIA_URL }}image/client/stat_icon_1.png" alt=""/>
+                    <br/>
+                </a>
+            </div>
+            <div  class="menu_block">
+                <a href="support">
+                    <b>Техподдержка</b>
+                    <img src="{{ MEDIA_URL }}image/client/support_icon_1.png" alt=""/>
+                    <br/>
+                    <b>975911</b>
+                </a>
+            </div>
         {% endblock %}
     </div>
-    <div id="right">
-        <div>
-            {% block login_info %}
-                {% if user.is_authenticated %}
-                    {{ user }}
-                {% else %}
-                    <form action="" method="POST">
-                        Имя:<input type="text" id="username"/>
-                        Пароль:<input type="password" id="password"/>
-                    </form>
-                {% endif %}
-            {% endblock %}
-        </div>
-        <div>
-            {% block right_link %}
-                Ссылки 1
-            {% endblock %}
-        </div>
 
-    </div>
     <div id="main">
         <div id="header">
             {% block header %}
-                <a href="/client" ><h3>Основное меню</h3></a>
+                <a href="/client" ><h3>Добро пожаловть в личный кабинет пользователя</h3></a>
             {% endblock %}
         </div>
         <div id="content">

@@ -1,28 +1,53 @@
+# -*- coding: utf-8 -*-
+
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
+from billing.models import *
+from django.core.exceptions import ObjectDoesNotExist
 
+def sub_auth(fn):
+    """
+    Подменяет стандартного пользователя user на subscriber
+    """
+    def new (request,*arg,**kwargs):
+        if 'subscriber_id' in request.session:
+            try:
+                request.user = Subscriber.objects.get(id=request.session['subscriber_id'])
+            except ObjectDoesNotExist:
+                return logout(request)
+            return fn(request,*arg,**kwargs)
+        else:
+            return login(request)
+    return new
 
-def index(request):
+@sub_auth
+def index(request,template=None):
     c = RequestContext(request)
-    return render_to_response('client/main.html',c)
+    if not template:
+        template = 'client/main.html'
+    return render_to_response(template,c)
+
 
 
 def login(request):
+    c = RequestContext(request)
+    print c
     if request.POST:
-        username = request.POST['username']
-        password = request.POST['password']
-        user = auth.authenticate(username=username, password=password)
-        if user is not None and user.is_active:
-            auth.login(request, user)
-            return HttpResponseRedirect("/client")
-        else:
-            return HttpResponseRedirect("/client")
-    else:
-        c = RequestContext(request)
-        return render_to_response("templates/main.html", c)
+        try:
+            sub = Subscriber.objects.get(login=request.POST['username'])
+        except ObjectDoesNotExist:
+            return render_to_response("client/login.html", c)
+        if sub.password and sub.password == request.POST['password']:
+            request.session['subscriber_id'] = sub.id
+    elif 'subscriber_id' not in request.session:
+        return render_to_response("client/login.html", c)
+    return HttpResponseRedirect("/client")
 
 
 def logout(request):
-    c = RequestContext(request)
-    return render_to_response('client/main.html',c)
+    try:
+        del request.session['subscriber_id']
+    except KeyError:
+        pass
+    return HttpResponseRedirect("login")

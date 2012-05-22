@@ -64,6 +64,7 @@ class Subscriber(models.Model):
     address_house = models.CharField(u'Дом',max_length=10)
     address_type = models.CharField(u'Тип адреса',max_length=2,choices=ADDRESS_CHOICES,default='fl')
     address_flat = models.CharField(u'Квартира',max_length=10,blank=True,null=True)
+    email = models.EmailField(u'E-mail',blank=True,null=True)
     phone = models.CharField(u'Телефон',max_length=100,blank=True,null=True)
     balance = models.FloatField(u'Балланс',default=0)
 
@@ -76,16 +77,19 @@ class Subscriber(models.Model):
         return u' '.join(
             [self.first_name,
             self.last_name,
-            self.address_street,
-            self.address_house,
-            self.get_address_type_display(),
-            self.address_flat]
+            ]
         )
+
 
     @property
     def addressString(self):
-        return self.address_street + ' ' + self.address_house + '-' + self.address_flat
-
+        if self.address_flat:
+            return ' '.join([self.address_street,
+                             self.address_house ,
+                             self.get_address_type_display(),
+                             self.address_flat])
+        else:
+            return self.address_street + ' ' + self.address_house
     def save(self, *args, **kwargs):
         """
             При сохраннении обязательно проводить блокировку или разблокировку

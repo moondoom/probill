@@ -18,30 +18,71 @@ body {
     float:left;
 }
 #right {
-    width:200px;
+    width:300px;
     float:right;
 }
 #main {
-    background-color: #ffffff;
     margin-left:202px;
-    margin-right:202px;
+
 }
 #content {
-
+    
 }
 #header {
     text-align: center;
 }
+
+#header a {
+    text-decoration: none;
+    color: #2a31db;
+}
+
 div.menu_block {
+    text-align: center;
     position: relative;
     width: 200px;
     height: 25%;
 }
-div.menu_block div {
+div.menu_block a {
     text-align: center;
-    vertical-align: middle;
+    text-decoration: none;
+    color: #2a31db;
 }
-#right div {
-    background-color: #a5d4c4;
+
+div.menu_block a:hover {
+    color: #b6514e;
+}
+
+div.menu_block img {
+    width: 128px;
+    height: 128px;
+}
+
+.redtext {
+    color: #f50213;
+}
+
+div.right_block {
+    background-color: #42b68e;
     height: 50%;
 }
+div.right_block p {
+    padding: 0;
+    margin: 0;
+}
+
+#loginpage {
+    width: 320px;
+    padding: 144px 0 0;
+    margin: auto;
+}
+
+#loginpage p {
+    padding-left: 20px;
+}
+
+#loginpage p label {
+    font-size: 14px;
+    color: #808488;
+}
+
