@@ -10,7 +10,7 @@
         {% block left_col %}
             <div class="menu_block">
                 <a href="info">
-                    <b>Информация и настройки</b>
+                    <b>Учётная запись</b>
                     <br/>
                     <img src="{{ MEDIA_URL }}image/client/user_icon_1.png" alt=""/>
                     <br/>
@@ -23,7 +23,7 @@
                     <br/>
                     <img src="{{ MEDIA_URL }}image/client/money_icon_1.png" alt=""/>
                     <br/>
-                    <b {% if user.ballace < 0 %}class='redtext'{% endif %}>{{ user.balance }} р</b>
+                    <b {% if user.balance <= 0 %}class='redtext'{% endif %}>{{ user.balance }} р</b>
                 </a>
             </div>
             <div  class="menu_block">

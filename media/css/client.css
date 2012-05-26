@@ -21,7 +21,7 @@ body {
     margin:0 auto;
 }
 #left {
-    width:200px;
+    width:300px;
     height: 100%;
     float:left;
 }
@@ -30,8 +30,10 @@ body {
     float:right;
 }
 #main {
-    margin-left:202px;
+    margin-left:302px;
     height: 100%;
+    border-bottom: 10px;
+    border-color: #0078d7;
 }
 #content {
     font-size: 16px;
@@ -53,7 +55,6 @@ div.menu_block {
     font-size: 16px;
     text-align: center;
     position: relative;
-    width: 200px;
     height: 25%;
 }
 div.menu_block a {

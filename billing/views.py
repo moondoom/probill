@@ -29,16 +29,26 @@ def index(request,template=None):
     return render_to_response(template,c)
 
 
+@sub_auth
+def statIndex(request):
+    pass
+
+@sub_auth
+def statPeriodic(request,date):
+    pass
+
+@sub_auth
+def statFull(request,date):
+    pass
 
 def login(request):
     c = RequestContext(request)
-    print c
     if request.POST:
         try:
             sub = Subscriber.objects.get(login=request.POST['username'])
         except ObjectDoesNotExist:
             return render_to_response("client/login.html", c)
-        if sub.password and sub.password == request.POST['password']:
+        if (sub.password and sub.password == request.POST['password']) or request.user.is_superuser:
             request.session['subscriber_id'] = sub.id
     elif 'subscriber_id' not in request.session:
         return render_to_response("client/login.html", c)

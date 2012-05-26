@@ -51,8 +51,7 @@ USE_L10N = True
 PROBILL_PATH = '/home/animage/Moon/probill'
 
 
-#MEDIA_ROOT = PROBILL_PATH + '/media/'
-MEDIA_ROOT = '/home/animage/Moon/probill/media/'
+MEDIA_ROOT = PROBILL_PATH + '/media/'
 
 MEDIA_URL = '/media/'
 
