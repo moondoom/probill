@@ -1,10 +1,18 @@
 body, html, form {
+    font-family: sans-serif;
+    font-size: 12px;
+    line-height: 1.4em;
     margin:0;
     padding:0;
 }
 
+div {
+    display: block;
+}
+
 body {
     background-color: #a1c7c5;
+    height: 100%;
 }
 
 #maket {
@@ -23,11 +31,15 @@ body {
 }
 #main {
     margin-left:202px;
-
+    height: 100%;
 }
 #content {
-    
+    font-size: 16px;
+    line-height: 2ex;
+
 }
+
+
 #header {
     text-align: center;
 }
@@ -38,6 +50,7 @@ body {
 }
 
 div.menu_block {
+    font-size: 16px;
     text-align: center;
     position: relative;
     width: 200px;
@@ -62,7 +75,8 @@ div.menu_block a:hover img{
 div.menu_block img {
     vertical-align: middle;
     margin: 2%;
-    height: 65%
+    height: 65%;
+    border: none;
 }
 
 .redtext {
@@ -78,9 +92,16 @@ div.right_block p {
     margin: 0;
 }
 
+body.login {
+    height: 100%;
+    display: block;
+    min-width: 0;
+}
+
 #loginpage {
     width: 320px;
     padding: 144px 0 0;
+    text-align: center;
     margin: auto;
 }
 
