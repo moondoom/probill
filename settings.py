@@ -2,8 +2,7 @@
 import django
 
 
-
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -48,7 +47,7 @@ USE_L10N = True
 
 
 
-PROBILL_PATH = '/home/animage/Moon/probill'
+PROBILL_PATH = '/usr/local/probill'
 
 
 MEDIA_ROOT = PROBILL_PATH + '/media/'
