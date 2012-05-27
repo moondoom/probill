@@ -33,8 +33,10 @@ def main():
                     break
         else:
             break
-    Account.process_traffic(raw_traffic,file_time)
-    PeriodicLog.log('Ошибка скрипта: обработки данных netflow %s' % pipe ,code=100)
+    try:
+        Account.process_traffic(raw_traffic,file_time)
+    except :
+        PeriodicLog.log('Ошибка скрипта: обработки данных netflow %s' % pipe ,code=100)
 
 if __name__=="__main__":
     if len(sys.argv) >= 2:

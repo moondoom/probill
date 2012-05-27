@@ -145,4 +145,4 @@ NETGRAPH_PATH = '/usr/sbin/ngctl'
 
 ARP_PATH = '/usr/sbin/arp'
 
-LOCAL_NAS_ID = 2
+LOCAL_NAS_ID = 1
