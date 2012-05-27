@@ -31,8 +31,8 @@ def main():
             new_config += hostConfig(account)
 
     old_config = open('/usr/local/etc/dhcpd.conf','r').read()
-    if old_config <>  new_config:
-        open('/usr/local/etc/dhcpd.conf','w').write(old_config)
+    if old_config <> new_config:
+        open('/usr/local/etc/dhcpd.conf','w').write(new_config)
         if checkConfig():
             if settings.DEBUG:
                 PeriodicLog.log('New dhcp config check ok. Restarting dhcpd.')
