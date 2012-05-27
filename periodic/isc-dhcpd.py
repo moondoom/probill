@@ -3,7 +3,6 @@
 
 #System import
 import os
-import hashlib
 
 # Django import
 from django.core.exceptions import ObjectDoesNotExist
@@ -32,7 +31,7 @@ def main():
             new_config += hostConfig(account)
 
     old_config = open('/usr/local/etc/dhcpd.conf','r').read()
-    if hashlib.md5.new(old_config).digest() <>  hashlib.md5.new(new_config).digest():
+    if old_config <>  new_config:
         open('/usr/local/etc/dhcpd.conf','w').write(old_config)
         if checkConfig():
             if settings.DEBUG:
