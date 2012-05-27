@@ -9,14 +9,14 @@ import hashlib
 from django.core.exceptions import ObjectDoesNotExist
 
 #Billing import
+from default_periodic import settings
 from probill.nas.models import *
 from probill.billing.models import PeriodicLog,Account
-from probill.settings import *
 
 
 def main():
     try:
-        NasServer.objects.get(id=LOCAL_NAS_ID)
+        NasServer.objects.get(id=settings.LOCAL_NAS_ID)
     except ObjectDoesNotExist:
         PeriodicLog.log('Неудалось найти локального NAS сервера c id = 1 Выполнение останволенно',code=100)
         exit(1)
@@ -35,7 +35,7 @@ def main():
     if hashlib.md5.new(old_config).digest() <>  hashlib.md5.new(new_config).digest():
         open('/usr/local/etc/dhcpd.conf','w').write(old_config)
         if checkConfig():
-            if DEBUG:
+            if settings.DEBUG:
                 PeriodicLog.log('New dhcp config check ok. Restarting dhcpd.')
             print os.popen('/usr/local/etc/rc.d/isc-dhcpd restart').read()
         else:
