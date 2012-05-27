@@ -28,7 +28,7 @@ def main():
             new_config += netConfig(d_subnet)
             local_subnet.append(d_subnet.subnet)
     for subnet in local_subnet:
-        for account in Account.objects.filter(ip__in=subnet).exclude(mac=None):
+        for account in Account.objects.filter(ip__in=subnet.network).exclude(mac=None):
             new_config += hostConfig(account)
 
     old_config = open('/usr/local/etc/dhcpd.conf','r').read()
