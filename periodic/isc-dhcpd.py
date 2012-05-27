@@ -24,7 +24,7 @@ def main():
     local_subnet = []
     for d_server in nas.dhcpserver_set.all():
         new_config = configHead(d_server)
-        for d_subnet in DHCPServer.dhcpsubnet_set.all():
+        for d_subnet in d_server.dhcpsubnet_set.all():
             new_config += netConfig(d_subnet)
             local_subnet.append(d_subnet.subnet)
     for subnet in local_subnet:
