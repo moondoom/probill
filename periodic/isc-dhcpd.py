@@ -67,7 +67,7 @@ subnet %s netmask %s {
         max-lease-time 86400;
         option routers %s;
 }
-    """ % (dhcp_subnet.subnet.network,dhcp_subnet.subnet.netmask,dhcp_subnet.default_router)
+    """ % (dhcp_subnet.subnet.network.network,dhcp_subnet.subnet.network.netmask,dhcp_subnet.default_router)
 
 
 def configHead(dhcp_server):
