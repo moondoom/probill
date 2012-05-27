@@ -16,13 +16,13 @@ from probill.billing.models import PeriodicLog,Account
 
 def main():
     try:
-        NasServer.objects.get(id=settings.LOCAL_NAS_ID)
+        nas = NasServer.objects.get(id=settings.LOCAL_NAS_ID)
     except ObjectDoesNotExist:
         PeriodicLog.log('Неудалось найти локального NAS сервера c id = 1 Выполнение останволенно',code=100)
         exit(1)
     new_config = ''
     local_subnet = []
-    for d_server in NasServer.dhcpserver_set.all()[0]:
+    for d_server in nas.dhcpserver_set.all()[0]:
         new_config += configHead(d_server)
         for d_subnet in DHCPServer.dhcpsubnet_set.all():
             new_config += netConfig(d_subnet)
