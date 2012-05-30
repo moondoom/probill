@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from django.db import models, connection
+from django.db import models, connection, transaction
 from django.db.models import Q
 from django.contrib.admin.models import User
+from django.db.utils import DatabaseError
 from probill.lib.networks import IPNetworkField,IPAddressField
-from datetime import datetime
+from datetime import datetime, timedelta
 from ipaddr import IPAddress
 import calendar
 
@@ -52,7 +53,7 @@ class Subscriber(models.Model):
         (u'of',u'офис'),
         (u'hs',u'дом')
     )
-    login = models.CharField(u'Имя учётной записи',max_length=30,unique=True)
+    login = models.CharField(u'Имя учётной записи',max_length=30,unique=True,db_index=True)
     password = models.CharField(u'Пароль',max_length=30,blank=True,null=True)
     first_name = models.CharField(u'Фамилия',max_length=100)
     last_name = models.CharField(u'Имя',max_length=100)
@@ -79,7 +80,6 @@ class Subscriber(models.Model):
             self.last_name,
             ]
         )
-
 
     @property
     def addressString(self):
@@ -111,8 +111,8 @@ class AccountHistory(models.Model):
         (u'per',u'Абонентская плата'),
         (u'tra',u'За тарфик')
     )
-    datetime = models.DateTimeField(u'Время')
-    subscriber = models.ForeignKey(Subscriber)
+    datetime = models.DateTimeField(u'Время',db_index=True)
+    subscriber = models.ForeignKey(Subscriber,db_index=True)
     value = models.FloatField(u'Сумма')
     owner_type = models.CharField(u'Тип агента',max_length=3,choices=OWNER_CHOICES)
     owner_id = models.IntegerField(u'Агент')
@@ -188,7 +188,7 @@ class Tariff(models.Model):
         ('m','Месяц'),
         ('w','Неделя')
     )
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50,unique=True)
     rental_period = models.CharField(u'Период списания',max_length=1,choices=RENTAL_CHOICES,default='m')
     rental = models.FloatField(u'Абонетская плата',default=0)
     traffic_cost = models.FloatField('Стоимость за Мб',default=0)
@@ -279,14 +279,14 @@ class Account(models.Model):
     Учётные записи пользователей
     """
     subscriber = models.ForeignKey(Subscriber,verbose_name=u'Пользователь')
-    login = models.CharField('Имя учётной записи',max_length=30,unique=True)
+    login = models.CharField('Имя учётной записи',max_length=30,unique=True,db_index=True)
     password = models.CharField('Пароль',max_length=30,blank=True,null=True)
     tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name=u'Тариф')
-    ip = IPAddressField('IP адрес',unique=True)
+    ip = IPAddressField('IP адрес',unique=True,db_index=True)
     mac = models.CharField('MAC адрес',max_length=17,blank=True,null=True)
     create_date = models.DateTimeField('Дата создания',auto_now=True)
-    owner = models.ForeignKey(Manager,verbose_name=u'Создатель')
-    block_date = models.DateTimeField('Дата блокировки',null=True)
+    owner = models.ForeignKey(Manager,verbose_name=u'Создатель',db_index=True)
+    block_date = models.DateTimeField('Дата блокировки',null=True,editable=False)
     auto_block = models.BooleanField('Автоматическая блокировка',default=True)
     active = models.BooleanField('Активна',default=True)
 
@@ -342,16 +342,18 @@ class Account(models.Model):
     def CIDR(self):
         return '/'.join([str(self.ip),'32'])
 
+
+
     @classmethod
     def process_traffic(cls,raw_traffic,traffic_datetime):
-        cursor = connection.cursor()
+
         good_ip = {}
         bad_ip = []
         traffic_periods = {}
         traffic_details = []
         for row in raw_traffic:
-            dst_ip = row[1]
-            src_ip = row[0]
+            dst_ip = row[0]
+            src_ip = row[1]
             count = float(row[3])/1024/1024
             if dst_ip not in good_ip and dst_ip not in bad_ip:
                 try:
@@ -379,16 +381,11 @@ class Account(models.Model):
                         account = good_ip[dst_ip],
                         cost = 0,
                         count = count,
-                        datetime = datetime.now(),
+                        datetime = traffic_datetime,
                         qac_class = qac,
                         tariff = good_ip[dst_ip].tariff
                     )
-        query = '''
-        insert into billing_trafficdetail (datetime,src_ip,dst_ip,"count",account_id)
-        values (%s,%s,%s,%s,%s)
-        '''
-        cursor.executemany(query,traffic_details)
-        cursor.connection.commit()
+        TrafficDetail.insert_many(traffic_details)
         for i in traffic_periods:
             if traffic_periods[i].qac_class:
                 traffic_periods[i].cost = traffic_periods[i].count * traffic_periods[i].qac_class.traffic_cost
@@ -397,7 +394,7 @@ class Account(models.Model):
             traffic_periods[i].save()
             if traffic_periods[i].cost > 0:
                 accHist = AccountHistory(
-                    datetime=datetime.now(),
+                    datetime=traffic_datetime,
                     owner_id = traffic_periods[i].id,
                     owner_type = 'tra',
                     subscriber = traffic_periods[i].account.subscriber,
@@ -426,8 +423,8 @@ class TrafficByPeriod(models.Model):
     """
         Количество трафика потреблённого за отчётные период
     """
-    datetime = models.DateTimeField('Время')
-    account = models.ForeignKey("Account",verbose_name=u'Учётная запись')
+    datetime = models.DateTimeField('Время',db_index=True)
+    account = models.ForeignKey("Account",verbose_name=u'Учётная запись',db_index=True)
     tariff = models.ForeignKey("Tariff",verbose_name=u'Тариф')
     qac_class = models.ForeignKey("QosAndCost",blank=True,null=True,verbose_name=u'Класс трафика')
     count = models.FloatField('Количество')
@@ -443,14 +440,53 @@ class TrafficDetail(models.Model):
     """
         Детальная статистика за период
     """
-    datetime = models.DateTimeField('Время')
-    src_ip = IPAddressField('Источник')
-    dst_ip = IPAddressField('Назначение')
-    count = models.FloatField('Количество')
-    account = models.ForeignKey("Account",blank=True,null=True,verbose_name=u'Учётная запись')
+    datetime = models.DateTimeField('Время',db_index=True,editable=False)
+    src_ip = IPAddressField('Источник',editable=False)
+    dst_ip = IPAddressField('Назначение',editable=False)
+    count = models.FloatField('Количество',editable=False)
+    account = models.ForeignKey("Account",blank=True,null=True,verbose_name=u'Учётная запись',db_index=True,editable=False)
 
     class Meta:
         verbose_name_plural = u'Подробная статистика'
+        db_table = 'tdcore'
+
+
+    @classmethod
+    def check_table_name(cls,date):
+        table_name =  cls._meta.db_table + date.strftime('%Y%m%d')
+        cursor = connection.cursor()
+        try:
+            cursor.execute('select * from %s limit 1' % table_name)
+        except DatabaseError, e:
+            transaction.commit_unless_managed()
+            if e.args[0].count('does not exist'):
+                start_date = date.strftime('%Y-%m-%d')
+                end_date = (date + timedelta(1)).strftime('%Y-%m-%d')
+                sql = '''
+                CREATE TABLE %s (
+                    CHECK ( datetime >= DATE '%s' AND datetime < DATE '%s' )
+                ) INHERITS (%s);
+                ''' % (table_name,start_date,end_date,cls._meta.db_table)
+                cursor.execute(sql)
+        return table_name
+
+    @classmethod
+    def insert_many(cls,traffic_details):
+        traffic_by_date = {}
+        for traffic in traffic_details:
+            date = traffic[0].date()
+            if date in traffic_by_date:
+                traffic_by_date[date].append(traffic)
+            else:
+                traffic_by_date[date] = [traffic]
+        cursor = connection.cursor()
+        for date in traffic_by_date:
+            query = '''
+                insert into %s (datetime,src_ip,dst_ip,"count",account_id)
+                values (%%s,%%s,%%s,%%s,%%s)
+                ''' % cls.check_table_name(date)
+            cursor.executemany(query,traffic_details)
+        cursor.connection.commit()
 
     def __unicode__(self):
         return  ' '.join([unicode(self.datetime),unicode(self.src_ip),unicode(self.dst_ip)])

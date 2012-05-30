@@ -39,6 +39,7 @@ class DHCPServer(models.Model):
         verbose_name_plural = u'Службы DHCP'
         verbose_name = u'Служба DHCP'
 
+
 class DHCPSubnet(models.Model):
     dhcp_server = models.ForeignKey(DHCPServer,verbose_name=u'Служба DHCP')
     subnet = models.ForeignKey(IPInterface,verbose_name=u'Подсеть')

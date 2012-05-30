@@ -1,8 +1,7 @@
 import django
 
 
-
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -47,11 +46,10 @@ USE_L10N = True
 
 
 
-PROBILL_PATH = '/home/animage/Moon/probill'
+PROBILL_PATH = '/usr/local/probill'
 
 
-#MEDIA_ROOT = PROBILL_PATH + '/media/'
-MEDIA_ROOT = '/home/animage/Moon/probill/media/'
+MEDIA_ROOT = PROBILL_PATH + '/media/'
 
 MEDIA_URL = '/media/'
 
@@ -146,4 +144,4 @@ NETGRAPH_PATH = '/usr/sbin/ngctl'
 
 ARP_PATH = '/usr/sbin/arp'
 
-LOCAL_NAS_ID = 2
+LOCAL_NAS_ID = 1

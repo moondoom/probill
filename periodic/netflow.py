@@ -3,13 +3,14 @@
 
 from default_periodic import settings
 from probill.billing.models import *
+from datetime import datetime
 import os, sys, re
 
 def main():
     row_split = re.compile(r'\s*')
     raw_traffic = []
-
     flow_file =  sys.argv[1]
+    file_time = datetime.strptime(flow_file.split('/')[-1:][0][:-5],'ft-v05.%Y-%m-%d.%H%M%S')
     try:
         pipe = os.popen( '%s %s/%s | %s -f 10 -S 3' % ( settings.FLOW_CAT,
                                                      settings.FLOW_PATH,
@@ -17,6 +18,7 @@ def main():
                                                      settings.FLOW_STAT))
     except :
         PeriodicLog.log('Ошибка открытия файла %s/%s' % (settings.FLOW_PATH,flow_file))
+        exit(1)
     if settings.DEBUG:
         PeriodicLog.log('Начало обработки файла %s' % (pipe))
     while 1:
@@ -32,7 +34,7 @@ def main():
         else:
             break
     try:
-        Account.process_traffic(raw_traffic,datetime.now())
+        Account.process_traffic(raw_traffic,file_time)
     except :
         PeriodicLog.log('Ошибка скрипта: обработки данных netflow %s' % pipe ,code=100)
 
