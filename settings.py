@@ -1,4 +1,3 @@
-# Django settings for probill project.
 import django
 
 
