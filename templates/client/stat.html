@@ -43,13 +43,13 @@
                     {name:'dst_ip',index:'dst_ip', width:100},
                     {name:'count',index:'count', width:100}
                 ],
-                rowNum:20,
+                rowNum:50,
                 rowList:[20,50,100],
                 pager: '#pager',
+                maxHeight: '100%',
                 sortname: 'traffic',
                 viewrecords: true,
                 sortorder: "desc",
-                headerWidth: 20,
                 autowidth: true,
                 autoHeight: false,
                 jsonReader: {
@@ -63,8 +63,10 @@
     </script>
 {% endblock %}
 {% block content %}
-    <div>Начало: <input type="text" id='startpicker' class="datepicker">
-    Конец: <input type="text" id='endpicker' class="datepicker"> </div>
+    <div class="header">
+        Начало: <input type="text" id='startpicker' class="datepicker">
+        Конец: <input type="text" id='endpicker' class="datepicker">
+    </div>
     <div id="table-box"  >
         <table id='asn-table' ></table>
         <div id="pager"></div>

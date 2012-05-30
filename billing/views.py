@@ -3,13 +3,37 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404, HttpResponse
-from billing.models import *
 from django.core.exceptions import ObjectDoesNotExist
+
+from billing.models import *
+
+import datetime
+import json
+from math import ceil
+import time
+
+def parse_date(request):
+    try:
+        sdate = datetime.datetime.strptime(request.GET['sdate'],'%Y-%m-%d').date()
+    except:
+        sdate = datetime.date.today()
+    try:
+        edate = datetime.datetime.strptime(request.GET['edate'],'%Y-%m-%d').date()
+    except:
+        edate = None
+    if not edate or edate == sdate:
+        edate = sdate + datetime.timedelta(days=1)
+    elif sdate > edate:
+        tmdate = edate
+        edate = sdate
+        sdate = tmdate
+    return sdate , edate
+
 
 def sub_auth(fn):
     """
-    Подменяет стандартного пользователя user на subscriber
-    """
+       Подменяет стандартного пользователя user на subscriber
+       """
     def new (request,*arg,**kwargs):
         if 'subscriber_id' in request.session:
             try:
@@ -43,7 +67,16 @@ def stat_json(request):
         end_date = start_date
         start_date = tmp_date
         del tmp_date
-    traffic_stat = TrafficDetail.objects.filter(datetime__gte=start_date,datetime__lte=end_date)
+    stime = time.time()
+    traffic_stat = TrafficDetail.objects.filter(datetime__gte=start_date,
+        datetime__lte=end_date,
+        account__subscriber=request.user)
+    print  time.time() - stime
+    stime = time.time()
+    print len(traffic_stat)
+    print  time.time() - stime
+    stime = time.time()
+
     if len(traffic_stat) > 0:
         total_pages = int(ceil(len(traffic_stat)/limit))
     else:
@@ -51,11 +84,19 @@ def stat_json(request):
     if page > total_pages:
         page = total_pages
     start = limit * page - limit
+    end = start + limit
     if start < 0:
         start = 0
+    print  time.time() - stime
+    stime = time.time()
+
     response = {'page':page,'total':total_pages,'records':len(traffic_stat), 'rows':[]}
-    for rows in traffic_stat.values()[start:limit]:
+    for rows in traffic_stat.values()[start:end]:
+        rows['datetime'] = str(rows['datetime'])
         response['rows'].append(rows)
+    print  time.time() - stime
+
+
     return HttpResponse(json.dumps(response),mimetype='text/json')
 
 

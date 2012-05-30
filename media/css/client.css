@@ -26,30 +26,26 @@ body {
     float:left;
 }
 
-
 #main {
     margin-left:302px;
-    height: 100%;
-    border-bottom: 10px;
-    border-color: #0078d7;
+    /*height: 100%;*/
 }
+
 #content {
     font-size: 16px;
     line-height: 2ex;
-
+    height: 100%;
+    width: 100%;
 }
 
 
-#table-box .ui-jqgrid-titlebar {
+#content .ui-jqgrid-titlebar {
     height:20px;
 }
+
 #header {
     text-align: center;
-}
-
-#header a {
-    text-decoration: none;
-    color: #2a31db;
+    height: 5%;
 }
 
 div.menu_block {
