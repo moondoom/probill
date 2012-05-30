@@ -20,15 +20,13 @@ body {
     height: 100%;
     margin:0 auto;
 }
-#left {
+#left-block {
     width:300px;
     height: 100%;
     float:left;
 }
-#right {
-    width:300px;
-    float:right;
-}
+
+
 #main {
     margin-left:302px;
     height: 100%;
@@ -42,6 +40,9 @@ body {
 }
 
 
+#table-box .ui-jqgrid-titlebar {
+    height:20px;
+}
 #header {
     text-align: center;
 }
@@ -114,4 +115,3 @@ body.login {
     font-size: 14px;
     color: #808488;
 }
-
