@@ -60,6 +60,12 @@ def stat_json(request):
         page = int(request.GET['page'])
     except KeyError:
         return Http404()
+    try:
+        sidx = request.GET['sidx']
+        sord = request.GET['sord']
+    except KeyError:
+        sidx = 'datetime'
+        sord = 'desc'
     if not end_date or end_date == start_date:
         end_date = start_date + datetime.timedelta(days=1)
     elif start_date > end_date:
@@ -67,16 +73,13 @@ def stat_json(request):
         end_date = start_date
         start_date = tmp_date
         del tmp_date
-    stime = time.time()
     traffic_stat = TrafficDetail.objects.filter(datetime__gte=start_date,
         datetime__lte=end_date,
         account__subscriber=request.user)
-    print  time.time() - stime
-    stime = time.time()
-    print len(traffic_stat)
-    print  time.time() - stime
-    stime = time.time()
-
+    if sord == 'asc':
+        traffic_stat = traffic_stat.order_by(sidx)
+    else:
+        traffic_stat = traffic_stat.order_by("-" + sidx)
     if len(traffic_stat) > 0:
         total_pages = int(ceil(len(traffic_stat)/limit))
     else:
@@ -87,16 +90,10 @@ def stat_json(request):
     end = start + limit
     if start < 0:
         start = 0
-    print  time.time() - stime
-    stime = time.time()
-
     response = {'page':page,'total':total_pages,'records':len(traffic_stat), 'rows':[]}
     for rows in traffic_stat.values()[start:end]:
         rows['datetime'] = str(rows['datetime'])
         response['rows'].append(rows)
-    print  time.time() - stime
-
-
     return HttpResponse(json.dumps(response),mimetype='text/json')
 
 

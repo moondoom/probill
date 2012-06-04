@@ -23,7 +23,7 @@
                     <br/>
                     <img src="{{ MEDIA_URL }}image/client/money_icon_1.png" alt=""/>
                     <br/>
-                    <b {% if user.balance <= 0 %}class='redtext'{% endif %}>{{ user.balance }} р</b>
+                    <b {% if user.balance <= 0 %}class='redtext'{% endif %}>{{ user.balance|floatformat:2 }} р</b>
                 </a>
             </div>
             <div  class="menu_block">

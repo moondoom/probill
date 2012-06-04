@@ -4,7 +4,7 @@
     <ul>
         <li>ФИО: {{ user.first_name }} {{ user.last_name }} {{ user.father_name }}</li>
         <li>Адрес: {{ user.addressString }}</li>
-        <li>Баланс: {{ user.balance }} рублей</li>
+        <li>Баланс: {{ user.balance|floatformat:2 }} рублей</li>
         {% if user.phone %}<li>Контактный номер: {{ user.phone }}</li>{% endif %}
         {% if user.email %}<li>Адрес электроной почты: {{ user.email }}</li>{% endif %}
         <li> Учётный записи:

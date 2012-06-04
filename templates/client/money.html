@@ -1,7 +1,7 @@
 {% extends "client/main.html" %}
 
 {% block content %}
-    <p>Ваш текущий баланс: {{ user.balance }}</p>
+    <p>Ваш текущий баланс: {{ user.balance|floatformat:2 }}</p>
     <p>История списания: </p>
     <ul>
         {% for mon in user.accounthistory_set.all %}
