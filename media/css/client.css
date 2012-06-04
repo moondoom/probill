@@ -1,4 +1,4 @@
-body, html, form {
+body, html, form, table {
     font-family: sans-serif;
     font-size: 12px;
     line-height: 1.4em;
@@ -27,26 +27,39 @@ body {
 }
 
 #main {
-    margin-left:302px;
-    /*height: 100%;*/
-}
-
-#content {
-    font-size: 16px;
-    line-height: 2ex;
+    margin-left:300px;
     height: 100%;
-    width: 100%;
-}
-
-
-#content .ui-jqgrid-titlebar {
-    height:20px;
 }
 
 #header {
     text-align: center;
     height: 5%;
 }
+
+
+#content {
+    font-size: 16px;
+    line-height: 2ex;
+    width: 98%;
+    height: 95%;
+    float: left;
+}
+
+#stat-content {
+    font-size: 12px;
+    line-height: 1ex;
+    width: 100%;
+}
+
+#range-picker {
+    height: 20%;
+}
+
+#table-box {
+    height: 70%;
+
+}
+
 
 div.menu_block {
     font-size: 16px;

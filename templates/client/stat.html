@@ -37,37 +37,57 @@
                 datatype: "json",
                 colNames:['Дата и Время','Источник', 'Назначение', 'Количество'],
                 colModel:[
-                    {name:'datetime',index:'datetime', width:100},
-                    {name:'src_ip',index:'src_ip', width:170},
-                    {name:'dst_ip',index:'dst_ip', width:100},
-                    {name:'count',index:'count', width:100}
+                    {name:'datetime',index:'datetime', minWidth:70},
+                    {name:'src_ip',index:'src_ip', minWidth:70},
+                    {name:'dst_ip',index:'dst_ip', minWidth:70},
+                    {name:'count',index:'count', minWidth:70}
                 ],
-                rowNum:50,
+                rowNum:20,
                 rowList:[20,50,100],
                 pager: '#pager',
-                maxHeight: '100%',
+                height: '75%',
                 sortname: 'traffic',
                 viewrecords: true,
                 sortorder: "desc",
                 autowidth: true,
-                autoHeight: false,
                 jsonReader: {
                     repeatitems : false,
                     id: "0"
                 },
                 caption: "Статистика по AS"
             });
-            $("#asn-table").jqGrid('navGrid','#pager',{edit:false,add:false,del:false});
+            $("#asn-table").jqGrid('navGrid','#pager',{edit:false,add:false,del:false,height: '10%'});
         });
     </script>
 {% endblock %}
 {% block content %}
-    <div class="header">
-        Начало: <input type="text" id='startpicker' class="datepicker">
-        Конец: <input type="text" id='endpicker' class="datepicker">
-    </div>
-    <div id="table-box"  >
-        <table id='asn-table' ></table>
-        <div id="pager"></div>
-    </div>
+    <table id='stat-content'>
+        <tbody>
+        <tr>
+            <td id="range-picker">
+                Временной диапазон
+                <p>
+                    <label for="startpicker">
+                        С
+                        <br>
+                        <input type="text" id='startpicker' class="datepicker" tabindex="10">
+                    </label>
+                </p>
+                <p>
+                    <label for="endpicker">
+                        По
+                        <br>
+                        <input type="text" id='endpicker' class="datepicker" tabindex="10">
+                    </label>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td id="table-box">
+                <table id='asn-table' ></table>
+                <div id="pager"></div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 {% endblock %}
