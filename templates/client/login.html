@@ -1,31 +1,22 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="ru-ru">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="ru-ru" style="height: 100%">
 <head>
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/client.css"/>
     <title>Добро пожаловать</title>
 </head>
-<body class="login">
-    <div id="loginpage">
-        <form id="loginform" action="login" method="POST">
-            <p>
-            <label for="user_login">
-                Пользователь
-                <br>
-                <input type="text" name="username" id="user_login" value size="20" tabindex="10">
-            </label>
-            </p>
-            <p>
-            <label for="user_password">
-                Пароль
-                <br>
-                <input type="password" name="password" id="user_password" value size="20" tabindex="10">
-            </label>
-            </p>
-            <p>
-                <input type="submit" id='submit' value="Вход">
+<body class="login" >
+    <div id="loginpage" style="background-image: url({{ MEDIA_URL }}image/theme/client_login_bkground.png);">
+
+            <form id="login_form" action="login" method="POST">
+                <input type="text" name="username" id="user_login"  tabindex="10">
+                <input type="password" name="password" id="user_password"  tabindex="10">
+                <input type="submit" id='submit' value="" style="background-image: url({{ MEDIA_URL }}image/theme/login_botton.png);">
                 {% csrf_token %}
-            </p>
-        </form>
+            </form>
+
+    </div>
+    <div id="loginfoter">
+
     </div>
 
 </body>

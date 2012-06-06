@@ -7,6 +7,12 @@ from datetime import datetime
 import os, sys, re
 
 def main():
+    """
+       flow-stat -f 10 -S1300
+       # src IPaddr     dst IPaddr       flows                 octets                packets
+       #
+       1.1.1.1        8.8.8.8               1                       20                      1
+       """
     row_split = re.compile(r'\s*')
     raw_traffic = []
     flow_file =  sys.argv[1]
@@ -26,9 +32,9 @@ def main():
         if line:
             if not line.count('#'):
                 line = re.split(row_split,line)
-                octets = int(line[3])
+                octets = float(line[3])
                 if octets > 5096:
-                    raw_traffic.append(line)
+                    raw_traffic.append(line[:2].append(octets))
                 else:
                     break
         else:

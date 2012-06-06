@@ -2,6 +2,7 @@ body, html, form, table {
     font-family: sans-serif;
     font-size: 12px;
     line-height: 1.4em;
+    
     margin:0;
     padding:0;
 }
@@ -10,6 +11,9 @@ div {
     display: block;
 }
 
+a {
+    text-decoration: none;
+}
 body {
     background-color: #a1c7c5;
     height: 100%;
@@ -29,6 +33,13 @@ body {
 #main {
     margin-left:300px;
     height: 100%;
+}
+
+#logout {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+
 }
 
 #header {
@@ -54,6 +65,8 @@ body {
 #range-picker {
     height: 20%;
 }
+#loginpage input {
+}
 
 #table-box {
     height: 70%;
@@ -70,7 +83,6 @@ div.menu_block {
 div.menu_block a {
     vertical-align: middle;
     text-align: center;
-    text-decoration: none;
     color: #2a31db;
 }
 
@@ -106,21 +118,45 @@ div.right_block p {
 body.login {
     height: 100%;
     display: block;
-    min-width: 0;
+    background-color: #ffffff;
 }
 
 #loginpage {
-    width: 320px;
-    padding: 144px 0 0;
+    width: 100%;
+    height: 100% !important;
+    height: 100%;
+    min-height: 621px;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+}
+#login_form {
+    left: 50%;
+    top: 50%;
+    width: 161px;
+    height: 208px;
+    margin-left: -60px;
+    margin-top: -116px;
+    position: absolute;
     text-align: center;
-    margin: auto;
 }
 
-#loginpage p {
-    padding-left: 20px;
+#login_form input {
+    font-size: 16px;
+    width: 128px;
+    margin-top: 33px;
+    height: 23px;
+    font-family: sans-serif;
+    text-align: center;
+
 }
 
-#loginpage p label {
-    font-size: 14px;
-    color: #808488;
+#login_form #submit {
+    width: 78px;
+    height: 32px;
+    cursor:pointer;
+    margin-top: 22px;
+    background-size: cover;
+    background-position: top;
+    background-repeat: no-repeat;
 }

@@ -352,9 +352,9 @@ class Account(models.Model):
         traffic_periods = {}
         traffic_details = []
         for row in raw_traffic:
-            dst_ip = row[0]
-            src_ip = row[1]
-            count = float(row[3])/1024/1024
+            src_ip = row[0]
+            dst_ip = row[1]
+            count = row[2]/1024/1024
             if dst_ip not in good_ip and dst_ip not in bad_ip:
                 try:
                     good_ip[dst_ip] = cls.objects.get(ip=dst_ip)
