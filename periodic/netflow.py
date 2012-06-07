@@ -32,9 +32,9 @@ def main():
         if line:
             if not line.count('#'):
                 line = re.split(row_split,line)
-                octets = float(line[3])
+                line = [line[0],line[1],float(line[3])]
                 if octets > 5096:
-                    raw_traffic.append(line[:2].append(octets))
+                    raw_traffic.append(line)
                 else:
                     break
         else:

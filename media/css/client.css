@@ -128,34 +128,35 @@ body.login {
     min-height: 621px;
     background-repeat: no-repeat;
     background-position: center;
+    background-size: 1000px 657px;
     position: absolute;
 }
 #login_form {
     left: 50%;
     top: 50%;
-    width: 161px;
-    height: 208px;
-    margin-left: -60px;
-    margin-top: -116px;
+    width: 198px;
+    height: 258px;
+    margin-left: -68px;
+    margin-top: -137px;
     position: absolute;
     text-align: center;
 }
 
 #login_form input {
-    font-size: 16px;
-    width: 128px;
-    margin-top: 33px;
-    height: 23px;
+    font-size: 18px;
+    width: 150px;
+    margin-top: 37px;
+    height: 28px;
     font-family: sans-serif;
     text-align: center;
 
 }
 
 #login_form #submit {
-    width: 78px;
-    height: 32px;
+    width: 82px;
+    height: 37px;
     cursor:pointer;
-    margin-top: 22px;
+    margin-top: 32px;
     background-size: cover;
     background-position: top;
     background-repeat: no-repeat;
