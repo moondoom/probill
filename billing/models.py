@@ -362,8 +362,8 @@ class Account(models.Model):
                     bad_ip.append(dst_ip)
             traffic_details.append(
                 [traffic_datetime,
-                dst_ip,
                 src_ip,
+                dst_ip,
                 count,
                 None]
             )
