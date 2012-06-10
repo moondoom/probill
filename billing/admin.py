@@ -8,7 +8,7 @@ class MySubscriberAdmin(admin.ModelAdmin):
     search_fields = ('first_name','last_name','address_street','address_house','address_flat','login')
 
 class MyAccountAdmin(admin.ModelAdmin):
-    list_display = ('subscriber','login','ip','tariff','block_date','active')
+    list_display = ('subscriber','login','ip','tariff','block_date','active','alt_route')
     search_fields = ('login','ip','tariff','block_date')
 
 class MyTrafficByPeriodAdmin(admin.ModelAdmin):

@@ -142,7 +142,7 @@ class IpfwQueues(IpfwObject):
 
 def main():
     QOS_TABLE = IPFW_MIN_TABLE + 1
-    ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{}}
+    ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{},IPFW_ALT_ROUTE_TABLE:{}}
     ipfw_rules_in = {
         IPFW_END_IN - IPFW_RULE_STEP*2 : 'queue tablearg ip from table(%s) to any' % QOS_TABLE,
         IPFW_END_IN - IPFW_RULE_STEP: 'allow ip from table(%s) to any' % IPFW_MIN_TABLE,
@@ -172,6 +172,8 @@ def main():
 
     for account in Account.objects.filter(active=True):
         ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
+        if account.alt_route:
+            ipfw_tables[IPFW_ALT_ROUTE_TABLE][account.CIDR] = 0
     for account in Account.objects.filter(active=True):
         if account.tariff.qos_speed:
             speed_id = str(account.tariff.qos_speed)
@@ -203,6 +205,7 @@ def main():
     Pipes.check(pipe_std)
     Queues = IpfwQueues()
     Queues.check(queue_std)
+
 
     for num in ipfw_tables:
         ipfw_table = IpfwTable(num)

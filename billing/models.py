@@ -289,6 +289,7 @@ class Account(models.Model):
     block_date = models.DateTimeField('Дата блокировки',null=True,editable=False)
     auto_block = models.BooleanField('Автоматическая блокировка',default=True)
     active = models.BooleanField('Активна',default=True)
+    alt_route = models.BooleanField('Испопользовать альтернативный маршрут',default=False)
 
     class Meta:
         verbose_name_plural = u'Учётные записи'
