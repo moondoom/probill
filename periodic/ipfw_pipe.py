@@ -134,7 +134,7 @@ class IpfwQueues(IpfwObject):
             mask = 'src-ip'
         else:
             mask = 'dst-ip'
-        self.get('queue %s config pipe %s queue %s mask %s 0xffffffff' % (id,arg,IPFW_QUEUE_SIZE,mask))
+        self.get('queue %s config pipe %s queue %s weight 50 mask %s 0xffffffff' % (id,arg,IPFW_QUEUE_SIZE,mask))
 
     def remove(self,id):
         self.get('queue %s delete' % id)
