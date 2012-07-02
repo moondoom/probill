@@ -111,7 +111,7 @@ class IpfwPipes(IpfwObject):
 
 
     def add(self,id,arg):
-        self.get('pipe %s config bw %sKbit/s queue 100' % (id,arg))
+        self.get('pipe %s config bw %sKbit/s queue %s' % (id,arg,IPFW_QUEUE_SIZE))
 
     def remove(self,id):
         self.get('pipe %s delete' % id)
@@ -134,7 +134,7 @@ class IpfwQueues(IpfwObject):
             mask = 'src-ip'
         else:
             mask = 'dst-ip'
-        self.get('queue %s config pipe %s queue 100 mask %s 0xffffffff' % (id,arg,mask))
+        self.get('queue %s config pipe %s queue %s mask %s 0xffffffff' % (id,arg,IPFW_QUEUE_SIZE,mask))
 
     def remove(self,id):
         self.get('queue %s delete' % id)
