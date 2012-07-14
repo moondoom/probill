@@ -16,7 +16,7 @@ DATABASES = {
         'NAME': 'probill',                      # Or path to database file if using sqlite3.
         'USER': 'probill',                      # Not used with sqlite3.
         'PASSWORD': 'probill',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': 'ramms.animage.me',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -46,7 +46,7 @@ USE_L10N = True
 
 
 
-PROBILL_PATH = '/usr/local/probill'
+PROBILL_PATH = '/home/animage/Moon/probill'
 
 MEDIA_ROOT = PROBILL_PATH + '/media/'
 
@@ -139,7 +139,7 @@ IPFW_END_IN = 21800
 IPFW_START_OUT = 22100
 IPFW_END_OUT = 22800
 IPFW_ALT_ROUTE_TABLE = 20
-IPFW_QUEUE_SIZE = 100
+IPFW_QUEUE_SIZE = 50
 
 NETGRAPH_PATH = '/usr/sbin/ngctl'
 
