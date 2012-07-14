@@ -81,15 +81,15 @@ def stat_json(request):
     else:
         traffic_stat = traffic_stat.order_by("-" + sidx)
     if len(traffic_stat) > 0:
-        total_pages = int(ceil(len(traffic_stat)/limit))
+        total_pages = int(ceil(float(len(traffic_stat))/limit))
     else:
         total_pages = 0
     if page > total_pages:
         page = total_pages
     start = limit * page - limit
-    end = start + limit
     if start < 0:
         start = 0
+    end = start + limit
     response = {'page':page,'total':total_pages,'records':len(traffic_stat), 'rows':[]}
     for rows in traffic_stat.values()[start:end]:
         rows['datetime'] = str(rows['datetime'])
