@@ -37,6 +37,7 @@ IPFW_PATH = config.get('prog_path', 'IPFW_PATH')
 NETGRAPH_PATH = config.get('prog_path', 'NETGRAPH_PATH')
 ARP_PATH = config.get('prog_path', 'ARP_PATH')
 PING_PATH = config.get('prog_path', 'PING_PATH')
+ROUTE_PATH = config.get('prog_path', 'ROUTE_PATH')
 
 ## IPFW settings
 IPFW_MIN_TABLE = config.getint('ipfw', 'IPFW_MIN_TABLE')

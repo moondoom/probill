@@ -83,7 +83,7 @@ class UpLink(models.Model):
         verbose_name_plural = u'Внешние каналы'
         verbose_name = u'Внешний канал'
         unique_together = ("nas", "ipfw_nat_id")
-        ordering = ['priority']
+        ordering = ['priority','ipfw_nat_id']
 
     def __unicode__(self):
         return u'%s - %s на %s' % (self.local_address,self.remote_address,self.nas.__unicode__())
