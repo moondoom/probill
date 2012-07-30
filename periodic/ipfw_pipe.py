@@ -160,6 +160,8 @@ def main():
     # NAT section
     nats = UpLink.objects.filter(active=True,enabled=True,nas__id=LOCAL_NAS_ID)
     cursor = IPFW_NAT_START
+    ipfw_rules_nat[cursor] = 'nat tablearg ip from table(%s) to any' % IPFW_NAT_TABLE
+    cursor += IPFW_RULE_STEP
     nat_priority_table = {}
     nat_max_priority = nats[len(nats)-1].priority
     for nat in nats:
@@ -167,8 +169,6 @@ def main():
             nat_priority_table[nat.priority] = [nat]
         else:
             nat_priority_table[nat.priority].append(nat)
-        ipfw_rules_nat[cursor] = 'nat %s ip from table(%s) to any' % (nat.ipfw_nat_id,IPFW_NAT_TABLE)
-        cursor += IPFW_RULE_STEP
         ipfw_rules_nat[cursor] = 'nat %s ip from any to %s' % (nat.ipfw_nat_id,nat.local_address)
         cursor += IPFW_RULE_STEP
         ipfw_rules_nat[cursor] = 'fwd %s ip from %s to any' % (nat.remote_address,nat.local_address)
