@@ -90,7 +90,7 @@ class UpLink(models.Model):
 
 class UpLinkPolice(models.Model):
     nat_address = models.ForeignKey(UpLink,verbose_name=u'Трансляция адерсов')
-    network = IPNetworkField(u'Подсеть',blank=True,null=True)
+    network = IPNetworkField(u'Подсеть',null=True,default='0.0.0.0/32')
     accounts = models.ManyToManyField(Account,blank=True,null=True)
     priority = models.IntegerField(u'Приоритет',choices=PRIORITY_CHOICES,default=3)
     
