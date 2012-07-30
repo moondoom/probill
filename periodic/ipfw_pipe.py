@@ -177,11 +177,11 @@ def main():
     account_static_nat = {}
     for nat_rule in UpLinkPolice.objects.filter(nat_address__in=nats):
         if nat_rule.accounts:
-            for account in nat_rule.accounts:
-                account_static_nat[account.id] = nat_rule.nat_address.objects.all()
+            for account in nat_rule.accounts.all():
+                account_static_nat[account.id] = nat_rule.nat_address
         if nat_rule.network:
             for account in Account.objects.filter(ip__in=nat_rule.network):
-                account_static_nat[account.id] = nat_rule.nat_address.objects.all()
+                account_static_nat[account.id] = nat_rule.nat_address
 
     nat_choice_length = len(nat_priority_table[nat_max_priority]) - 1
     nat_choice = 0
