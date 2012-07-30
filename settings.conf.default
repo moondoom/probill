@@ -1,0 +1,49 @@
+[database]
+DATABASE_USER = probill
+DATABASE_PASSWORD = probill
+DATABASE_HOST = localhost
+DATABASE_PORT = 
+DATABASE_ENGINE = django.db.backends.postgresql_psycopg2
+DATABASE_NAME = probill
+
+[debug]
+DEBUG = TRUE
+TEMPLATE_DEBUG = True
+
+[main]
+TIME_ZONE = Asia/Novokuznetsk
+LANGUAGE_CODE = ru-ru
+SITE_ID = 1
+
+[probill]
+PROBILL_PATH = /usr/local/probill
+
+[prog_path]
+FLOW_CAT = /usr/local/bin/flow-cat
+FLOW_STAT = /usr/local/bin/flow-stat
+FLOW_PATH = /usr/local/flowdata
+IPFW_PATH = /sbin/ipfw
+NETGRAPH_PATH = /usr/sbin/ngctl
+ARP_PATH = /usr/sbin/arp
+PING_PATH = /sbin/ping
+
+[ipfw]
+# General
+IPFW_MIN_TABLE = 30
+IPFW_RULE_STEP = 10
+IPFW_START_IN = 21100
+IPFW_END_IN = 21800
+IPFW_START_OUT = 22100
+IPFW_END_OUT = 22800
+
+# IPFW shape
+IPFW_QUEUE_SIZE = 50
+
+#Nat config
+IPFW_NAT_TABLE = 20
+IPFW_NAT_START = 3000
+IPFW_NAT_END = 3100
+
+[nas]
+LOCAL_NAS_ID = 1
+

@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import default_periodic
+import random
 from settings import *
 from probill.billing.models import *
+from probill.nas.models import *
 import re
 from subprocess import Popen,PIPE
 
@@ -142,7 +144,7 @@ class IpfwQueues(IpfwObject):
 
 def main():
     QOS_TABLE = IPFW_MIN_TABLE + 1
-    ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{},IPFW_ALT_ROUTE_TABLE:{}}
+    ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{},IPFW_NAT_TABLE:{}}
     ipfw_rules_in = {
         IPFW_END_IN - IPFW_RULE_STEP*2 : 'queue tablearg ip from table(%s) to any' % QOS_TABLE,
         IPFW_END_IN - IPFW_RULE_STEP: 'allow ip from table(%s) to any' % IPFW_MIN_TABLE,
@@ -153,6 +155,49 @@ def main():
         IPFW_END_OUT - IPFW_RULE_STEP: 'allow ip from any to table(%s)' % IPFW_MIN_TABLE,
         IPFW_END_OUT : 'deny ip from any to any',
         }
+    ipfw_rules_nat = {}
+
+    # NAT section
+    nats = UpLink.objects.filter(active=True,enabled=True,nas__id=LOCAL_NAS_ID)
+    cursor = IPFW_NAT_START
+    nat_priority_table = {}
+    nat_max_priority = nats[len(nats)-1].priority
+    for nat in nats:
+        if nat.priority not in nat_priority_table:
+            nat_priority_table[nat.priority] = [nat]
+        else:
+            nat_priority_table[nat.priority].append(nat)
+        ipfw_rules_nat[cursor] = 'nat %s ip from table(%s) to any' % (nat.ipfw_nat_id,IPFW_NAT_TABLE)
+        cursor += IPFW_RULE_STEP
+        ipfw_rules_nat[cursor] = 'nat %s ip from any to %s' % (nat.ipfw_nat_id,nat.local_address)
+        cursor += IPFW_RULE_STEP
+        ipfw_rules_nat[cursor] = 'fwd %s ip from %s to any' % (nat.remote_address,nat.local_address)
+        cursor += IPFW_RULE_STEP
+
+    account_static_nat = {}
+    for nat_rule in UpLinkPolice.objects.filter(nat_address__in=nats):
+        if nat_rule.accounts:
+            for account in nat_rule.accounts:
+                account_static_nat[account.id] = nat_rule.nat_address
+        if nat_rule.network:
+            for account in Account.objects.filter(ip__in=nat_rule.network):
+                account_static_nat[account.id] = nat_rule.nat_address
+
+    nat_choice_length = len(nat_priority_table[nat_max_priority]) - 1
+    nat_choice = 0
+    for account in Account.objects.filter(active=True):
+        ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
+        if account.id in account_static_nat:
+            nat_id = account_static_nat[account.id].ipfw_nat_id
+        else:
+            if nat_choice > nat_choice_length:
+                nat_choice = 0
+            nat_id = nat_priority_table[nat_max_priority][nat_choice].ipfw_nat_id
+            nat_choice += 1
+        ipfw_tables[IPFW_NAT_TABLE][account.CIDR] = nat_id
+
+
+    # Qos section
     qos_maps = {}
     queue_map = {}
     queue_map_id = 1
@@ -170,10 +215,6 @@ def main():
         ipfw_rules_out[rule_offset + IPFW_START_OUT] = 'queue tablearg ip from %s to table(%s)' % (nets,table_number+1)
 
 
-    for account in Account.objects.filter(active=True):
-        ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
-        if account.alt_route:
-            ipfw_tables[IPFW_ALT_ROUTE_TABLE][account.CIDR] = 0
     for account in Account.objects.filter(active=True):
         if account.tariff.qos_speed:
             speed_id = str(account.tariff.qos_speed)
@@ -207,6 +248,7 @@ def main():
     Queues.check(queue_std)
 
 
+
     for num in ipfw_tables:
         ipfw_table = IpfwTable(num)
         ipfw_table.check(ipfw_tables[num])
@@ -215,6 +257,8 @@ def main():
     rule_in.check(ipfw_rules_in)
     rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT)
     rule_out.check(ipfw_rules_out)
+    rule_nat = IpfwRuleSet(IPFW_NAT_START,IPFW_NAT_END)
+    rule_nat.check(ipfw_rules_nat)
 
 
 

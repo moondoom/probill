@@ -279,17 +279,17 @@ class Account(models.Model):
     Учётные записи пользователей
     """
     subscriber = models.ForeignKey(Subscriber,verbose_name=u'Пользователь')
-    login = models.CharField('Имя учётной записи',max_length=30,unique=True,db_index=True)
-    password = models.CharField('Пароль',max_length=30,blank=True,null=True)
+    login = models.CharField(u'Имя учётной записи',max_length=30,unique=True,db_index=True)
+    password = models.CharField(u'Пароль',max_length=30,blank=True,null=True)
     tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name=u'Тариф')
-    ip = IPAddressField('IP адрес',unique=True,db_index=True)
-    mac = models.CharField('MAC адрес',max_length=17,blank=True,null=True)
-    create_date = models.DateTimeField('Дата создания',auto_now=True)
+    ip = IPAddressField(u'IP адрес',unique=True,db_index=True)
+    mac = models.CharField(u'MAC адрес',max_length=17,blank=True,null=True)
+    create_date = models.DateTimeField(u'Дата создания',auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name=u'Создатель',db_index=True)
-    block_date = models.DateTimeField('Дата блокировки',null=True,editable=False)
-    auto_block = models.BooleanField('Автоматическая блокировка',default=True)
-    active = models.BooleanField('Активна',default=True)
-    alt_route = models.BooleanField('Испопользовать альтернативный маршрут',default=False)
+    block_date = models.DateTimeField(u'Дата блокировки',null=True,editable=False)
+    auto_block = models.BooleanField(u'Автоматическая блокировка',default=True)
+    active = models.BooleanField(u'Активна',default=True)
+    alt_route = models.BooleanField(u'Альтернативный маршрут',default=False)
 
     class Meta:
         verbose_name_plural = u'Учётные записи'

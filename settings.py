@@ -1,55 +1,61 @@
 import django
+from ConfigParser import RawConfigParser
 
+config = RawConfigParser()
 
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
-
-ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
-)
-
-MANAGERS = ADMINS
+config.read('settings.conf.default')
+config.read('/etc/probill/settings.conf')
+config.read('/usr/local/etc/probill/settings.conf')
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'probill',                      # Or path to database file if using sqlite3.
-        'USER': 'probill',                      # Not used with sqlite3.
-        'PASSWORD': 'probill',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'USER' : config.get('database', 'DATABASE_USER'),
+        'PASSWORD' : config.get('database', 'DATABASE_PASSWORD'),
+        'HOST' : config.get('database', 'DATABASE_HOST'),
+        'PORT' : config.get('database', 'DATABASE_PORT'),
+        'ENGINE' : config.get('database', 'DATABASE_ENGINE'),
+        'NAME' : config.get('database', 'DATABASE_NAME'),
     }
 }
 
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# On Unix systems, a value of None will cause Django to use the same
-# timezone as the operating system.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
-TIME_ZONE = 'Asia/Novokuznetsk'
 
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'ru-ru'
+DEBUG = config.getboolean('debug','DEBUG')
+TEMPLATE_DEBUG = config.getboolean('debug','TEMPLATE_DEBUG')
 
-SITE_ID = 1
+TIME_ZONE = config.get('main', 'TIME_ZONE')
+LANGUAGE_CODE = config.get('main', 'LANGUAGE_CODE')
+SITE_ID = config.getint('main', 'SITE_ID')
 
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = True
+# Probill custom settings
+PROBILL_PATH = config.get('probill', 'PROBILL_PATH')
 
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale
-USE_L10N = True
+## Program path
+FLOW_CAT = config.get('prog_path', 'FLOW_CAT')
+FLOW_STAT = config.get('prog_path', 'FLOW_STAT')
+FLOW_PATH = config.get('prog_path', 'FLOW_PATH')
+IPFW_PATH = config.get('prog_path', 'IPFW_PATH')
+NETGRAPH_PATH = config.get('prog_path', 'NETGRAPH_PATH')
+ARP_PATH = config.get('prog_path', 'ARP_PATH')
+PING_PATH = config.get('prog_path', 'PING_PATH')
 
+## IPFW settings
+IPFW_MIN_TABLE = config.getint('ipfw', 'IPFW_MIN_TABLE')
+IPFW_RULE_STEP = config.getint('ipfw', 'IPFW_RULE_STEP')
+IPFW_START_IN = config.getint('ipfw', 'IPFW_START_IN')
+IPFW_END_IN = config.getint('ipfw', 'IPFW_END_IN')
+IPFW_START_OUT = config.getint('ipfw', 'IPFW_START_OUT')
+IPFW_END_OUT = config.getint('ipfw', 'IPFW_END_OUT')
+IPFW_QUEUE_SIZE = config.getint('ipfw', 'IPFW_QUEUE_SIZE')
 
+IPFW_NAT_TABLE= config.getint('ipfw', 'IPFW_NAT_TABLE')
+IPFW_NAT_START = config.getint('ipfw', 'IPFW_NAT_START')
+IPFW_NAT_END = config.getint('ipfw', 'IPFW_NAT_END')
 
-PROBILL_PATH = '/usr/local/probill'
+## NAS setting
+LOCAL_NAS_ID = config.getint('nas', 'LOCAL_NAS_ID')
+
 
 MEDIA_ROOT = PROBILL_PATH + '/media/'
-
 MEDIA_URL = '/media/'
 
 
@@ -62,18 +68,19 @@ if django.VERSION >= (1,4,0):
 else:
     ADMIN_MEDIA_PREFIX = '/static/admin/'
 
+USE_I18N = True
+USE_L10N = True
+
 
 STATICFILES_DIRS = (
 
 )
-
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
 
 
 # List of callables that know how to import templates from various sources.
@@ -127,22 +134,3 @@ LOGGING = {
     }
 }
 
-FLOW_CAT = '/usr/local/bin/flow-cat'
-FLOW_STAT = '/usr/local/bin/flow-stat'
-FLOW_PATH = '/usr/local/flowdata'
-
-IPFW_PATH = '/sbin/ipfw'
-IPFW_MIN_TABLE = 30
-IPFW_RULE_STEP = 10
-IPFW_START_IN = 21100
-IPFW_END_IN = 21800
-IPFW_START_OUT = 22100
-IPFW_END_OUT = 22800
-IPFW_ALT_ROUTE_TABLE = 20
-IPFW_QUEUE_SIZE = 50
-
-NETGRAPH_PATH = '/usr/sbin/ngctl'
-
-ARP_PATH = '/usr/sbin/arp'
-
-LOCAL_NAS_ID = 1

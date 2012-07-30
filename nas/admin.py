@@ -10,4 +10,6 @@ admin.site.register(IPInterface)
 admin.site.register(NetworkInterface)
 admin.site.register(DHCPServer)
 admin.site.register(DHCPSubnet)
+admin.site.register(UpLink)
+admin.site.register(UpLinkPolice)
 
