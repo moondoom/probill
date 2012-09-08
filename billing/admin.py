@@ -10,6 +10,7 @@ class MySubscriberAdmin(admin.ModelAdmin):
 class MyAccountAdmin(admin.ModelAdmin):
     list_display = ('subscriber','login','ip','tariff','block_date','active','alt_route')
     search_fields = ('login','ip','tariff','block_date')
+    ordering = ['subscriber','login']
 
 class MyTrafficByPeriodAdmin(admin.ModelAdmin):
     list_display = ('datetime','account','qac_class','count','cost')

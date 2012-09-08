@@ -62,6 +62,9 @@ class DHCPSubnet(models.Model):
         verbose_name_plural = u'Подсети DHCP'
         verbose_name = u'Подсеть DHCP'
 
+    def __unicode__(self):
+        return self.subnet.__unicode__()
+
 PRIORITY_CHOICES = (
     (1, u'Низкий'),
     (2, u'Ниже среднего'),
@@ -83,7 +86,7 @@ class UpLink(models.Model):
         verbose_name_plural = u'Внешние каналы'
         verbose_name = u'Внешний канал'
         unique_together = ("nas", "ipfw_nat_id")
-        ordering = ['priority','ipfw_nat_id']
+        ordering = ['nas','priority','ipfw_nat_id']
 
     def __unicode__(self):
         return u'%s - %s на %s' % (self.local_address,self.remote_address,self.nas.__unicode__())
@@ -97,6 +100,7 @@ class UpLinkPolice(models.Model):
     class Meta():
         verbose_name_plural = u'Политики внешних каналов'
         verbose_name = u'Политика внешних каналов'
-        ordering = ['priority']
+        ordering = ['nat_address','priority']
 
-    
+    def __unicode__(self):
+        return u'%s приоритет %s' % (self.nat_address.__unicode__(), self.priority)

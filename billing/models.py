@@ -73,6 +73,7 @@ class Subscriber(models.Model):
     class Meta:
         verbose_name_plural = u'Пользователи'
         verbose_name = u'Пользователь'
+        ordering = ['first_name','last_name','father_name']
 
     def __unicode__(self):
         return u' '.join(
