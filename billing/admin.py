@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
+#from django import forms
 from models import *
+
 
 class MySubscriberAdmin(admin.ModelAdmin):
     list_display = ('first_name','last_name','login','address_street','address_house','address_flat','balance',)
@@ -31,6 +33,8 @@ class MyLogAdmin(admin.ModelAdmin):
 class MyAccHistAdmin(admin.ModelAdmin):
     list_display = ('datetime','subscriber','value')
     search_fields = ('datetime',)
+
+
 
 admin.site.register(Subscriber,MySubscriberAdmin)
 admin.site.register(Account,MyAccountAdmin)

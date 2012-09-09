@@ -4,7 +4,7 @@ from django.db import models, connection, transaction
 from django.db.models import Q
 from django.contrib.admin.models import User
 from django.db.utils import DatabaseError
-from probill.lib.networks import IPNetworkField,IPAddressField
+from probill.lib.networks import IPNetworkField,IPAddressField,MACAddressField
 from datetime import datetime, timedelta
 from ipaddr import IPAddress
 import calendar
@@ -284,7 +284,7 @@ class Account(models.Model):
     password = models.CharField(u'Пароль',max_length=30,blank=True,null=True)
     tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name=u'Тариф')
     ip = IPAddressField(u'IP адрес',unique=True,db_index=True)
-    mac = models.CharField(u'MAC адрес',max_length=17,blank=True,null=True)
+    mac = MACAddressField(u'MAC адрес',max_length=17,blank=True,null=True)
     create_date = models.DateTimeField(u'Дата создания',auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name=u'Создатель',db_index=True)
     block_date = models.DateTimeField(u'Дата блокировки',null=True,editable=False)
