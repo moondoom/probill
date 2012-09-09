@@ -1,5 +1,5 @@
 from ipaddr import _IPAddrBase, IPAddress, IPNetwork
-
+import re
 from django.forms import ValidationError as FormValidationError
 from django.core.exceptions import ValidationError
 from django.forms import fields, widgets
@@ -134,3 +134,30 @@ class IPAddressField(models.Field):
             }
         defaults.update(kwargs)
         return super(IPAddressField, self).formfield(**defaults)
+
+## MACAddressFormField from http://djangosnippets.org/snippets/1337/
+
+MAC_RE = r'^([0-9a-fA-F]{2}([:-]?|$)){6}$'
+mac_re = re.compile(MAC_RE)
+
+class MACAddressFormField(fields.RegexField):
+    default_error_messages = {
+        'invalid': u'Enter a valid MAC address.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(MACAddressFormField, self).__init__(mac_re, *args, **kwargs)
+
+class MACAddressField(models.Field):
+    empty_strings_allowed = False
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = 17
+        super(MACAddressField, self).__init__(*args, **kwargs)
+
+    def get_internal_type(self):
+        return "CharField"
+
+    def formfield(self, **kwargs):
+        defaults = {'form_class': MACAddressFormField}
+        defaults.update(kwargs)
+        return super(MACAddressField, self).formfield(**defaults)
