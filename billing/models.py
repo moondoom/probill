@@ -304,6 +304,8 @@ class Account(models.Model):
             old_tariff = old.tariff
         else:
             old_tariff = None
+        super(Account,self).save(*args,**kwargs)
+        # Проверяем не сменился ли тариф
         if old_tariff <> self.tariff:
             rentalDiff = Tariff.calcRentalDiff(old_tariff,self.tariff)
             if rentalDiff:
@@ -315,7 +317,7 @@ class Account(models.Model):
                     value = rentalDiff
                 )
                 accHist.save()
-        super(Account,self).save(*args,**kwargs)
+
 
     def delete(self, *args, **kwargs):
         rentalDiff = Tariff.calcRentalDiff(self.tariff,None)
