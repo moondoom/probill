@@ -112,10 +112,17 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'dojango',
+    'moon',
     'probill.main',
     'probill.billing',
     'probill.nas',
+    'mptt'
 )
+
+LOGIN_URL='/moon/login'
+LOGOUT_URL='/moon/logout'
+LOGIN_REDIRECT_URL='/moon'
 
 LOGGING = {
     'version': 1,

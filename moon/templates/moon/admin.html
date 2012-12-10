@@ -1,0 +1,96 @@
+{% extends "dojango/base.html" %}
+{% block dojango_header_extra %}
+    <link href="{{ MEDIA_URL }}jq/cupertino/jquery-ui.css" media="screen" rel="stylesheet" type="text/css" >
+    <link href="{{ MEDIA_URL }}jq/ui.jqgrid.css" media="screen" rel="stylesheet" type="text/css" >
+    <link href="{{ MEDIA_URL }}jq/ui.multiselect.css" media="screen" rel="stylesheet" type="text/css" >
+
+    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}jq/jquery.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}jq/jquery-ui.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}jq/jquery.jqGrid.new.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}jq/grid.locale-ru.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}jq/ui.multiselect.js"></script>
+
+    <style type="text/css">
+        html, body { height: 100%; width: 100%; padding: 0; border: 0; }
+        #main { height: 100%; width: 100%; padding: 0; border: 0; }
+            /*		#header, #mainSplit { margin: 10px; } */
+        #leftAccordion { width: 25%; }
+        #main .dijitSplitterH { height: 7px }
+        #main .dijitSplitterV { width: 7px }
+
+    </style>
+
+    <script type="text/javascript">
+        window.__globalList = {dojo: true, dijit: true, dojox: true, djConfig: true};
+        for(var i in window){
+            window.__globalList[i] = true;
+        }
+    </script>
+    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}js/moon/moon.js"></script>
+
+{% endblock %}
+
+
+{% block dojango_content %}
+    <div id="main" dojoType="dijit.layout.BorderContainer">
+        <div id="header" dojoType="dijit.layout.ContentPane" region="top">
+            <div style="float: left;">ПРОБИЛЛ</div>
+            <div style="float: right;">
+                {% if user.is_authenticated %} {{ user }} <A href = '/logout'>Выход</A>
+                {% else %} Неведомый и неназываный <A href = '/login'>Вход</A>
+                {% endif %}
+            </div>
+        </div>
+        <div dojoType="dijit.layout.BorderContainer" liveSplitters="false" design="sidebar"
+             region="center" id="mainSplit">
+            <div dojoType="dijit.layout.AccordionContainer" duration="200"
+                 minSize="20" style="width: 300px;" id="leftAccordion" region="leading" splitter="false">
+                {% load mptt_tags %}
+
+                {% for menu_item,structure in menu_items|tree_info %}
+                    {% if menu_item.is_root_node %}
+                        <div dojoType="dijit.layout.AccordionPane" title="{{ menu_item }}">
+                        <div data-dojo-type="dijit/DropDownMenu" id="{{ menu_item.name }}" style="width: 100%">
+                    {% else %}
+                        {% if menu_item.is_leaf_node %}
+                            <div data-dojo-type="dijit/MenuItem" data-dojo-props="onClick:function(){ {{ menu_item.get_action }} }">{{ menu_item }}</div>
+                        {% else %}
+                            <div data-dojo-type="dijit/PopupMenuItem">
+                            <span>{{ menu_item }}</span>
+                            <div data-dojo-type="dijit/DropDownMenu" id="sub_{{ menu_item.name }}">
+                        {% endif %}
+                    {% endif %}
+                {% for level in structure.closed_levels %}
+                    {% if level == 0 %}
+
+                    {% else %}
+                        </div></div>
+                    {% endif %}
+                {% endfor %}
+                {% endfor %}
+                </div>
+                <div id="content_view" dojoType="dijit.layout.ContentPane" region="center"></div>
+                </div>
+
+            </div>
+
+            <script type="text/javascript">
+                dojo.require("dijit.layout.AccordionContainer");
+                dojo.require("dijit.layout.ContentPane");
+                dojo.require("dijit.layout.TabContainer");
+                dojo.require("dijit.layout.BorderContainer");
+                dojo.require("dijit.form.ValidationTextBox");
+                dojo.require("dojox.validate");
+                dojo.require("dijit.form.Select");
+                dojo.require("dijit.DropDownMenu");
+                dojo.require("dijit.MenuSeparator");
+                dojo.require("dijit.MenuItem");
+                dojo.require("dijit.PopupMenuItem");
+                dojo.require("dojo.parser");
+                dojo.require("dojo.date.locale");
+                dojo.require("dojo.dnd.Source");
+                dojo.addOnLoad(function() {
+                    dojo.parser.parse(dojo.byId('container'));
+                });
+            </script>
+{% endblock %}

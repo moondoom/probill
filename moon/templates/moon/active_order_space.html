@@ -1,0 +1,19 @@
+{% extends "moon/jquery_grid_menu.html" %}
+{% block header %}
+    <label for="table-autocomplete">Поиск: </label><input id='table-autocomplete'/>
+{% endblock %}
+{% block post_grid %}
+    <script type='javascript' id='postGridLoad'>
+        searchColumn = ['address',]
+        $('#table-autocomplete').keyup(function () {
+            var searchString = jQuery(this).val().toLowerCase()
+            $.each(searchColumn,function() {
+                if(this.value.toLowerCase().indexOf(searchString) == -1) {
+                    jQuery('#'+this.id).hide()
+                } else {
+                    jQuery('#'+this.id).show()
+                }
+            })
+        })
+    </script>
+{% endblock %}

@@ -25,18 +25,18 @@ class PeriodicLog(models.Model):
         obj.save()
 
     def __unicode__(self):
-        return ' '.join(map(unicode,[self.datetime,self.message[:30]]))
+        return u' '.join(map(unicode,[self.datetime,self.message[:30]]))
 
 
 class Manager(models.Model):
     """
     Системный пользователь способный управлять (Менеджер)
     """
-    system_user = models.ForeignKey(User,unique=True,verbose_name=u'Системный пользователь')
-    first_name = models.CharField(u'Фамилия',max_length=100,default='')
-    last_name = models.CharField(u'Имя',max_length=100,default='')
-    father_name = models.CharField(u'Отчество',max_length=100,default='')
-    phone = models.CharField(u'Телефон',max_length=20,blank=True,null=True)
+    system_user = models.ForeignKey(User,unique=True,verbose_name='Системный пользователь')
+    first_name = models.CharField('Фамилия',max_length=100,default='')
+    last_name = models.CharField('Имя',max_length=100,default='')
+    father_name = models.CharField('Отчество',max_length=100,default='')
+    phone = models.CharField('Телефон',max_length=20,blank=True,null=True)
 
     class Meta:
         verbose_name_plural = u'Менеджеры'
@@ -53,26 +53,26 @@ class Subscriber(models.Model):
         (u'of',u'офис'),
         (u'hs',u'дом')
     )
-    login = models.CharField(u'Имя учётной записи',max_length=30,unique=True,db_index=True)
-    password = models.CharField(u'Пароль',max_length=30,blank=True,null=True)
-    first_name = models.CharField(u'Фамилия',max_length=100)
-    last_name = models.CharField(u'Имя',max_length=100)
-    father_name = models.CharField(u'Отчество',max_length=100,blank=True,null=True)
-    document = models.CharField(u'Документ',max_length=100,blank=True,null=True)
-    create_date = models.DateTimeField(u'Дата создания',auto_now=True)
-    owner = models.ForeignKey(Manager,verbose_name=u'Создатель')
-    address_street = models.CharField(u'Улица',max_length=100)
-    address_house = models.CharField(u'Дом',max_length=10)
-    address_type = models.CharField(u'Тип адреса',max_length=2,choices=ADDRESS_CHOICES,default='fl')
-    address_flat = models.CharField(u'Квартира',max_length=10,blank=True,null=True)
-    email = models.EmailField(u'E-mail',blank=True,null=True)
-    phone = models.CharField(u'Телефон',max_length=100,blank=True,null=True)
-    balance = models.FloatField(u'Балланс',default=0)
+    login = models.CharField('Логин',max_length=30,unique=True,db_index=True)
+    password = models.CharField('Пароль',max_length=30,blank=True,null=True)
+    first_name = models.CharField('Фамилия',max_length=100)
+    last_name = models.CharField('Имя',max_length=100)
+    father_name = models.CharField('Отчество',max_length=100,blank=True,null=True)
+    document = models.CharField('Документ',max_length=100,blank=True,null=True)
+    create_date = models.DateTimeField('Дата создания',auto_now=True)
+    owner = models.ForeignKey(Manager,verbose_name='Создатель')
+    address_street = models.CharField('Улица',max_length=100)
+    address_house = models.CharField('Дом',max_length=10)
+    address_type = models.CharField('Тип адреса',max_length=2,choices=ADDRESS_CHOICES,default='fl')
+    address_flat = models.CharField('Квартира',max_length=10,blank=True,null=True)
+    email = models.EmailField('E-mail',blank=True,null=True)
+    phone = models.CharField('Телефон',max_length=100,blank=True,null=True)
+    balance = models.FloatField('Балланс',default=0)
 
 
     class Meta:
-        verbose_name_plural = u'Пользователи'
-        verbose_name = u'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        verbose_name = 'Пользователь'
         ordering = ['first_name','last_name','father_name']
 
     def __unicode__(self):
@@ -95,6 +95,7 @@ class Subscriber(models.Model):
         """
             При сохраннении обязательно проводить блокировку или разблокировку
         """
+        self.balance = round(self.balance,2)
         if self.balance < 0:
             for account in self.account_set.filter(active=True,auto_block=True):
                 account.block()
@@ -112,15 +113,15 @@ class AccountHistory(models.Model):
         (u'per',u'Абонентская плата'),
         (u'tra',u'За тарфик')
     )
-    datetime = models.DateTimeField(u'Время',db_index=True)
-    subscriber = models.ForeignKey(Subscriber,db_index=True)
-    value = models.FloatField(u'Сумма')
-    owner_type = models.CharField(u'Тип агента',max_length=3,choices=OWNER_CHOICES)
-    owner_id = models.IntegerField(u'Агент')
+    datetime = models.DateTimeField('Время',db_index=True)
+    subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь',db_index=True)
+    value = models.FloatField('Сумма')
+    owner_type = models.CharField('Тип агента',max_length=3,choices=OWNER_CHOICES)
+    owner_id = models.IntegerField('Агент')
 
 
     class Meta:
-        verbose_name_plural = u'Cписания и начисления'
+        verbose_name_plural = u'История баланса'
 
     def __unicode__(self):
         return u' '.join(
@@ -157,7 +158,7 @@ class QosAndCost(models.Model):
     Классы тарфика по цене и скорости
     """
     name = models.CharField('Описание',max_length=40)
-    subnets = models.ManyToManyField(Subnets,verbose_name=u'Подсети')
+    subnets = models.ManyToManyField(Subnets,verbose_name='Подсети')
     traffic_cost = models.FloatField('Стоимость МБайта',default=0)
     qos_speed = models.IntegerField('Скорость',default=0)
 
@@ -189,12 +190,12 @@ class Tariff(models.Model):
         ('m','Месяц'),
         ('w','Неделя')
     )
-    name = models.CharField(max_length=50,unique=True)
-    rental_period = models.CharField(u'Период списания',max_length=1,choices=RENTAL_CHOICES,default='m')
-    rental = models.FloatField(u'Абонетская плата',default=0)
+    name = models.CharField('Название',max_length=50,unique=True)
+    rental_period = models.CharField('Период списания',max_length=1,choices=RENTAL_CHOICES,default='m')
+    rental = models.FloatField('Абонетская плата',default=0)
     traffic_cost = models.FloatField('Стоимость за Мб',default=0)
     qos_speed = models.IntegerField('Основная скорость',default=0)
-    qac_class = models.ManyToManyField(QosAndCost,blank=True,null=True,verbose_name=u'Классы трафика')
+    qac_class = models.ManyToManyField(QosAndCost,blank=True,null=True,verbose_name='Классы трафика')
 
     class Meta:
         verbose_name_plural = u'Тарифные планы'
@@ -279,18 +280,18 @@ class Account(models.Model):
     """
     Учётные записи пользователей
     """
-    subscriber = models.ForeignKey(Subscriber,verbose_name=u'Пользователь')
-    login = models.CharField(u'Имя учётной записи',max_length=30,unique=True,db_index=True)
-    password = models.CharField(u'Пароль',max_length=30,blank=True,null=True)
-    tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name=u'Тариф')
-    ip = IPAddressField(u'IP адрес',unique=True,db_index=True)
-    mac = MACAddressField(u'MAC адрес',max_length=17,blank=True,null=True)
-    create_date = models.DateTimeField(u'Дата создания',auto_now=True)
-    owner = models.ForeignKey(Manager,verbose_name=u'Создатель',db_index=True)
-    block_date = models.DateTimeField(u'Дата блокировки',null=True,editable=False)
-    auto_block = models.BooleanField(u'Автоматическая блокировка',default=True)
-    active = models.BooleanField(u'Активна',default=True)
-    alt_route = models.BooleanField(u'Альтернативный маршрут',default=False)
+    subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь')
+    login = models.CharField('Имя учётной записи',max_length=30,unique=True,db_index=True)
+    password = models.CharField('Пароль',max_length=30,blank=True,null=True)
+    tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name='Тариф')
+    ip = IPAddressField('IP адрес',unique=True,db_index=True)
+    mac = MACAddressField('MAC адрес',max_length=17,blank=True,null=True)
+    create_date = models.DateTimeField('Дата создания',auto_now=True)
+    owner = models.ForeignKey(Manager,verbose_name='Создатель',db_index=True)
+    block_date = models.DateTimeField('Дата блокировки',null=True,editable=False)
+    auto_block = models.BooleanField('Автоматическая блокировка',default=True)
+    active = models.BooleanField('Активна',default=True)
+    alt_route = models.BooleanField('Альтернативный маршрут',default=False)
 
     class Meta:
         verbose_name_plural = u'Учётные записи'
@@ -413,8 +414,8 @@ class TariffHistory(models.Model):
         История смены тарифов
     """
     set_data = models.DateTimeField('Время установки',auto_now=True)
-    account = models.ForeignKey(Account,verbose_name=u'Учётная запись')
-    tariff = models.ForeignKey(Tariff,verbose_name=u'Тариф')
+    account = models.ForeignKey(Account,verbose_name='Учётная запись')
+    tariff = models.ForeignKey(Tariff,verbose_name='Тариф')
 
     class Meta:
         verbose_name_plural = u'История смены тарифа'
@@ -428,9 +429,9 @@ class TrafficByPeriod(models.Model):
         Количество трафика потреблённого за отчётные период
     """
     datetime = models.DateTimeField('Время',db_index=True)
-    account = models.ForeignKey("Account",verbose_name=u'Учётная запись',db_index=True)
-    tariff = models.ForeignKey("Tariff",verbose_name=u'Тариф')
-    qac_class = models.ForeignKey("QosAndCost",blank=True,null=True,verbose_name=u'Класс трафика')
+    account = models.ForeignKey("Account",verbose_name='Учётная запись',db_index=True)
+    tariff = models.ForeignKey("Tariff",verbose_name='Тариф')
+    qac_class = models.ForeignKey("QosAndCost",blank=True,null=True,verbose_name='Класс трафика')
     count = models.FloatField('Количество')
     cost = models.FloatField('Стоимость по тарифу')
 
@@ -448,7 +449,7 @@ class TrafficDetail(models.Model):
     src_ip = IPAddressField('Источник',editable=False)
     dst_ip = IPAddressField('Назначение',editable=False)
     count = models.FloatField('Количество',editable=False)
-    account = models.ForeignKey("Account",blank=True,null=True,verbose_name=u'Учётная запись',db_index=True,editable=False)
+    account = models.ForeignKey("Account",blank=True,null=True,verbose_name='Учётная запись',db_index=True,editable=False)
 
     class Meta:
         verbose_name_plural = u'Подробная статистика'

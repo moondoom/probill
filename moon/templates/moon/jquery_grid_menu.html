@@ -1,0 +1,99 @@
+{% block header %}
+{% endblock %}
+{% block body %}
+<div id="table-box" style='font-size: 16px;' >
+    <table id='mygrid' ></table>
+    <div id="pager"></div>
+</div>
+<div id='div-dialog-warning'><div></div></div>
+{% endblock %}
+{% block pre_grid %}
+    <script type="text/javascript" id='preGridLoad'></script>
+{% endblock %}
+<script id='onAjaxLoad' type="text/javascript">
+    {% block grid_init %}
+    eval($('#preGridLoad').val());
+    // God's save docs.djangoproject.com!
+    $.getJSON("{{ config_url }}", function(data){
+        $.each(data['colModel'],function(key,val){
+            if (val['editoptions']){
+                if (val['editoptions']['dataInit']) {
+                        eval(val['editoptions']['dataInit']);
+                        data['colModel'][key]['editoptions']['dataInit'] = newfunc;
+                }
+                if (val['edittype'] == 'custom') {
+                    eval(val['editoptions']['custom_element']);
+                    data['colModel'][key]['editoptions']['custom_element'] = newfunc;
+                    eval(val['editoptions']['custom_value']);
+                    data['colModel'][key]['editoptions']['custom_value'] = newfunc;
+                }
+            }
+        });
+        $("#mygrid")
+            .jqGrid(data)
+            .navGrid('#pager',
+            {
+                add: {% if aed.add %}{{ can_add|lower }}{% else %}false{% endif %},
+                edit: {% if aed.edit %}{{ can_edit|lower }}{% else %}false{% endif %},
+                del: {% if aed.delete %}{{ can_delete|lower }}{% else %}false{% endif %},
+                view: false
+            },
+            {
+                url:'{{ edit_url }}',
+                closeOnEscape: true,
+                afterSelectFrom: resizeSelectWidth,
+                savekey: [true,13],
+                width:500,
+                afterSubmit: checkFormError
+            },
+            {
+                url:'{{ edit_url }}',
+                closeOnEscape: true,
+                afterSelectFrom: resizeSelectWidth,
+                savekey: [true,13],
+                width:500,
+                afterSubmit: checkFormError
+            },
+            {
+                url:'{{ edit_url }}',
+                closeOnEscape: true,
+                afterSelectFrom: resizeSelectWidth,
+                savekey: [true,13],
+                width:500,
+                afterSubmit: checkFormError
+            },
+            { multipleSearch:true, closeOnEscape:true }, // search options
+            { jqModal:false, closeOnEscape:true})
+            {% if actions %}
+            .setGridParam({
+                gridComplete: function () {
+                    var ids = $("#mygrid").getDataIDs();
+                    for(var i=0;i<ids.length;i++){
+                        var cl = ids[i];
+                        var row_data = '';
+                        {% for action in actions.items %}
+                            row_data += "<span '' class='ui-icon {{ action.1.icon }}' title='{{ action.1.title }}'";
+                            row_data += "style='cursor:pointer; float:left; margin: 0 3px 0 3px' onclick=";
+                            {% if action.1.form %}
+                                row_data += "'DoActionVsDialogForm(\"{{ action_url }}\",\"{{ form_url }}\",";
+                                row_data += "\"{{ action.1.title }}\",\"{{ action.0 }}\","+cl+")' />";
+                            {% elif action.1.message %}
+                                row_data += "'DoActionVsDialog(\"{{ action_url }}\",\"{{ action.1.message }}\",";
+                                row_data += "\"{{ action.1.title }}\",\"{{ action.0 }}\","+cl+")' />";
+                            {% else %}
+                                row_data += "'DoAction(\"{{ action_url }}\",\"{{ action.0 }}\","+cl+")' />";
+                            {% endif %}
+                        {% endfor %}
+                        $("#mygrid").setRowData(ids[i],{act:row_data});
+                    }
+
+                }});
+            {% endif %}
+    });
+    eval($('#postGridLoad').val());
+    {% endblock %}
+
+</script>
+{% block post_grid %}
+    <script type="text/javascript" id='postGridLoad'></script>
+{% endblock %}

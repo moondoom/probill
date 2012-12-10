@@ -1,0 +1,11 @@
+<form id='dojo_form' action="{{ request.url }}" method="get">{% csrf_token %}
+    <table>
+        {{ form }}
+    </table>
+    <input type="submit" value="Submit" />
+</form>
+<script type="text/javascript">
+    {% for require in DOJANGO.COLLECTOR %}
+        dojo.require("{{ require }}");
+    {% endfor %}
+</script>

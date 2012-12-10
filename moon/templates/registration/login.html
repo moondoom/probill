@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="ru-ru" style="height: 100%">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/client.css"/>
+    <title>Добро пожаловать</title>
+</head>
+<body class="login" >
+<div id="loginpage" style="background-image: url({{ MEDIA_URL }}image/theme/logo.jpeg);">
+
+    <form id="login_form" action="{{ request.url }}" method="POST">
+        <label for="user_login">
+            Логин
+            <br/>
+            <input type="text" name="username" id="user_login"  tabindex="10">
+        </label>
+        <label for="user_login">
+            Пароль
+            <br/>
+            <input type="password" name="password" id="user_password"  tabindex="20">
+        </label>
+        <input type="submit" id='submit' value="Вход" >
+        <input type="hidden" name="next" value="/">
+        {% csrf_token %}
+    </form>
+
+</div>
+<div id="loginfoter">
+
+</div>
+
+</body>
+</html>
