@@ -1,6 +1,5 @@
 *.pyc
 media/static/*
 media/extjs/*
-media/jq/*
 media/image/theme/*
 .idea*
