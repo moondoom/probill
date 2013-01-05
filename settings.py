@@ -18,6 +18,17 @@ DATABASES = {
     }
 }
 
+if config.has_section('userside'):
+    DATABASES.update({
+        'userside': {
+            'USER' : config.get('userside', 'DATABASE_USER'),
+            'PASSWORD' : config.get('userside', 'DATABASE_PASSWORD'),
+            'HOST' : config.get('userside', 'DATABASE_HOST'),
+            'PORT' : config.get('userside', 'DATABASE_PORT'),
+            'ENGINE' : config.get('userside', 'DATABASE_ENGINE'),
+            'NAME' : config.get('userside', 'DATABASE_NAME'),
+            }
+    })
 
 DEBUG = config.getboolean('debug','DEBUG')
 TEMPLATE_DEBUG = config.getboolean('debug','TEMPLATE_DEBUG')
@@ -104,6 +115,7 @@ ROOT_URLCONF = 'probill.urls'
 
 TEMPLATE_DIRS = (PROBILL_PATH + '/templates',)
 
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -119,6 +131,8 @@ INSTALLED_APPS = (
     'probill.nas',
     'mptt'
 )
+if config.has_section('userside'):
+    INSTALLED_APPS = INSTALLED_APPS + ('userside',)
 
 LOGIN_URL='/moon/login'
 LOGOUT_URL='/moon/logout'
