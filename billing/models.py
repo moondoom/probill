@@ -111,7 +111,8 @@ class AccountHistory(models.Model):
     OWNER_CHOICES = (
         (u'man',u'Менеджер'),
         (u'per',u'Абонентская плата'),
-        (u'tra',u'За тарфик')
+        (u'tra',u'За тарфик'),
+        (u'us',u'Из UserSide')
     )
     datetime = models.DateTimeField('Время',db_index=True)
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь',db_index=True)

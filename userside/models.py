@@ -687,10 +687,10 @@ class TblHouse(models.Model):
         db_table = u'tbl_house'
 
 class TblIp(models.Model):
-    code = models.IntegerField(db_column='CODE') # Field name made lowercase.
+    code = models.IntegerField( db_column='CODE') # Field name made lowercase.
     typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
     usercode = models.IntegerField(null=True, db_column='USERCODE', blank=True) # Field name made lowercase.
-    userip = models.FloatField(null=True, db_column='USERIP', blank=True) # Field name made lowercase.
+    userip = models.FloatField(primary_key=True, db_column='USERIP', blank=True) # Field name made lowercase.
     mac = models.CharField(max_length=51, db_column='MAC', blank=True) # Field name made lowercase.
     updmac = models.IntegerField(null=True, db_column='UPDMAC', blank=True) # Field name made lowercase.
     isupd = models.IntegerField(null=True, db_column='ISUPD', blank=True) # Field name made lowercase.

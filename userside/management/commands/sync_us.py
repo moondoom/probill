@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 
-from userside.models import TblBase, TblIp, TblGroup, TblStreet, TblHouse
-from billing.models import Subscriber, Tariff
+from userside.models import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist
+from billing.models import Subscriber, Tariff, Account, AccountHistory
 
 
 import re
@@ -26,6 +26,13 @@ class Command(BaseCommand):
         'apart_b',
         'balans',
         'tel',
+        'groupn',
+    )
+    ip_params = (
+        'usercode',
+        'mac',
+        'typer',
+        'code'
     )
 
     def compare_object(self,obj_a,obj_b,attr_list):
@@ -44,6 +51,19 @@ class Command(BaseCommand):
             str_int , str_char = None , None
         return str_int, str_char
 
+    def sync_ip(self,p_user,u_user):
+        billing_ip = {}
+        for ip in Account.objects.filter(subscriber=p_user):
+            billing_ip[int(ip.ip)] = ip
+        for ip in TblIp.objects.using('userside').filter(usercode=u_user.code):
+            if int(ip.userip) in billing_ip:
+                self.check_ip(billing_ip[ip.userip],ip,u_user.code)
+                del billing_ip[int(ip.userip)]
+            else:
+                ip.delete(using='userside')
+
+        for ip in billing_ip:
+            self.get_us_ip(billing_ip[ip],u_user.code).save(using='userside')
 
     def sync_users(self):
         billing_users = {}
@@ -67,19 +87,28 @@ class Command(BaseCommand):
         for tar in billing_tariff:
             self.create_tariff(billing_tariff[tar])
 
-    def create_user(self,user):
-        p2u_user = self.get_us_user(user)
-        p2u_user.save(using='userside')
-
-    def get_us_tariff(self,tariff):
-        return TblGroup(
-            code='probill_{}'.format(tariff.pk),
-            groupname=tariff.name,
-            abon=tariff.rental,
-            speedtx=tariff.qos_speed,
-            speedrx=tariff.qos_speed,
-        )
-
+    def sync_balance(self):
+        us_order = {}
+        for order in TblBilhist.objects.using('userside').all():
+            us_order[order.pko] = order
+        query = AccountHistory.objects.filter(owner_type='us')
+        for order in query.filter(owner_id__in=us_order.keys()):
+            del us_order[order.owner_id]
+        for order_id in us_order:
+            order = us_order[order_id]
+            try:
+                u_user = TblBase.objects.using('userside').get(code=order.usercode)
+                p_user = Subscriber.objects.get(login=u_user.logname)
+            except ObjectDoesNotExist as error:
+                continue
+            AccountHistory(
+                datetime = order.datedo,
+                subscriber = p_user,
+                value = order.summa,
+                owner_type = 'us',
+                owner_id = order.pko,
+            ).save()
+            print order.summa
 
 
     def get_us_user(self,user):
@@ -96,6 +125,12 @@ class Command(BaseCommand):
                 raise ObjectDoesNotExist
         except ObjectDoesNotExist as error:
             house = None
+        try:
+            p_tariff = user.account_set.all()[0].tariff
+            tariff = TblGroup.objects.using('userside').get(groupname=p_tariff.name)
+            tariff = tariff.code
+        except ObjectDoesNotExist as error:
+            tariff = None
         flat_int, flat_char = self.parse_int_char(user.address_flat)
         return TblBase(
             logname = user.login,
@@ -106,6 +141,27 @@ class Command(BaseCommand):
             apart_b = flat_char or None,
             tel = user.phone,
             balans = user.balance,
+            groupn = tariff,
+        )
+
+    def create_user(self,user):
+        p2u_user = self.get_us_user(user)
+        p2u_user.save(using='userside')
+        self.sync_ip(user,p2u_user)
+
+    def check_user(self,p_user,u_user):
+        p2u_user = self.get_us_user(p_user)
+        if not self.compare_object(u_user,p2u_user,self.user_params):
+            u_user.save(using='userside')
+        self.sync_ip(p_user,u_user)
+
+    def get_us_tariff(self,tariff):
+        return TblGroup(
+            code='probill_{}'.format(tariff.pk),
+            groupname=tariff.name,
+            abon=tariff.rental,
+            speedtx=tariff.qos_speed,
+            speedrx=tariff.qos_speed,
         )
 
     def create_tariff(self,tariff):
@@ -116,17 +172,27 @@ class Command(BaseCommand):
         p2u_tariff = self.get_us_tariff(p_tariff)
         if not self.compare_object(u_tariff,p2u_tariff,self.tariff_params):
             u_tariff.save(using='userside')
-        return True
 
-    def check_user(self,p_user,u_user):
-        p2u_user = self.get_us_user(p_user)
-        if not self.compare_object(u_user,p2u_user,self.user_params):
-            u_user.save(using='userside')
-        else:
-            return
+
+    def get_us_ip(self,ip,u_code):
+        return TblIp(
+            code = 0,
+            typer = 1,
+            usercode = u_code,
+            userip = int(ip.ip),
+            mac = ''.join(ip.mac.split(':'))
+        )
+
+
+    def check_ip(self,p_ip,u_ip,u_code):
+        p2u_tariff = self.get_us_ip(p_ip,u_code)
+        if not self.compare_object(u_ip,p2u_tariff,self.ip_params):
+            u_ip.save(using='userside')
+
 
 
     def handle(self, *args, **options):
+        self.sync_balance()
         self.sync_tariff()
         self.sync_users()
 
