@@ -27,7 +27,6 @@ class Command(BaseCommand):
         'balans',
         'tel',
         'groupn',
-        'isreg'
     )
     ip_params = (
         'usercode',
@@ -143,7 +142,6 @@ class Command(BaseCommand):
             tel = user.phone,
             balans = user.balance,
             groupn = tariff,
-            isreg = 0,
         )
 
     def create_user(self,user):
