@@ -18,7 +18,7 @@ class Command(BaseCommand):
     )
     user_params = (
         'logname',
-        'logpass',
+        'pass_field',
         'fio',
         'podezd',
         'housec',
@@ -27,6 +27,7 @@ class Command(BaseCommand):
         'balans',
         'tel',
         'groupn',
+        'isreg'
     )
     ip_params = (
         'usercode',
@@ -134,7 +135,7 @@ class Command(BaseCommand):
         flat_int, flat_char = self.parse_int_char(user.address_flat)
         return TblBase(
             logname = user.login,
-            logpass = user.password,
+            pass_field = user.password,
             fio = ' '.join([f for f in (user.first_name, user.last_name, user.father_name) if f]),
             housec = house,
             apart = flat_int or None,
@@ -142,6 +143,7 @@ class Command(BaseCommand):
             tel = user.phone,
             balans = user.balance,
             groupn = tariff,
+            isreg = 0,
         )
 
     def create_user(self,user):
