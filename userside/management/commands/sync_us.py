@@ -55,7 +55,7 @@ class Command(BaseCommand):
         billing_ip = {}
         for ip in Account.objects.filter(subscriber=p_user):
             billing_ip[int(ip.ip)] = ip
-        for ip in TblIp.objects.using('userside').filter(usercode=u_user.code):
+        for ip in TblIp.objects.using('userside').filter(usercode=u_user.code,typer=1):
             if int(ip.userip) in billing_ip:
                 self.check_ip(billing_ip[ip.userip],ip,u_user.code)
                 del billing_ip[int(ip.userip)]
