@@ -84,7 +84,7 @@ class TblBase(models.Model):
     skidka = models.IntegerField(null=True, db_column='SKIDKA', blank=True) # Field name made lowercase.
     dateplus = models.DateField(null=True, db_column='DATEPLUS', blank=True) # Field name made lowercase.
     lastact = models.DateTimeField(null=True, db_column='LASTACT', blank=True) # Field name made lowercase.
-    lastping = models.DateTimeField(null=True, db_column='LASTPING', blank=True) # Field name made lowercase.
+    lastping = models.DateTimeField(null=True, db_column='LASTPING', blank=True, auto_now_add=True) # Field name made lowercase.
     workstatus = models.IntegerField(null=True, db_column='WORKSTATUS', blank=True) # Field name made lowercase.
     rxtraf = models.CharField(max_length=45, db_column='RXTRAF', blank=True) # Field name made lowercase.
     txtraf = models.CharField(max_length=45, db_column='TXTRAF', blank=True) # Field name made lowercase.
