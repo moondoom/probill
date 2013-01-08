@@ -18,17 +18,7 @@ DATABASES = {
     }
 }
 
-if config.has_section('userside'):
-    DATABASES.update({
-        'userside': {
-            'USER' : config.get('userside', 'DATABASE_USER'),
-            'PASSWORD' : config.get('userside', 'DATABASE_PASSWORD'),
-            'HOST' : config.get('userside', 'DATABASE_HOST'),
-            'PORT' : config.get('userside', 'DATABASE_PORT'),
-            'ENGINE' : config.get('userside', 'DATABASE_ENGINE'),
-            'NAME' : config.get('userside', 'DATABASE_NAME'),
-            }
-    })
+
 
 DEBUG = config.getboolean('debug','DEBUG')
 TEMPLATE_DEBUG = config.getboolean('debug','TEMPLATE_DEBUG')
@@ -102,6 +92,7 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -131,8 +122,7 @@ INSTALLED_APPS = (
     'probill.nas',
     'mptt'
 )
-if config.has_section('userside'):
-    INSTALLED_APPS = INSTALLED_APPS + ('userside',)
+
 
 LOGIN_URL='/moon/login'
 LOGOUT_URL='/moon/logout'
@@ -156,3 +146,22 @@ LOGGING = {
     }
 }
 
+if config.has_section('userside'):
+    INSTALLED_APPS = INSTALLED_APPS + ('userside',)
+    DATABASES.update({
+        'userside': {
+            'USER' : config.get('userside', 'DATABASE_USER'),
+            'PASSWORD' : config.get('userside', 'DATABASE_PASSWORD'),
+            'HOST' : config.get('userside', 'DATABASE_HOST'),
+            'PORT' : config.get('userside', 'DATABASE_PORT'),
+            'ENGINE' : config.get('userside', 'DATABASE_ENGINE'),
+            'NAME' : config.get('userside', 'DATABASE_NAME'),
+            }
+    })
+
+
+if config.has_section('client_side'):
+    TEMPLATE_DIRS = TEMPLATE_DIRS + (config.get('userside','TEMPLATE_DIR'),)
+    CLIENT_SIDE_URL = config.get('userside','MEDIA_URL')
+    if not CLIENT_SIDE_URL:
+        CLIENT_SIDE_URL = MEDIA_URL

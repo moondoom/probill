@@ -6,6 +6,14 @@ DATABASE_PORT =
 DATABASE_ENGINE = django.db.backends.postgresql_psycopg2
 DATABASE_NAME = probill
 
+#[userside]
+#DATABASE_USER = root
+#DATABASE_PASSWORD =
+#DATABASE_HOST = localhost
+#DATABASE_PORT =
+#DATABASE_ENGINE = django.db.backends.mysql
+#DATABASE_NAME = userside
+
 [debug]
 DEBUG = TRUE
 TEMPLATE_DEBUG = True
@@ -48,3 +56,6 @@ IPFW_NAT_END = 3100
 [nas]
 LOCAL_NAS_ID = 1
 
+#[client_side]
+#TEMPLATE_DIRS =
+#MEDIA_URL =

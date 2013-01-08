@@ -25,6 +25,7 @@ class Command(BaseCommand):
         'apart',
         'apart_b',
         'balans',
+        'telmob',
         'tel',
         'groupn',
     )
@@ -132,6 +133,11 @@ class Command(BaseCommand):
         except ObjectDoesNotExist as error:
             tariff = None
         flat_int, flat_char = self.parse_int_char(user.address_flat)
+        if user.phone.count(' ')>0:
+            tel, telmob = user.phone.split(' ')[:2]
+        else:
+            tel = user.phone
+            telmob = ' '
         return TblBase(
             logname = user.login,
             pass_field = user.password,
@@ -139,7 +145,8 @@ class Command(BaseCommand):
             housec = house,
             apart = flat_int or None,
             apart_b = flat_char or None,
-            tel = user.phone,
+            tel = tel,
+            telmob = telmob,
             balans = user.balance,
             groupn = tariff,
         )
@@ -147,7 +154,11 @@ class Command(BaseCommand):
     def create_user(self,user):
         p2u_user = self.get_us_user(user)
         p2u_user.save(using='userside')
-        self.sync_ip(user,p2u_user)
+        try:
+            u_user = TblBase.objects.using('userside').get(logname=user.login)
+            self.sync_ip(user,p2u_user)
+        except ObjectDoesNotExist as error:
+            print "Egor!"
 
     def check_user(self,p_user,u_user):
         p2u_user = self.get_us_user(p_user)
