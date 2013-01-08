@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
+import default_periodic
 from settings import *
 from probill.billing.models import *
 from probill.nas.models import *
