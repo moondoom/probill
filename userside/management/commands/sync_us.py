@@ -126,6 +126,7 @@ class Command(BaseCommand):
                 raise ObjectDoesNotExist
         except ObjectDoesNotExist as error:
             house = None
+            print error
         try:
             p_tariff = user.account_set.all()[0].tariff
             tariff = TblGroup.objects.using('userside').get(groupname=p_tariff.name)
