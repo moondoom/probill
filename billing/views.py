@@ -57,6 +57,7 @@ def index(request,template=None):
         template = main_temp
     else:
         c['main_temp'] = main_temp
+    print template
     return render_to_response(template,c)
 
 @sub_auth
@@ -111,10 +112,12 @@ def login(request):
         try:
             sub = Subscriber.objects.get(login=request.POST['username'])
         except ObjectDoesNotExist:
+            print CLIENT_SIDE_DIR + "/login.html"
             return render_to_response(CLIENT_SIDE_DIR + "/login.html", c)
         if sub.password and sub.password == request.POST['password']:
             request.session['subscriber_id'] = sub.id
     elif 'subscriber_id' not in request.session:
+        print CLIENT_SIDE_DIR + "/login.html"
         return render_to_response( CLIENT_SIDE_DIR + "/login.html", c)
     return HttpResponseRedirect("/client")
 
