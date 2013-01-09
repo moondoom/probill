@@ -6,11 +6,14 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from billing.models import *
+from settings import *
 
 import datetime
 import json
 from math import ceil
 import time
+
+
 
 def parse_date(request):
     try:
@@ -48,8 +51,11 @@ def sub_auth(fn):
 @sub_auth
 def index(request,template=None):
     c = RequestContext(request)
+    main_temp = CLIENT_SIDE_DIR + '/main.html'
     if not template:
-        template = 'client/main.html'
+        template = main_temp
+    else:
+        c['main_temp'] = main_temp
     return render_to_response(template,c)
 
 @sub_auth

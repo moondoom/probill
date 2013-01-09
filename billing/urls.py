@@ -1,12 +1,13 @@
 from django.conf.urls.defaults import patterns, url, include
 from views import *
 from moon_views import *
+from settings import *
 
 urlpatterns = patterns('',
     url(r'^$', index),
-    url(r'^info$', index,{'template':'client/info.html'}),
-    url(r'^money$', index,{'template':'client/money.html'}),
-    url(r'^stat$', index,{'template':'client/stat.html'}),
+    url(r'^info$', index,{'template': CLIENT_SIDE_DIR + '/info.html'}),
+    url(r'^money$', index,{'template': CLIENT_SIDE_DIR + '/money.html'}),
+    url(r'^stat$', index,{'template': CLIENT_SIDE_DIR + '/stat.html'}),
     url(r'^stat/json/$', stat_json),
     url(r'^support$', index),
     url(r'^login$', login),
