@@ -132,6 +132,10 @@ class Command(BaseCommand):
             tariff = tariff.code
         except ObjectDoesNotExist as error:
             tariff = None
+            print error
+        except IndexError as error:
+            tariff = None
+            print error
         flat_int, flat_char = self.parse_int_char(user.address_flat)
         if user.phone.count(' ')>0:
             tel, telmob = user.phone.split(' ')[:2]

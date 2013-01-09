@@ -159,9 +159,8 @@ if config.has_section('userside'):
             }
     })
 
-
+CLIENT_SIDE_URL = MEDIA_URL
 if config.has_section('client_side'):
     TEMPLATE_DIRS = TEMPLATE_DIRS + (config.get('userside','TEMPLATE_DIR'),)
-    CLIENT_SIDE_URL = config.get('userside','MEDIA_URL')
-    if not CLIENT_SIDE_URL:
-        CLIENT_SIDE_URL = MEDIA_URL
+    if config.get('userside','MEDIA_URL'):
+        CLIENT_SIDE_URL = config.get('userside','MEDIA_URL')
