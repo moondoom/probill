@@ -106,6 +106,7 @@ def stat_json(request):
 
 def login(request):
     c = RequestContext(request)
+    c['CLIENT_SIDE_URL'] = CLIENT_SIDE_URL
     if request.POST:
         try:
             sub = Subscriber.objects.get(login=request.POST['username'])
