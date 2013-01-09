@@ -111,11 +111,11 @@ def login(request):
         try:
             sub = Subscriber.objects.get(login=request.POST['username'])
         except ObjectDoesNotExist:
-            return render_to_response("client/login.html", c)
+            return render_to_response(CLIENT_SIDE_DIR + "/login.html", c)
         if sub.password and sub.password == request.POST['password']:
             request.session['subscriber_id'] = sub.id
     elif 'subscriber_id' not in request.session:
-        return render_to_response("client/login.html", c)
+        return render_to_response( CLIENT_SIDE_DIR + "/login.html", c)
     return HttpResponseRedirect("/client")
 
 
