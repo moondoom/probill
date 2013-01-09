@@ -51,6 +51,7 @@ def sub_auth(fn):
 @sub_auth
 def index(request,template=None):
     c = RequestContext(request)
+    c['CLIENT_SIDE_URL'] = CLIENT_SIDE_URL
     main_temp = CLIENT_SIDE_DIR + '/main.html'
     if not template:
         template = main_temp
