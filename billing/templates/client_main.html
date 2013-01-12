@@ -1,7 +1,7 @@
 <html>
 <head>
     <title>Личный кабинет</title>
-    <link rel="stylesheet" type="text/css" href="{{ CLIENT_SIDE_URL }}css/client.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/client.css"/>
     {% block ext_title %}{% endblock %}
 </head>
 <body>
@@ -12,7 +12,7 @@
                 <a href="info">
                     <b>Учётная запись</b>
                     <br/>
-                    <img src="{{ CLIENT_SIDE_URL }}image/client/user_icon_1.png" alt=""/>
+                    <img src="{{ MEDIA_URL }}image/client/user_icon_1.png" alt=""/>
                     <br/>
                     <b>{{ user }}</b>
                 </a>
@@ -21,7 +21,7 @@
                 <a href="money">
                     <b>Ваш баланс</b>
                     <br/>
-                    <img src="{{ CLIENT_SIDE_URL }}image/client/money_icon_1.png" alt=""/>
+                    <img src="{{ MEDIA_URL }}image/client/money_icon_1.png" alt=""/>
                     <br/>
                     <b {% if user.balance <= 0 %}class='redtext'{% endif %}>{{ user.balance|floatformat:2 }} р</b>
                 </a>
@@ -30,7 +30,7 @@
                 <a href="stat">
                     <b>Статистика по трафику</b>
                     <br/>
-                    <img src="{{ CLIENT_SIDE_URL }}image/client/stat_icon_1.png" alt=""/>
+                    <img src="{{ MEDIA_URL }}image/client/stat_icon_1.png" alt=""/>
                     <br/>
                 </a>
             </div>
@@ -38,7 +38,7 @@
                 <a href="support">
                     <b>Техподдержка</b>
                     <br/>
-                    <img src="{{ CLIENT_SIDE_URL }}image/client/support_icon_1.png" alt=""/>
+                    <img src="{{ MEDIA_URL }}image/client/support_icon_1.png" alt=""/>
                     <br/>
                 </a>
             </div>

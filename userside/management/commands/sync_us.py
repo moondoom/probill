@@ -139,10 +139,19 @@ class Command(BaseCommand):
             print error
         flat_int, flat_char = self.parse_int_char(user.address_flat)
         if user.phone.count(' ')>0:
-            tel, telmob = user.phone.split(' ')[:2]
+            tel = []
+            telmob = []
+            phone_list = re.split(r' *',user.phone)
+            for phone in phone_list:
+                if len(phone) > 10:
+                    telmob.append(phone)
+                else:
+                    tel.append(phone)
+            tel = ','.join(tel) or ' '
+            telmob = ','.join(telmob) or ' '
         else:
-            tel = user.phone
-            telmob = ' '
+            tel = ' '
+            telmob = user.phone
         return TblBase(
             logname = user.login,
             pass_field = user.password,

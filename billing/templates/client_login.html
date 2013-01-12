@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="ru-ru" style="height: 100%">
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ CLIENT_SIDE_URL }}css/client.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/client.css"/>
     <title>Добро пожаловать</title>
 </head>
 <body class="login" >
-    <div id="loginpage" style="background-image: url({{ CLIENT_SIDE_URL }}image/theme/logo.jpeg);">
+    <div id="loginpage" style="background-image: url({{ MEDIA_URL }}image/theme/logo.jpeg);">
 
             <form id="login_form" action="login" method="POST">
                 <input type="text" name="username" id="user_login"  tabindex="10">
                 <input type="password" name="password" id="user_password"  tabindex="10">
-                <input type="submit" id='submit' value="" style="background-image: url({{ CLIENT_SIDE_URL }}image/theme/login_botton.png);">
+                <input type="submit" id='submit' value="" style="background-image: url({{ MEDIA_URL }}image/theme/login_botton.png);">
                 {% csrf_token %}
             </form>
 

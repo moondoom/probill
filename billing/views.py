@@ -6,7 +6,6 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from billing.models import *
-from settings import *
 
 import datetime
 import json
@@ -51,12 +50,8 @@ def sub_auth(fn):
 @sub_auth
 def index(request,template=None):
     c = RequestContext(request)
-    c['CLIENT_SIDE_URL'] = CLIENT_SIDE_URL
-    main_temp = CLIENT_SIDE_DIR + '/main.html'
     if not template:
-        template = main_temp
-    else:
-        c['main_temp'] = main_temp
+        template = 'client_main.html'
     print template
     return render_to_response(template,c)
 
@@ -107,18 +102,15 @@ def stat_json(request):
 
 def login(request):
     c = RequestContext(request)
-    c['CLIENT_SIDE_URL'] = CLIENT_SIDE_URL
     if request.POST:
         try:
             sub = Subscriber.objects.get(login=request.POST['username'])
         except ObjectDoesNotExist:
-            print CLIENT_SIDE_DIR + "/login.html"
-            return render_to_response(CLIENT_SIDE_DIR + "/login.html", c)
+            return render_to_response("client_login.html", c)
         if sub.password and sub.password == request.POST['password']:
             request.session['subscriber_id'] = sub.id
     elif 'subscriber_id' not in request.session:
-        print CLIENT_SIDE_DIR + "/login.html"
-        return render_to_response( CLIENT_SIDE_DIR + "/login.html", c)
+        return render_to_response( "client_login.html", c)
     return HttpResponseRedirect("/client")
 
 
