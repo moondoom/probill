@@ -74,6 +74,9 @@ class Command(BaseCommand):
             if user.logname in billing_users:
                 self.check_user(billing_users[user.logname],user)
                 del billing_users[user.logname]
+            else:
+                self.sync_ip(None,user)
+                user.delete(using='userside')
         for user in billing_users:
             self.create_user(billing_users[user])
 
