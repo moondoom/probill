@@ -162,3 +162,7 @@ if config.has_section('userside'):
 if config.has_section('client_side'):
     TEMPLATE_DIRS = TEMPLATE_DIRS + (config.get('client_side','TEMPLATE_DIR'),)
 
+if config.has_section('http_redirect'):
+    REDIRECT_TO = (config.get('http_redirect','REDIRECT_TO'),)
+else:
+    REDIRECT_TO = ''
