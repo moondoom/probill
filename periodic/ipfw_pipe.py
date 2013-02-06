@@ -158,13 +158,14 @@ def main():
         IPFW_END_IN - IPFW_RULE_STEP*2: 'allow ip from table(%s) to any' % IPFW_MIN_TABLE,
         IPFW_END_IN : 'deny ip from any to any',
         }
-    if REDIRECT_TO:
-        ipfw_rules_in[IPFW_END_IN - IPFW_RULE_STEP] = 'fwd {} tcp from any to any 80'.format(REDIRECT_TO)
     ipfw_rules_out = {
-        IPFW_END_OUT - IPFW_RULE_STEP*2 : 'pipe tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
-        IPFW_END_OUT - IPFW_RULE_STEP: 'allow ip from any to table(%s)' % IPFW_MIN_TABLE,
+        IPFW_END_OUT - IPFW_RULE_STEP*3 : 'pipe tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
+        IPFW_END_OUT - IPFW_RULE_STEP*2: 'allow ip from any to table(%s)' % IPFW_MIN_TABLE,
         IPFW_END_OUT : 'deny ip from any to any',
         }
+    if REDIRECT_TO:
+        ipfw_rules_in[IPFW_END_IN - IPFW_RULE_STEP] = 'fwd {} tcp from any to any 80'.format(REDIRECT_TO)
+        ipfw_rules_out[IPFW_END_OUT - IPFW_RULE_STEP] = 'allow tcp from any 80 to any'
     ipfw_rules_nat = {}
 
     # NAT section
