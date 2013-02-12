@@ -224,7 +224,7 @@ def main():
 #        ipfw_rules_out[rule_offset + IPFW_START_OUT] = 'queue tablearg ip from %s to table(%s)' % (nets,table_number+1)
 
 
-    for account in Account.objects.filter(active=True):
+    for account in Account.objects.filter(active=True,tariff__isnull=False):
         if account.tariff.qos_speed:
             speed_id = str(account.tariff.qos_speed)
             if speed_id not in queue_map:
