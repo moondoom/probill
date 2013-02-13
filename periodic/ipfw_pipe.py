@@ -171,9 +171,13 @@ def main():
     ipfw_rules_nat[cursor] = 'nat tablearg ip from table(%s) to any' % IPFW_NAT_TABLE
     cursor += IPFW_RULE_STEP
     nat_priority_table = {}
-    nat_max_priority = nats[len(nats)-1].priority
+    nat_max_priority = 0
+    active_nat = []
     for nat in nats:
         if nat.active:
+            active_nat.append(nat.id)
+            if nat.priority > nat_max_priority:
+                nat_max_priority = nat.priority
             if nat.priority not in nat_priority_table:
                 nat_priority_table[nat.priority] = [nat]
             else:
@@ -184,7 +188,7 @@ def main():
         cursor += IPFW_RULE_STEP
 
     account_static_nat = {}
-    for nat_rule in UpLinkPolice.objects.filter(nat_address__in=nats):
+    for nat_rule in UpLinkPolice.objects.filter(nat_address__in=active_nat):
         if nat_rule.accounts:
             for account in nat_rule.accounts.all():
                 account_static_nat[account.id] = nat_rule.nat_address
@@ -192,18 +196,20 @@ def main():
             for account in Account.objects.filter(ip__in=nat_rule.network):
                 account_static_nat[account.id] = nat_rule.nat_address
 
-    nat_choice_length = len(nat_priority_table[nat_max_priority]) - 1
-    nat_choice = 0
-    for account in Account.objects.filter(active=True):
-        ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
-        if account.id in account_static_nat:
-            nat_id = account_static_nat[account.id].ipfw_nat_id
-        else:
-            if nat_choice > nat_choice_length:
-                nat_choice = 0
-            nat_id = nat_priority_table[nat_max_priority][nat_choice].ipfw_nat_id
-            nat_choice += 1
-        ipfw_tables[IPFW_NAT_TABLE][account.CIDR] = nat_id
+    # Если нет неодного доступного правила натирования то рубим пользователей! Иначе трафик будет уходить нетуда.
+    if nat_max_priority == 0:
+        nat_choice_length = len(nat_priority_table[nat_max_priority]) - 1
+        nat_choice = 0
+        for account in Account.objects.filter(active=True):
+            ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
+            if account.id in account_static_nat:
+                nat_id = account_static_nat[account.id].ipfw_nat_id
+            else:
+                if nat_choice > nat_choice_length:
+                    nat_choice = 0
+                nat_id = nat_priority_table[nat_max_priority][nat_choice].ipfw_nat_id
+                nat_choice += 1
+            ipfw_tables[IPFW_NAT_TABLE][account.CIDR] = nat_id
 
 
     # Qos section

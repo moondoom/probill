@@ -58,3 +58,6 @@ LOCAL_NAS_ID = 1
 
 #[client_side]
 #TEMPLATE_DIR =
+
+#[http_redirect]
+#REDIRECT_TO = 127.0.0.1,8013
