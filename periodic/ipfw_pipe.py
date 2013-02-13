@@ -200,7 +200,7 @@ def main():
                 account_static_nat[account.id] = nat_rule.nat_address
 
     # Если нет неодного доступного правила натирования то рубим пользователей! Иначе трафик будет уходить нетуда.
-    if nat_max_priority == 0:
+    if nat_max_priority > 0:
         nat_choice_length = len(nat_priority_table[nat_max_priority]) - 1
         nat_choice = 0
         for account in Account.objects.filter(active=True):
