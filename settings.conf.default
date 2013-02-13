@@ -60,8 +60,5 @@ LOCAL_NAS_ID = 1
 #TEMPLATE_DIR =
 
 #[http_redirect]
-<<<<<<< HEAD
 #REDIRECT_TO = 127.0.0.1,8013
-=======
-#REDIRECT_TO = 127.0.0.1,8089
->>>>>>> 7d50ba173ed20dc6413ba1e3d84964ce591b068e
+
