@@ -11,6 +11,7 @@ urlpatterns = patterns('',
     url(r'^stat/json/$', stat_json),
     url(r'^support$', index),
     url(r'^login$', login),
+    url(r'^blocked$', only_ip_auth),
     url(r'^logout$', logout),
     #moon_views
     url(r'^subscriber/', include(subscriber_grid.urls)),
