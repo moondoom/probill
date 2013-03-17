@@ -27,7 +27,7 @@ TEMPLATE_DEBUG = config.getboolean('debug','TEMPLATE_DEBUG')
 TIME_ZONE = config.get('main', 'TIME_ZONE')
 LANGUAGE_CODE = config.get('main', 'LANGUAGE_CODE')
 SITE_ID = config.getint('main', 'SITE_ID')
-SECRET_KEY = config.getboolean('main','SECRET_KEY')
+SECRET_KEY = config.get('main','SECRET_KEY')
 
 # Probill custom settings
 PROBILL_PATH = config.get('probill', 'PROBILL_PATH')
