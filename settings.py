@@ -23,9 +23,11 @@ DATABASES = {
 DEBUG = config.getboolean('debug','DEBUG')
 TEMPLATE_DEBUG = config.getboolean('debug','TEMPLATE_DEBUG')
 
+
 TIME_ZONE = config.get('main', 'TIME_ZONE')
 LANGUAGE_CODE = config.get('main', 'LANGUAGE_CODE')
 SITE_ID = config.getint('main', 'SITE_ID')
+SECRET_KEY = config.get('main','SECRET_KEY')
 
 # Probill custom settings
 PROBILL_PATH = config.get('probill', 'PROBILL_PATH')
@@ -39,6 +41,7 @@ NETGRAPH_PATH = config.get('prog_path', 'NETGRAPH_PATH')
 ARP_PATH = config.get('prog_path', 'ARP_PATH')
 PING_PATH = config.get('prog_path', 'PING_PATH')
 ROUTE_PATH = config.get('prog_path', 'ROUTE_PATH')
+SUDO_PATH = config.get('prog_path', 'SUDO_PATH')
 
 ## IPFW settings
 IPFW_MIN_TABLE = config.getint('ipfw', 'IPFW_MIN_TABLE')

@@ -48,11 +48,13 @@ def sub_auth(fn):
     return new
 
 @sub_auth
-def index(request,template=None):
+def index(request,template='client_main.html'):
     c = RequestContext(request)
-    if not template:
-        template = 'client_main.html'
-    print template
+    return render_to_response(template,c)
+
+def only_ip_auth(request,template='client_blocked.html'):
+    c = RequestContext(request)
+    c['REMOTE_ADDR'] = request.META['REMOTE_ADDR']
     return render_to_response(template,c)
 
 @sub_auth

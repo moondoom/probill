@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="ru-ru" style="height: 100%">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/client.css"/>
+    <title>Добро пожаловать</title>
+</head>
+<body style="background-color: red;">
+   <div style="left: 25%;right: 25%;top: 25%; position: absolute;text-align: center;">
+        <H1>Доступ в интернет заблокирован!<br><br>
+            попробуйте войти в <a href="/client/">личный кабинет</a><br><br> и проверить баланс<br><br><br><br>
+            С уважением,<br><br>
+            АДминистрация фирмы Рога И Патчкорды :))
+       </H1>
+   </div>
+   <div style="bottom: 5%; left: 10%; position: absolute;">Ващь Ипиадрюсь: {{ REMOTE_ADDR }}</div>
+</body>
+</html>
