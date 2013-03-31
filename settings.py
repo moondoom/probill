@@ -41,6 +41,7 @@ NETGRAPH_PATH = config.get('prog_path', 'NETGRAPH_PATH')
 ARP_PATH = config.get('prog_path', 'ARP_PATH')
 PING_PATH = config.get('prog_path', 'PING_PATH')
 ROUTE_PATH = config.get('prog_path', 'ROUTE_PATH')
+SUDO_PATH = config.get('prog_path', 'SUDO_PATH')
 
 ## IPFW settings
 IPFW_MIN_TABLE = config.getint('ipfw', 'IPFW_MIN_TABLE')

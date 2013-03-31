@@ -36,6 +36,7 @@ NETGRAPH_PATH = /usr/sbin/ngctl
 ARP_PATH = /usr/sbin/arp
 PING_PATH = /sbin/ping
 ROUTE_PATH = /sbin/route
+SUDO_PATH = /usr/local/bin/sudo
 
 [ipfw]
 # General

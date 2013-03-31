@@ -8,14 +8,22 @@ from probill.nas.models import *
 import re
 from subprocess import Popen,PIPE
 
-class IpfwObject():
+class IpfwObject(object):
+
+    def __init__(self,ssh=None,*args,**kwargs):
+        self.ssh = ssh
 
     def get(self,command):
-        process = Popen([IPFW_PATH, command],stderr=PIPE,stdout=PIPE)
-        error = process.stderr.read()
+        if self.ssh:
+            stdin , stdout ,stderr = self.ssh.exec_command(' '.join([IPFW_PATH, command]))
+        else:
+            process = Popen([IPFW_PATH, command],stderr=PIPE,stdout=PIPE)
+            stderr = process.stderr
+            stdout = process.stdout
+        error = stderr.read()
         if DEBUG:
             print [command,error]
-        return process.stdout.read()
+        return stdout.read()
 
     def list(self):
         pass
@@ -47,8 +55,10 @@ class IpfwObject():
 class IpfwTable(IpfwObject):
     re_error = re.compile('.*')
 
-    def __init__(self,number):
+    def __init__(self,number, *args, **kwargs):
+        super(IpfwTable,self).__init__(*args, **kwargs)
         self.number = number
+
 
     def add(self,net,arg):
         self.get('table %s add %s %s' % (self.number,net,arg))
@@ -71,9 +81,11 @@ class IpfwTable(IpfwObject):
 
 class IpfwRuleSet(IpfwObject):
 
-    def __init__(self,start,end):
+    def __init__(self, start, end, *args, **kwargs):
+        super(IpfwRuleSet,self).__init__(*args, **kwargs)
         self.start = start
         self.end = end
+
 
     def add(self,rule_num,rule):
         self.get('add %s %s' % (rule_num,rule))
@@ -150,7 +162,7 @@ class IpfwQueues(IpfwObject):
         self.get('queue %s delete' % id)
 
 
-def main():
+def process_nas(nas):
     QOS_TABLE = IPFW_MIN_TABLE + 1
     ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{},IPFW_NAT_TABLE:{}}
     ipfw_rules_in = {
@@ -169,7 +181,7 @@ def main():
     ipfw_rules_nat = {}
 
     # NAT section
-    nats = UpLink.objects.filter(enabled=True,nas__id=LOCAL_NAS_ID)
+    nats = UpLink.objects.filter(enabled=True,nas__id=nas.id)
     cursor = IPFW_NAT_START
     ipfw_rules_nat[cursor] = 'nat tablearg ip from table(%s) to any' % IPFW_NAT_TABLE
     cursor += IPFW_RULE_STEP
@@ -260,24 +272,32 @@ def main():
         #queue_std[queue_map[x]] = queue_map[x]
         #queue_std[queue_map[x]+1] = queue_map[x]+1
 
-    Pipes = IpfwPipes()
+    if nas.id <> LOCAL_NAS_ID:
+        ssh = nas.get_ssh()
+        if not ssh:
+            return False
+    else:
+        ssh = None
+    Pipes = IpfwPipes(ssh=ssh)
     Pipes.check(pipe_std)
     #Queues = IpfwQueues()
     #Queues.check(queue_std)
 
-
-
     for num in ipfw_tables:
-        ipfw_table = IpfwTable(num)
+        ipfw_table = IpfwTable(num,ssh=ssh)
         ipfw_table.check(ipfw_tables[num])
 
-    rule_in = IpfwRuleSet(IPFW_START_IN,IPFW_END_IN)
+    rule_in = IpfwRuleSet(IPFW_START_IN,IPFW_END_IN,ssh=ssh)
     rule_in.check(ipfw_rules_in)
-    rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT)
+    rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT,ssh=ssh)
     rule_out.check(ipfw_rules_out)
-    rule_nat = IpfwRuleSet(IPFW_NAT_START,IPFW_NAT_END)
+    rule_nat = IpfwRuleSet(IPFW_NAT_START,IPFW_NAT_END,ssh=ssh)
     rule_nat.check(ipfw_rules_nat)
+    return True
 
+def main():
+    for nas in NasServer.objects.all():
+        process_nas(nas)
 
 
 if __name__ == '__main__':

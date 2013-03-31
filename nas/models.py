@@ -8,11 +8,21 @@ from probill.billing.models import Account
 class NasServer(models.Model):
     name = models.CharField(max_length=50)
     mng_ip = IPAddressField()
-    secret = models.CharField(max_length=50,null=True,blank=True)
+    username = models.CharField(max_length=50,null=True,blank=True)
+    password = models.CharField(max_length=50,null=True,blank=True)
 
     class Meta():
-        verbose_name_plural = u'Сервера доступа'
-        verbose_name = u'Сервер доступа'
+        verbose_name_plural = u'сервера доступа'
+        verbose_name = u'сервер доступа'
+
+    def get_ssh(self):
+        import paramiko
+        self.ssh = paramiko.SSHClient()
+        try:
+            self.ssh.connect(self.mng_ip,username=str(self.username),password=str(self.password))
+        except:
+            return None
+        return self.ssh
 
     def __unicode__(self):
         return u'%s(%s)' % (self.name,self.mng_ip)
