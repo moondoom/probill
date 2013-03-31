@@ -23,10 +23,11 @@ def main():
                                                      flow_file,
                                                      settings.FLOW_STAT))
     except :
-        PeriodicLog.log('Ошибка открытия файла %s/%s' % (settings.FLOW_PATH,flow_file))
+        PeriodicLog.log('Ошибка открытия файла %s/%s' % (settings.FLOW_PATH, flow_file))
+        pipe = None
         exit(1)
     if settings.DEBUG:
-        PeriodicLog.log('Начало обработки файла %s' % (pipe))
+        PeriodicLog.log('Начало обработки файла %s' % pipe)
     while 1:
         line = pipe.readline()
         if line:

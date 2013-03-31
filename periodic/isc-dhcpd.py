@@ -11,14 +11,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from default_periodic import settings
 from probill.nas.models import *
 from probill.billing.models import PeriodicLog,Account
+from settings import  *
 
 
 def main():
-    try:
-        nas = NasServer.objects.get(id=settings.LOCAL_NAS_ID)
-    except ObjectDoesNotExist:
-        PeriodicLog.log('Неудалось найти локального NAS сервера c id = 1 Выполнение останволенно',code=100)
-        exit(1)
+    for nas in NasServer.objects.filter(active=True):
+        process_nas(nas)
+
+def process_nas(nas):
     new_config = ''
     local_subnet = []
     for d_server in nas.dhcpserver_set.all():
@@ -30,21 +30,23 @@ def main():
         for account in Account.objects.filter(ip__in=subnet.network).exclude(mac=None):
             new_config += hostConfig(account)
 
-    old_config = open('/usr/local/etc/dhcpd.conf','r').read()
+    old_config = nas.open('/usr/local/etc/dhcpd.conf','r').read()
     if old_config <> new_config:
-        open('/usr/local/etc/dhcpd.conf','w').write(new_config)
-        if checkConfig():
+        nas.open('/usr/local/etc/dhcpd.conf','w').write(new_config)
+        if checkConfig(nas):
             if settings.DEBUG:
                 PeriodicLog.log('New dhcp config check ok. Restarting dhcpd.')
-            print os.popen('/usr/local/etc/rc.d/isc-dhcpd restart').read()
+            stdin, stdout, stderr = nas.exec_command(' '.join([SUDO_PATH, '/usr/local/etc/rc.d/isc-dhcpd restart']))
+            print stdout.read()
+            print stderr.read()
         else:
             PeriodicLog.log('New dhcp config check fail!!!! Restor old config.')
-            open('/usr/local/etc/dhcpd.conf','w').write(old_config)
+            nas.open('/usr/local/etc/dhcpd.conf','w').write(old_config)
 
 
-def checkConfig():
-    test1,test2,test3 = os.popen3('dhcpd -t')
-    test = test3.read()
+def checkConfig(nas):
+    stdin, stdout, stderr = nas.exec_command(' '.join([SUDO_PATH,'dhcpd -t']))
+    test = stderr.read()
     if test.find('Configuration file errors') <> -1:
         return False
     else:

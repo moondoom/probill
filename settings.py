@@ -55,6 +55,7 @@ IPFW_QUEUE_SIZE = config.getint('ipfw', 'IPFW_QUEUE_SIZE')
 IPFW_NAT_TABLE= config.getint('ipfw', 'IPFW_NAT_TABLE')
 IPFW_NAT_START = config.getint('ipfw', 'IPFW_NAT_START')
 IPFW_NAT_END = config.getint('ipfw', 'IPFW_NAT_END')
+IPFW_INCLUDE = config.get('ipfw', 'IPFW_INCLUDE')
 
 ## NAS setting
 LOCAL_NAS_ID = config.getint('nas', 'LOCAL_NAS_ID')

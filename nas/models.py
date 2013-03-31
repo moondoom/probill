@@ -3,26 +3,63 @@
 from django.db import models
 from probill.lib.networks import IPAddressField,IPNetworkField
 from probill.billing.models import Account
+from settings import LOCAL_NAS_ID,SUDO_PATH
+import os
 
 
 class NasServer(models.Model):
+    #STATIC
+    ssh_error = None
+    ssh = None
+
     name = models.CharField(max_length=50)
     mng_ip = IPAddressField()
     username = models.CharField(max_length=50,null=True,blank=True)
     password = models.CharField(max_length=50,null=True,blank=True)
+    active = models.BooleanField(default=True)
+
 
     class Meta():
         verbose_name_plural = u'сервера доступа'
         verbose_name = u'сервер доступа'
 
+
     def get_ssh(self):
         import paramiko
         self.ssh = paramiko.SSHClient()
+        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            self.ssh.connect(self.mng_ip,username=str(self.username),password=str(self.password))
-        except:
-            return None
+            self.ssh.connect(str(self.mng_ip),username=str(self.username),password=str(self.password))
+        except Exception as error:
+            print error
+            self.ssh_error =  True
+            self.ssh = None
         return self.ssh
+
+
+    def check_ssh(self):
+        if self.id <> LOCAL_NAS_ID:
+            if not self.ssh and not self.ssh_error:
+                self.get_ssh()
+            return True
+        return False
+
+
+    def open(self, file_path, mode):
+        if self.check_ssh():
+            if not self.ssh_error:
+                return self.ssh.open_sftp().open(file_path,mode)
+        else:
+            return open(file_path,mode)
+
+
+    def exec_command(self, command):
+        if self.check_ssh():
+            if not self.ssh_error:
+                return self.ssh.exec_command(command)
+        else:
+            return os.popen3(command)
+
 
     def __unicode__(self):
         return u'%s(%s)' % (self.name,self.mng_ip)

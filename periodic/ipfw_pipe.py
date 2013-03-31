@@ -15,7 +15,7 @@ class IpfwObject(object):
 
     def get(self,command):
         if self.ssh:
-            stdin , stdout ,stderr = self.ssh.exec_command(' '.join([IPFW_PATH, command]))
+            stdin , stdout ,stderr = self.ssh.exec_command(' '.join([SUDO_PATH, IPFW_PATH, command]))
         else:
             process = Popen([IPFW_PATH, command],stderr=PIPE,stdout=PIPE)
             stderr = process.stderr
@@ -28,6 +28,9 @@ class IpfwObject(object):
     def list(self):
         pass
 
+    def export(self,id,arg):
+        return ''
+
     def rewrite(self,id,arg):
         self.remove(id)
         self.add(id,arg)
@@ -36,9 +39,10 @@ class IpfwObject(object):
         pass
 
     def add(self,id,arg):
-        pass
+        self.get(self.export(id,arg))
 
     def check(self,standard):
+        export_list = []
         new_rows = standard.keys()
         for id, arg in self.list():
             if id in standard:
@@ -50,6 +54,9 @@ class IpfwObject(object):
                 self.remove(id)
         for id in new_rows:
             self.add(id,standard[id])
+        for id in standard:
+            export_list.append(self.export(id, standard[id]))
+        return export_list
 
 
 class IpfwTable(IpfwObject):
@@ -59,16 +66,15 @@ class IpfwTable(IpfwObject):
         super(IpfwTable,self).__init__(*args, **kwargs)
         self.number = number
 
+    def export(self, id, arg):
+        return 'table %s add %s %s' % (self.number, id, arg)
 
-    def add(self,net,arg):
-        self.get('table %s add %s %s' % (self.number,net,arg))
+    def remove(self, id):
+        self.get('table %s delete %s' % (self.number, id))
 
-    def remove(self,net):
-        self.get('table %s delete %s' % (self.number,net))
-
-    def rewrite(self,net,arg):
-        self.remove(net)
-        self.add(net,arg)
+    def rewrite(self, id, arg):
+        self.remove(id)
+        self.add(id, arg)
 
     def list(self):
         self.rows = []
@@ -86,9 +92,8 @@ class IpfwRuleSet(IpfwObject):
         self.start = start
         self.end = end
 
-
-    def add(self,rule_num,rule):
-        self.get('add %s %s' % (rule_num,rule))
+    def export(self,id,arg):
+        return 'add %s %s' % (id, arg)
 
     def remove(self,rule_num):
         self.get('delete %s' % rule_num)
@@ -123,17 +128,17 @@ class IpfwPipes(IpfwObject):
         return self.rows
 
 
-    def add(self,id,arg):
+    def export(self, id, arg):
         if id % 2:
             mask = 'src-ip'
         else:
             mask = 'dst-ip'
-        self.get('pipe %s config bw %sKbit/s queue %s gred 0.002/%s/%s/0.1 mask %s 0xffffffff' % (id,
+        return 'pipe %s config bw %sKbit/s queue %s gred 0.002/%s/%s/0.1 mask %s 0xffffffff' % (id,
                                                                                                   arg,
                                                                                                   IPFW_QUEUE_SIZE,
                                                                                                   IPFW_QUEUE_SIZE/2,
                                                                                                   IPFW_QUEUE_SIZE,
-                                                                                                  mask))
+                                                                                                  mask)
 
     def remove(self,id):
         self.get('pipe %s delete' % id)
@@ -151,12 +156,12 @@ class IpfwQueues(IpfwObject):
             self.rows.append([id,pipe])
         return self.rows
 
-    def add(self,id,arg):
+    def export(self,id,arg):
         if id % 2:
             mask = 'src-ip'
         else:
             mask = 'dst-ip'
-        self.get('queue %s config pipe %s weight 50 mask %s 0xffffffff' % (id,arg,mask))
+        return 'queue %s config pipe %s weight 50 mask %s 0xffffffff' % (id,arg,mask)
 
     def remove(self,id):
         self.get('queue %s delete' % id)
@@ -181,7 +186,7 @@ def process_nas(nas):
     ipfw_rules_nat = {}
 
     # NAT section
-    nats = UpLink.objects.filter(enabled=True,nas__id=nas.id)
+    nats = UpLink.objects.filter(enabled=True,nas=nas)
     cursor = IPFW_NAT_START
     ipfw_rules_nat[cursor] = 'nat tablearg ip from table(%s) to any' % IPFW_NAT_TABLE
     cursor += IPFW_RULE_STEP
@@ -203,7 +208,7 @@ def process_nas(nas):
         cursor += IPFW_RULE_STEP
 
     account_static_nat = {}
-    for nat_rule in UpLinkPolice.objects.filter(nat_address__in=active_nat):
+    for nat_rule in UpLinkPolice.objects.filter(nat_address__in=active_nat,nat_address__nas=nas):
         if nat_rule.accounts:
             for account in nat_rule.accounts.all():
                 account_static_nat[account.id] = nat_rule.nat_address
@@ -215,16 +220,17 @@ def process_nas(nas):
     if nat_max_priority > 0:
         nat_choice_length = len(nat_priority_table[nat_max_priority]) - 1
         nat_choice = 0
-        for account in Account.objects.filter(active=True):
-            ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
-            if account.id in account_static_nat:
-                nat_id = account_static_nat[account.id].ipfw_nat_id
-            else:
-                if nat_choice > nat_choice_length:
-                    nat_choice = 0
-                nat_id = nat_priority_table[nat_max_priority][nat_choice].ipfw_nat_id
-                nat_choice += 1
-            ipfw_tables[IPFW_NAT_TABLE][account.CIDR] = nat_id
+        for subnet in IPInterface.objects.filter(iface__nas=nas):
+            for account in Account.objects.filter(active=True,ip__in=subnet.network):
+                ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
+                if account.id in account_static_nat:
+                    nat_id = account_static_nat[account.id].ipfw_nat_id
+                else:
+                    if nat_choice > nat_choice_length:
+                        nat_choice = 0
+                    nat_id = nat_priority_table[nat_max_priority][nat_choice].ipfw_nat_id
+                    nat_choice += 1
+                ipfw_tables[IPFW_NAT_TABLE][account.CIDR] = nat_id
 
 
     # Qos section
@@ -244,15 +250,15 @@ def process_nas(nas):
 #        ipfw_rules_in[rule_offset + IPFW_START_IN] = 'queue tablearg ip from table(%s) to %s' % (table_number,nets)
 #        ipfw_rules_out[rule_offset + IPFW_START_OUT] = 'queue tablearg ip from %s to table(%s)' % (nets,table_number+1)
 
-
-    for account in Account.objects.filter(active=True,tariff__isnull=False):
-        if account.tariff.qos_speed:
-            speed_id = str(account.tariff.qos_speed)
-            if speed_id not in queue_map:
-                queue_map[speed_id] = queue_map_id
-                queue_map_id += 2
-            ipfw_tables[QOS_TABLE][account.CIDR] = queue_map[speed_id]
-            ipfw_tables[QOS_TABLE+1][account.CIDR] = queue_map[speed_id]+1
+    for subnet in IPInterface.objects.filter(iface__nas=nas):
+        for account in Account.objects.filter(active=True, tariff__isnull=False, ip__in=subnet.network):
+            if account.tariff.qos_speed:
+                speed_id = str(account.tariff.qos_speed)
+                if speed_id not in queue_map:
+                    queue_map[speed_id] = queue_map_id
+                    queue_map_id += 2
+                ipfw_tables[QOS_TABLE][account.CIDR] = queue_map[speed_id]
+                ipfw_tables[QOS_TABLE+1][account.CIDR] = queue_map[speed_id]+1
 
 #        qacs = account.tariff.qac_class.all().exclude(qos_speed=0)
 #        if qacs:
@@ -272,6 +278,8 @@ def process_nas(nas):
         #queue_std[queue_map[x]] = queue_map[x]
         #queue_std[queue_map[x]+1] = queue_map[x]+1
 
+    off_line_rules = []
+
     if nas.id <> LOCAL_NAS_ID:
         ssh = nas.get_ssh()
         if not ssh:
@@ -283,21 +291,30 @@ def process_nas(nas):
     #Queues = IpfwQueues()
     #Queues.check(queue_std)
 
+
     for num in ipfw_tables:
         ipfw_table = IpfwTable(num,ssh=ssh)
-        ipfw_table.check(ipfw_tables[num])
+        off_line_rules += ipfw_table.check(ipfw_tables[num])
 
     rule_in = IpfwRuleSet(IPFW_START_IN,IPFW_END_IN,ssh=ssh)
-    rule_in.check(ipfw_rules_in)
+    off_line_rules += rule_in.check(ipfw_rules_in)
     rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT,ssh=ssh)
-    rule_out.check(ipfw_rules_out)
+    off_line_rules += rule_out.check(ipfw_rules_out)
     rule_nat = IpfwRuleSet(IPFW_NAT_START,IPFW_NAT_END,ssh=ssh)
-    rule_nat.check(ipfw_rules_nat)
+    off_line_rules += rule_nat.check(ipfw_rules_nat)
+    if ssh:
+        off_line_file = ssh.open_sftp().open(IPFW_INCLUDE,'wb')
+    else:
+        off_line_file = open(IPFW_INCLUDE,'wb')
+    off_line_file.write('\n'.join(off_line_rules))
+    off_line_file.close()
     return True
 
 def main():
     for nas in NasServer.objects.all():
-        process_nas(nas)
+        rez = process_nas(nas)
+        if DEBUG:
+            print rez
 
 
 if __name__ == '__main__':
