@@ -39,10 +39,23 @@ class Manager(models.Model):
     phone = models.CharField('Телефон',max_length=20,blank=True,null=True)
 
     class Meta:
-        verbose_name_plural = u'Менеджеры'
+        verbose_name_plural = u'менеджеры'
+        verbose_name = u'менеджера'
 
     def __unicode__(self):
         return self.first_name
+
+class Region(models.Model):
+    name = models.CharField('Регион', max_length=100)
+
+    class Meta:
+        verbose_name_plural = u'регионы'
+        verbose_name = u'регион'
+
+    def __unicode__(self):
+        return self.name
+
+
 
 class Subscriber(models.Model):
     """
@@ -61,6 +74,7 @@ class Subscriber(models.Model):
     document = models.CharField('Документ',max_length=100,blank=True,null=True)
     create_date = models.DateTimeField('Дата создания',auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name='Создатель')
+    region = models.ForeignKey(Region,verbose_name='Регион',null=True,on_delete=models.SET_NULL)
     address_street = models.CharField('Улица',max_length=100)
     address_house = models.CharField('Дом',max_length=10)
     address_type = models.CharField('Тип адреса',max_length=2,choices=ADDRESS_CHOICES,default='fl')
@@ -117,12 +131,12 @@ class AccountHistory(models.Model):
     datetime = models.DateTimeField('Время',db_index=True)
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь',db_index=True)
     value = models.FloatField('Сумма')
-    owner_type = models.CharField('Тип агента',max_length=3,choices=OWNER_CHOICES)
+    owner_type = models.CharField('Тип агента',max_length=3,choices=OWNER_CHOICES,default='man')
     owner_id = models.IntegerField('Агент')
 
-
     class Meta:
-        verbose_name_plural = u'История баланса'
+        verbose_name_plural = u'изменения баланса'
+        verbose_name = u'измененее баланса'
 
     def __unicode__(self):
         return u' '.join(
@@ -148,7 +162,8 @@ class Subnets(models.Model):
 
 
     class Meta:
-        verbose_name_plural = u'Подсети'
+        verbose_name_plural = u'подсети'
+        verbose_name_plural = u'подсеть'
 
     def __unicode__(self):
         return ' '.join([unicode(self.network), self.description])
@@ -163,9 +178,9 @@ class QosAndCost(models.Model):
     traffic_cost = models.FloatField('Стоимость МБайта',default=0)
     qos_speed = models.IntegerField('Скорость',default=0)
 
-
     class Meta:
-        verbose_name_plural = u'Классы трафика'
+        verbose_name_plural = u'классы трафика'
+        verbose_name = u'класс трафика'
         ordering = ['-id']
 
     def __unicode__(self):
@@ -500,3 +515,13 @@ class TrafficDetail(models.Model):
 
 
 
+from south.modelsinspector import add_introspection_rules
+
+rules = [
+    (
+        (IPNetworkField, IPAddressField, MACAddressField), [],
+        {}
+        ),
+    ]
+
+add_introspection_rules(rules, [".*(IP|MAC).*Field"])

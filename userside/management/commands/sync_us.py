@@ -93,7 +93,7 @@ class Command(BaseCommand):
 
     def sync_balance(self):
         us_order = {}
-        for order in TblBilhist.objects.using('userside').all():
+        for order in TblBilhist.objects.using('userside').exclude(pko=None):
             us_order[order.pko] = order
         query = AccountHistory.objects.filter(owner_type='us')
         for order in query.filter(owner_id__in=us_order.keys()):

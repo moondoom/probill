@@ -6,8 +6,9 @@ from models import *
 
 
 class MySubscriberAdmin(admin.ModelAdmin):
-    list_display = ('first_name','last_name','login','address_street','address_house','address_flat','balance',)
+    list_display = ('first_name','last_name','region','login','address_street','address_house','address_flat','balance')
     search_fields = ('first_name','last_name','address_street','address_house','address_flat','login')
+    ordering = ['region','first_name']
 
 class MyAccountAdmin(admin.ModelAdmin):
     list_display = ('subscriber','login','ip','tariff','block_date','active')
@@ -35,7 +36,7 @@ class MyAccHistAdmin(admin.ModelAdmin):
     search_fields = ('datetime',)
 
 
-
+admin.site.register(Region)
 admin.site.register(Subscriber,MySubscriberAdmin)
 admin.site.register(Account,MyAccountAdmin)
 admin.site.register(TrafficByPeriod,MyTrafficByPeriodAdmin)

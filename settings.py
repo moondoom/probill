@@ -120,7 +120,8 @@ INSTALLED_APPS = (
     'probill.main',
     'probill.billing',
     'probill.nas',
-    'mptt'
+    'mptt',
+    'south'
 )
 
 
