@@ -24,6 +24,11 @@ class NasServer(models.Model):
         verbose_name = u'сервер доступа'
 
 
+    def __del__(self):
+        if self.ssh:
+            self.ssh.close()
+
+
     def get_ssh(self):
         import paramiko
         self.ssh = paramiko.SSHClient()
@@ -32,7 +37,7 @@ class NasServer(models.Model):
             self.ssh.connect(str(self.mng_ip),username=str(self.username),password=str(self.password))
         except Exception as error:
             print error
-            self.ssh_error =  True
+            self.ssh_error =  error
             self.ssh = None
         return self.ssh
 
@@ -52,6 +57,12 @@ class NasServer(models.Model):
         else:
             return open(file_path,mode)
 
+    def listdir(self,path):
+        if self.check_ssh():
+            if not self.ssh_error:
+                return self.ssh.open_sftp().listdir(path)
+        else:
+            return os.listdir(path)
 
     def exec_command(self, command):
         if self.check_ssh():
@@ -151,3 +162,15 @@ class UpLinkPolice(models.Model):
 
     def __unicode__(self):
         return u'%s приоритет %s' % (self.nat_address.__unicode__(), self.priority)
+
+
+class NetFlowSource(models.Model):
+    nas = models.ForeignKey(NasServer,verbose_name='сервер')
+    file_time = models.DateTimeField('время файла')
+    file_name = models.CharField(max_length=100,verbose_name='имя файла')
+    file_dir = models.CharField(max_length=200,verbose_name='путь к файлу')
+
+
+    class Meta():
+        verbose_name_plural = u'файлы нетвлоу'
+        verbose_name = u'файл нетфлоу'

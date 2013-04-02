@@ -30,7 +30,7 @@ PROBILL_PATH = /usr/local/probill
 [prog_path]
 FLOW_CAT = /usr/local/bin/flow-cat
 FLOW_STAT = /usr/local/bin/flow-stat
-FLOW_PATH = /usr/local/flowdata
+FLOW_PATH = /usr/local/flowdata/%Y/%Y-%m/%Y-%m-%ds
 IPFW_PATH = /sbin/ipfw
 NETGRAPH_PATH = /usr/sbin/ngctl
 ARP_PATH = /usr/sbin/arp

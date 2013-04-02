@@ -7,6 +7,7 @@ from probill.billing.models import *
 import re
 from subprocess import Popen,PIPE
 
+# FILE NOT SUPPORTED
 class IpfwObject():
 
     def get(self,command):
