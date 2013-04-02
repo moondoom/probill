@@ -71,7 +71,7 @@ def process_nas(nas):
                 PeriodicLog.log('Ошибка скрипта: обработки данных netflow {0:>s}'.format(flow_file),code=100)
 
 def main():
-    for nas in NasServer.objects.all():
+    for nas in NasServer.objects.filter(active=True):
         rez = process_nas(nas)
         if DEBUG:
             print rez
