@@ -181,7 +181,7 @@ def process_nas(nas):
         IPFW_END_OUT : 'deny ip from any to any',
         }
     if REDIRECT_TO:
-        ipfw_rules_in[IPFW_END_IN - IPFW_RULE_STEP] = 'fwd {} tcp from any to any 80'.format(REDIRECT_TO)
+        ipfw_rules_in[IPFW_END_IN - IPFW_RULE_STEP] = 'fwd {} tcp from any to any dst-port 80'.format(REDIRECT_TO)
         ipfw_rules_out[IPFW_END_OUT - IPFW_RULE_STEP] = 'allow tcp from any 80 to any'
     ipfw_rules_nat = {}
 
