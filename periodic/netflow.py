@@ -24,6 +24,8 @@ def process_nas(nas):
             flow_files += [[flow_dir, f] for f in nas.listdir(flow_dir) if f.startswith('ft')]
         except IOError:
             pass
+        except OSError:
+            pass
         print flow_dir
     old_files = NetFlowSource.objects.filter(file_time__gt=(datetime.now() - timedelta(days=2))).values_list('file_name')
     old_files = [f[0] for f in old_files]
