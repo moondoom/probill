@@ -311,7 +311,7 @@ def process_nas(nas):
     return True
 
 def main():
-    for nas in NasServer.objects.all():
+    for nas in NasServer.objects.filter(active=True):
         rez = process_nas(nas)
         if DEBUG:
             print rez

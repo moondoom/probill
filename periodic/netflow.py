@@ -27,7 +27,7 @@ def process_nas(nas):
         except OSError:
             pass
         print flow_dir
-    old_files = NetFlowSource.objects.filter(file_time__gt=(datetime.now() - timedelta(days=2))).values_list('file_name')
+    old_files = NetFlowSource.objects.filter(nas=nas, file_time__gt=(datetime.now() - timedelta(days=2))).values_list('file_name')
     old_files = [f[0] for f in old_files]
     for flow_file in flow_files:
         if flow_file[1] not in old_files:
@@ -71,7 +71,7 @@ def process_nas(nas):
                 PeriodicLog.log('Ошибка скрипта: обработки данных netflow {0:>s}'.format(flow_file),code=100)
 
 def main():
-    for nas in NasServer.objects.all():
+    for nas in NasServer.objects.filter(active=True):
         rez = process_nas(nas)
         if DEBUG:
             print rez
