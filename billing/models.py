@@ -197,7 +197,7 @@ class QosAndCost(models.Model):
         return self._subnets
 
 TIME_CHOICES = []
-for hour in range(0,23):
+for hour in range(0,24):
     t = time(hour,0)
     TIME_CHOICES.append([t,t.strftime('%H:%M')])
 
