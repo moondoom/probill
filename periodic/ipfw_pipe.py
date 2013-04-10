@@ -253,7 +253,7 @@ def process_nas(nas):
     for subnet in IPInterface.objects.filter(iface__nas=nas):
         for account in Account.objects.filter(active=True, tariff__isnull=False, ip__in=subnet.network):
             if account.tariff.qos_speed:
-                speed_id = str(account.tariff.qos_speed)
+                speed_id = str(account.tariff.get_speed())
                 if speed_id not in queue_map:
                     queue_map[speed_id] = queue_map_id
                     queue_map_id += 2

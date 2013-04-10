@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.contrib.admin.models import User
 from django.db.utils import DatabaseError
 from probill.lib.networks import IPNetworkField,IPAddressField,MACAddressField
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from ipaddr import IPAddress
 import calendar
 
@@ -196,6 +196,10 @@ class QosAndCost(models.Model):
             self._subnets = self.subnets.all()
         return self._subnets
 
+TIME_CHOICES = []
+for hour in range(0,23):
+    t = time(hour,0)
+    TIME_CHOICES.append([t,t.strftime('%H:%M')])
 
 class Tariff(models.Model):
     """
@@ -212,6 +216,10 @@ class Tariff(models.Model):
     traffic_cost = models.FloatField('Стоимость за Мб',default=0)
     qos_speed = models.IntegerField('Основная скорость',default=0)
     qac_class = models.ManyToManyField(QosAndCost,blank=True,null=True,verbose_name='Классы трафика')
+    speed_up = models.IntegerField('Коэффициент ускорения',default=1)
+    speed_up_start = models.TimeField('Время включения ускорения',default=time(22,0),choices=TIME_CHOICES)
+    speed_up_end = models.TimeField('Время выключения ускорения',default=time(6,0),choices=TIME_CHOICES)
+
 
     class Meta:
         verbose_name_plural = u'Тарифные планы'
@@ -221,7 +229,19 @@ class Tariff(models.Model):
 
     @property
     def bit_speed(self):
-        return self.qos_speed*1024
+        return self.get_speed() * 1024
+
+    def get_speed(self):
+        if self.speed_up > 1:
+            now = datetime.now().time()
+            if self.speed_up_start > self.speed_up_end:
+                if now >= self.speed_up_start or (0 <= now < self.speed_up_end):
+                    return self.qos_speed * self.speed_up
+            else:
+                if self.speed_up_start <= now < self.speed_up_end:
+                    return self.qos_speed * self.speed_up
+        return self.qos_speed
+
 
     @property
     def qac_iter(self):
