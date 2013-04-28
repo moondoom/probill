@@ -140,6 +140,9 @@ class Command(BaseCommand):
         except IndexError as error:
             tariff = None
             print error
+        except AttributeError as error:
+            tariff = None
+            print error
         flat_int, flat_char = self.parse_int_char(user.address_flat)
         if user.phone.count(' ')>0:
             tel = []
