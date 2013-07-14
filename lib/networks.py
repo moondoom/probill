@@ -137,7 +137,7 @@ class IPAddressField(models.Field):
 
 ## MACAddressFormField from http://djangosnippets.org/snippets/1337/
 
-MAC_RE = r'^([0-9a-fA-F]{2}([:]?|$)){6}$'
+MAC_RE = r'^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$'
 mac_re = re.compile(MAC_RE)
 
 class MACAddressFormField(fields.RegexField):

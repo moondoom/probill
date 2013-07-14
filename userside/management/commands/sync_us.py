@@ -1,7 +1,12 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 
-from userside.models import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist
+from settings import *
+
+
+from userside.models_v2 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist
+
+
 from billing.models import Subscriber, Tariff, Account, AccountHistory
 
 
