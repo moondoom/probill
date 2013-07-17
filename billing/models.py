@@ -118,6 +118,11 @@ class Subscriber(models.Model):
                 account.unblock()
         super(Subscriber,self).save(*args,**kwargs)
 
+    def delete(self, *args, **kwargs):
+        for account in self.account_set.all():
+            account.delete()
+        super(Subscriber,self).delete(*args,**kwargs)
+
 class AccountHistory(models.Model):
     """
     Финансовые операции
@@ -300,6 +305,7 @@ class Tariff(models.Model):
             return 'Сейчас не 0 часов. Проверьте параметры запуска скрипта или настройки cron', 100
 
 
+
     @classmethod
     def calcRentalDiff(cls,from_tar,to_tar):
         if from_tar and to_tar:
@@ -355,6 +361,12 @@ class Account(models.Model):
                 )
                 accHist.save()
 
+    def clean_traffic(self):
+        if self.pk:
+            cursor = connection.cursor()
+            cursor.execute('delete from tdcore where account_id = %s', [self.pk])
+            cursor.execute('delete from billing_trafficbyperiod where account_id = %s', [self.pk])
+
 
     def delete(self, *args, **kwargs):
         rentalDiff = Tariff.calcRentalDiff(self.tariff,None)
@@ -367,6 +379,7 @@ class Account(models.Model):
                 value = rentalDiff
             )
             accHist.save()
+        self.clean_traffic()
         super(Account,self).delete(*args,**kwargs)
 
     def block(self):
