@@ -18,8 +18,8 @@ class MySubscriberAdmin(FastDelete):
 
 
 class MyAccountAdmin(FastDelete):
-    list_display = ('subscriber','login','ip','tariff','block_date','active')
-    search_fields = ('login','ip','tariff','block_date')
+    list_display = ('subscriber', 'login','ip', 'tariff', 'block_date', 'active', 'auto_block')
+    search_fields = ('login','ip', 'tariff', 'block_date')
     ordering = ['subscriber','login']
 
 
