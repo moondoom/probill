@@ -170,7 +170,7 @@ class Command(BaseCommand):
             telmob = telmob,
             balans = user.balance,
             groupn = tariff,
-            billcode = user.idcsdf
+            #billcode = user.id
         )
 
     def create_user(self,user):

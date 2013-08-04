@@ -15,6 +15,14 @@ DATABASES = {
         'PORT' : config.get('database', 'DATABASE_PORT'),
         'ENGINE' : config.get('database', 'DATABASE_ENGINE'),
         'NAME' : config.get('database', 'DATABASE_NAME'),
+    },
+    'sync': {
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+        'ENGINE': '',
+        'NAME': '',
     }
 }
 
