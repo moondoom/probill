@@ -9,24 +9,26 @@ config.read('/usr/local/etc/probill/settings.conf')
 
 DATABASES = {
     'default': {
-        'USER' : config.get('database', 'DATABASE_USER'),
-        'PASSWORD' : config.get('database', 'DATABASE_PASSWORD'),
-        'HOST' : config.get('database', 'DATABASE_HOST'),
-        'PORT' : config.get('database', 'DATABASE_PORT'),
-        'ENGINE' : config.get('database', 'DATABASE_ENGINE'),
-        'NAME' : config.get('database', 'DATABASE_NAME'),
-    },
-    'sync': {
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
-        'ENGINE': '',
-        'NAME': '',
+        'USER': config.get('database', 'DATABASE_USER'),
+        'PASSWORD': config.get('database', 'DATABASE_PASSWORD'),
+        'HOST': config.get('database', 'DATABASE_HOST'),
+        'PORT': config.get('database', 'DATABASE_PORT'),
+        'ENGINE': config.get('database', 'DATABASE_ENGINE'),
+        'NAME': config.get('database', 'DATABASE_NAME'),
     }
 }
 
-
+if config.has_option('database', 'DATABASE_FOR_MERGE'):
+    DATABASES.update({
+        'merge_from': {
+            'USER': config.get('database', 'DATABASE_USER'),
+            'PASSWORD': config.get('database', 'DATABASE_PASSWORD'),
+            'HOST': config.get('database', 'DATABASE_HOST'),
+            'PORT': config.get('database', 'DATABASE_PORT'),
+            'ENGINE': config.get('database', 'DATABASE_ENGINE'),
+            'NAME': config.get('database', 'DATABASE_FOR_MERGE'),
+    }
+    })
 
 DEBUG = config.getboolean('debug','DEBUG')
 TEMPLATE_DEBUG = config.getboolean('debug','TEMPLATE_DEBUG')

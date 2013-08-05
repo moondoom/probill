@@ -107,11 +107,11 @@ class Command(BaseCommand):
             except ObjectDoesNotExist as error:
                 continue
             AccountHistory(
-                datetime = order.datedo,
-                subscriber = p_user,
-                value = order.summa,
-                owner_type = 'us',
-                owner_id = order.pko,
+                datetime=order.datedo,
+                subscriber=p_user,
+                value=order.summa,
+                owner_type='us',
+                owner_id=order.pko,
             ).save()
             print order.summa
 

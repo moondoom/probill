@@ -105,10 +105,12 @@ class Subscriber(models.Model):
                              self.address_flat])
         else:
             return self.address_street + ' ' + self.address_house
-    def save(self, *args, **kwargs):
+    def save(self, process=True, *args, **kwargs):
         """
             При сохраннении обязательно проводить блокировку или разблокировку
         """
+        if not process:
+            return super(Subscriber,self).save(*args,**kwargs)
         self.balance = round(self.balance,2)
         if self.balance < 0:
             for account in self.account_set.filter(active=True,auto_block=True):
@@ -131,7 +133,8 @@ class AccountHistory(models.Model):
         (u'man',u'Менеджер'),
         (u'per',u'Абонентская плата'),
         (u'tra',u'За тарфик'),
-        (u'us',u'Из UserSide')
+        (u'us',u'Из UserSide'),
+        (u'syn',u'Перенесено'),
     )
     datetime = models.DateTimeField('Время',db_index=True)
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь',db_index=True)
@@ -150,11 +153,11 @@ class AccountHistory(models.Model):
              unicode(self.value)]
         )
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
+    def save(self, process=True, *args, **kwargs):
+        if not self.pk and process:
             self.subscriber.balance += self.value
             self.subscriber.save()
-            super(AccountHistory,self).save(*args,**kwargs)
+        super(AccountHistory,self).save(*args,**kwargs)
 
 
 
@@ -341,7 +344,9 @@ class Account(models.Model):
     def __unicode__(self):
         return self.login
 
-    def save(self, *args, **kwargs):
+    def save(self, process=True,*args,  **kwargs):
+        if not process:
+            return super(Account,self).save(*args,**kwargs)
         if self.pk:
             old = Account.objects.get(id = self.id)
             old_tariff = old.tariff
