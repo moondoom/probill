@@ -10,6 +10,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         subscribers = Subscriber.objects.using('merge_from')
         for subscriber in subscribers:
+            try:
+                Subscriber.objects.get(login=subscriber.login)
+                continue
+            except ObjectDoesNotExist:
+                pass
             accounts = subscriber.account_set.using('merge_from').all()
             account_history = subscriber.accounthistory_set.using('merge_from').all()
             subscriber.pk = None
