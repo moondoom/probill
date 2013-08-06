@@ -8,9 +8,6 @@ class Command(BaseCommand):
     help = 'Handler for probill database merge'
 
     def handle(self, *args, **options):
-        Subscriber.objects.all().delete()
-        Account.objects.all().delete()
-        AccountHistory.objects.all().delete()
         subscribers = Subscriber.objects.using('merge_from')
         for subscriber in subscribers:
             accounts = subscriber.account_set.using('merge_from').all()
