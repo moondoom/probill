@@ -170,7 +170,7 @@ class Command(BaseCommand):
             telmob = telmob,
             balans = user.balance,
             groupn = tariff,
-            billcode = user.idcsdf
+            billcode = user.id
         )
 
     def create_user(self,user):
@@ -222,8 +222,14 @@ class Command(BaseCommand):
             u_ip.save(using='userside')
 
 
+    def ah_to_us(self):
+        AccountHistory.objects.filter(type='syn')
+
 
     def handle(self, *args, **options):
+        if len(args) > 0:
+            if 'ah_to_us' in args:
+                self.ah_to_us()
         self.sync_balance()
         self.sync_tariff()
         self.sync_users()

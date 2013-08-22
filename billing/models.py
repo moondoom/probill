@@ -82,7 +82,7 @@ class Subscriber(models.Model):
     email = models.EmailField('E-mail',blank=True,null=True)
     phone = models.CharField('Телефон',max_length=100,blank=True,null=True)
     balance = models.FloatField('Балланс',default=0)
-
+    deleted = models.BooleanField('Удалена', default=False, editable=False)
 
     class Meta:
         verbose_name_plural = 'Пользователи'
@@ -105,10 +105,16 @@ class Subscriber(models.Model):
                              self.address_flat])
         else:
             return self.address_street + ' ' + self.address_house
-    def save(self, *args, **kwargs):
+    def save(self, process=True, set_delete_flag=False, *args, **kwargs):
         """
             При сохраннении обязательно проводить блокировку или разблокировку
         """
+        if self.deleted:
+            return None
+        if set_delete_flag:
+            self.deleted = True
+        if not process:
+            return super(Subscriber,self).save(*args,**kwargs)
         self.balance = round(self.balance,2)
         if self.balance < 0:
             for account in self.account_set.filter(active=True,auto_block=True):
@@ -118,10 +124,13 @@ class Subscriber(models.Model):
                 account.unblock()
         super(Subscriber,self).save(*args,**kwargs)
 
-    def delete(self, *args, **kwargs):
-        for account in self.account_set.all():
-            account.delete()
-        super(Subscriber,self).delete(*args,**kwargs)
+    def delete(self, force_delete=False, *args, **kwargs):
+        if force_delete:
+            for account in self.account_set.all():
+                account.delete(force_delete=True)
+            super(Subscriber,self).delete(*args,**kwargs)
+        else:
+            self.save(set_delete_flag=True)
 
 class AccountHistory(models.Model):
     """
@@ -131,7 +140,8 @@ class AccountHistory(models.Model):
         (u'man',u'Менеджер'),
         (u'per',u'Абонентская плата'),
         (u'tra',u'За тарфик'),
-        (u'us',u'Из UserSide')
+        (u'us',u'Из UserSide'),
+        (u'syn',u'Перенесено'),
     )
     datetime = models.DateTimeField('Время',db_index=True)
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь',db_index=True)
@@ -150,11 +160,11 @@ class AccountHistory(models.Model):
              unicode(self.value)]
         )
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
+    def save(self, process=True, *args, **kwargs):
+        if not self.pk and process:
             self.subscriber.balance += self.value
             self.subscriber.save()
-            super(AccountHistory,self).save(*args,**kwargs)
+        super(AccountHistory,self).save(*args,**kwargs)
 
 
 
@@ -333,6 +343,7 @@ class Account(models.Model):
     block_date = models.DateTimeField('Дата блокировки',null=True,editable=False)
     auto_block = models.BooleanField('Автоматическая блокировка',default=True)
     active = models.BooleanField('Активна',default=True)
+    deleted = models.BooleanField('Удалена', default=False, editable=False)
     #alt_route = models.BooleanField('Альтернативный маршрут',default=False)
 
     class Meta:
@@ -341,7 +352,13 @@ class Account(models.Model):
     def __unicode__(self):
         return self.login
 
-    def save(self, *args, **kwargs):
+    def save(self, process=True, set_delete_flag=False, *args,  **kwargs):
+        if self.deleted:
+            return None
+        if set_delete_flag:
+            self.deleted = True
+        if not process:
+            return super(Account,self).save(*args,**kwargs)
         if self.pk:
             old = Account.objects.get(id = self.id)
             old_tariff = old.tariff
@@ -368,19 +385,23 @@ class Account(models.Model):
             cursor.execute('delete from billing_trafficbyperiod where account_id = %s', [self.pk])
 
 
-    def delete(self, *args, **kwargs):
-        rentalDiff = Tariff.calcRentalDiff(self.tariff,None)
-        if rentalDiff:
-            accHist = AccountHistory(
-                datetime=datetime.now(),
-                owner_id = self.id,
-                owner_type = 'per',
-                subscriber = self.subscriber,
-                value = rentalDiff
-            )
-            accHist.save()
-        self.clean_traffic()
-        super(Account,self).delete(*args,**kwargs)
+    def delete(self, force_delete=False, *args, **kwargs):
+        if force_delete:
+            rentalDiff = Tariff.calcRentalDiff(self.tariff,None)
+            if rentalDiff:
+                accHist = AccountHistory(
+                    datetime=datetime.now(),
+                    owner_id = self.id,
+                    owner_type = 'per',
+                    subscriber = self.subscriber,
+                    value = rentalDiff
+                )
+                accHist.save()
+            self.clean_traffic()
+            super(Account,self).delete(*args,**kwargs)
+        else:
+            self.save(set_delete_flag=True)
+
 
     def block(self):
         self.block_date = datetime.now()

@@ -12,14 +12,14 @@ admin.site.disable_action('delete_selected')
 
 
 class MySubscriberAdmin(FastDelete):
-    list_display = ('first_name','last_name','region','login','address_street','address_house','address_flat','balance')
+    list_display = ('first_name','last_name','region','login','address_street','address_house','address_flat','balance', 'deleted')
     search_fields = ('first_name','last_name','address_street','address_house','address_flat','login')
     ordering = ['region','first_name']
 
 
 class MyAccountAdmin(FastDelete):
-    list_display = ('subscriber', 'login','ip', 'tariff', 'block_date', 'active', 'auto_block')
-    search_fields = ('login','ip', 'tariff', 'block_date')
+    list_display = ('subscriber', 'login','ip', 'tariff', 'block_date', 'active', 'auto_block', 'deleted')
+    search_fields = ('login', 'subscriber__first_name', 'subscriber__last_name', 'tariff__name', 'block_date')
     ordering = ['subscriber','login']
 
 
