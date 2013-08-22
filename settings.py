@@ -131,9 +131,9 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'dojango',
     'moon',
-    'probill.main',
-    'probill.billing',
-    'probill.nas',
+    'main',
+    'billing',
+    'nas',
     'mptt',
     'south'
 )
