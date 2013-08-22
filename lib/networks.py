@@ -118,6 +118,8 @@ class IPAddressField(models.Field):
             return self.get_prep_value(value)
         elif lookup_type == 'in':
             return [self.get_prep_value(v) for v in value]
+        elif lookup_type.endswith('contains'):
+            return self.get_prep_value(value)
         else:
             raise TypeError('Lookup type %r not supported.'\
             % lookup_type)

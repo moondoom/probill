@@ -19,11 +19,10 @@ class MySubscriberAdmin(FastDelete):
 
 
 class MyAccountAdmin(FastDelete):
-    list_display = ('subscriber', 'login','ip', 'tariff', 'block_date', 'active', 'auto_block', 'deleted')
-    search_fields = ('login', 'subscriber__first_name', 'ip', 'subscriber__last_name', 'tariff__name', 'block_date')
+    list_display = ('subscriber', 'login','ip', 'mac','tariff', 'block_date', 'active', 'auto_block', 'deleted')
+    search_fields = ('login', 'subscriber__first_name', 'ip', 'mac', 'subscriber__last_name', 'tariff__name', 'block_date')
     list_filter = ('subscriber__region',)
     ordering = ['subscriber','login']
-
 
 
 class MyTrafficByPeriodAdmin(admin.ModelAdmin):
