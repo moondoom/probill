@@ -107,11 +107,11 @@ class Command(BaseCommand):
             except ObjectDoesNotExist as error:
                 continue
             AccountHistory(
-                datetime = order.datedo,
-                subscriber = p_user,
-                value = order.summa,
-                owner_type = 'us',
-                owner_id = order.pko,
+                datetime=order.datedo,
+                subscriber=p_user,
+                value=order.summa,
+                owner_type='us',
+                owner_id=order.pko,
             ).save()
             print order.summa
 
@@ -170,7 +170,7 @@ class Command(BaseCommand):
             telmob = telmob,
             balans = user.balance,
             groupn = tariff,
-            billcode = user.id
+            #billcode = user.id
         )
 
     def create_user(self,user):

@@ -105,6 +105,7 @@ class Subscriber(models.Model):
                              self.address_flat])
         else:
             return self.address_street + ' ' + self.address_house
+
     def save(self, process=True, set_delete_flag=False, *args, **kwargs):
         """
             При сохраннении обязательно проводить блокировку или разблокировку
@@ -357,6 +358,7 @@ class Account(models.Model):
             return None
         if set_delete_flag:
             self.deleted = True
+
         if not process:
             return super(Account,self).save(*args,**kwargs)
         if self.pk:

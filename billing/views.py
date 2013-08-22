@@ -50,12 +50,12 @@ def sub_auth(fn):
 @sub_auth
 def index(request,template='client_main.html'):
     c = RequestContext(request)
-    return render_to_response(template,c)
+    return render_to_response(template, c)
 
 def only_ip_auth(request,template='client_blocked.html'):
     c = RequestContext(request)
     c['REMOTE_ADDR'] = request.META['REMOTE_ADDR']
-    return render_to_response(template,c)
+    return render_to_response(template, c)
 
 @sub_auth
 def stat_json(request):
@@ -95,11 +95,11 @@ def stat_json(request):
     if start < 0:
         start = 0
     end = start + limit
-    response = {'page':page,'total':total_pages,'records':len(traffic_stat), 'rows':[]}
+    response = {'page': page, 'total': total_pages, 'records': len(traffic_stat), 'rows': []}
     for rows in traffic_stat.values()[start:end]:
         rows['datetime'] = str(rows['datetime'])
         response['rows'].append(rows)
-    return HttpResponse(json.dumps(response),mimetype='text/json')
+    return HttpResponse(json.dumps(response), mimetype='text/json')
 
 
 def login(request):
@@ -122,3 +122,8 @@ def logout(request):
     except KeyError:
         pass
     return HttpResponseRedirect("login")
+
+
+def subscriber_flex(request):
+    c = RequestContext(request)
+    return render_to_response('moon/subscriber_flex.html', c)

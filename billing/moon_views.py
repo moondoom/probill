@@ -72,6 +72,7 @@ class TrafficDetailGrid(JqGridView):
     app_name = 'billing'
     model = TrafficDetail
 
+
 trafficdetail_grid = TrafficDetailGrid()
 
 

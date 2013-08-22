@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     url(r'^login$', login),
     url(r'^blocked$', only_ip_auth),
     url(r'^logout$', logout),
+    url(r'^subscriber/flex', subscriber_flex, name='subscriber_flex'),
     #moon_views
     url(r'^subscriber/', include(subscriber_grid.urls)),
     url(r'^account/', include(account_grid.urls)),

@@ -19,8 +19,12 @@ MenuItems.add('История баланса',
     parent='abon',
     view_perm='billing.change_accounthistory')
 
+MenuItems.add('Удобный пользователь',
+    'loadAndRunIntoMain.billing:subscriber_flex',
+    parent='abon',
+    view_perm='billing.change_subscriber')
 
-MenuItems.add('tariff',None,title='Тарифы',view_perm='billing.change_tariff')
+MenuItems.add('tariff', None, title='Тарифы', view_perm='billing.change_tariff')
 
 MenuItems.add('Тарифы',
     'loadAndRunIntoMain.billing:tariff_index',
@@ -44,7 +48,7 @@ MenuItems.add('Шейперы и стоимость',
     view_perm='billing.change_qosandcost')
 
 
-MenuItems.add('admin',None,title='Админимтрирование',view_perm='billing.change_subscriber')
+MenuItems.add('admin',None,title='Админимтрирование', view_perm='billing.change_subscriber')
 
 MenuItems.add('Менеджеры',
     'loadAndRunIntoMain.billing:manager_index',
@@ -57,7 +61,7 @@ MenuItems.add('Логи сервера',
     view_perm='billing.change_periodiclog')
 
 
-MenuItems.add('stat',None,title='Трафик',view_perm='billing.change_trafficbyperiod')
+MenuItems.add('stat',None,title='Трафик', view_perm='billing.change_trafficbyperiod')
 
 MenuItems.add('Усреднённая статистика',
     'loadAndRunIntoMain.billing:trafficbyperiod_index',

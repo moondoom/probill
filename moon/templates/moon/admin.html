@@ -36,8 +36,8 @@
         <div id="header" dojoType="dijit.layout.ContentPane" region="top">
             <div style="float: left;">ПРОБИЛЛ</div>
             <div style="float: right;">
-                {% if user.is_authenticated %} {{ user }} <A href = '/logout'>Выход</A>
-                {% else %} Неведомый и неназываный <A href = '/login'>Вход</A>
+                {% if user.is_authenticated %} {{ user }} <A href = '/moon/logout'>Выход</A>
+                {% else %} Неведомый и неназываный <A href = '/moon/login'>Вход</A>
                 {% endif %}
             </div>
         </div>
