@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.db.models import Sum
 from django.core.management.base import BaseCommand, CommandError
 
-from billing.models import TrafficByPeriod, Account, Subscriber
+from probill.billing.models import  TrafficByPeriod, Account, Subscriber
 
 
 class Command(BaseCommand):

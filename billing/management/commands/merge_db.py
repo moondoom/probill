@@ -1,4 +1,4 @@
-from billing.models import *
+from probill.billing.models import *
 
 from django.core.management.base import BaseCommand
 from django.contrib.admin.models import User

@@ -280,7 +280,7 @@ class Tariff(models.Model):
         if self.rental_period == 'h':
             return self.rental
         elif self.rental_period == 'w':
-            return self.rental - self.rental/7*date.weekday
+            return self.rental - self.rental / 7 * date.weekday
         elif self.rental_period == 'm':
             days = calendar.mdays[date.month]
             return self.rental - self.rental/days*date.day
