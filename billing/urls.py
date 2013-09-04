@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     url(r'^support$', index),
     url(r'^login$', login),
     url(r'^blocked$', only_ip_auth),
+    url(r'^osmp$', osmp_gate),
     url(r'^logout$', logout),
     url(r'^subscriber/flex', subscriber_flex, name='subscriber_flex'),
     #moon_views

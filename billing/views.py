@@ -127,3 +127,17 @@ def logout(request):
 def subscriber_flex(request):
     c = RequestContext(request)
     return render_to_response('moon/subscriber_flex.html', c)
+
+
+def osmp_gate(request):
+    if {'command', 'txn_id', 'account', 'sum'}.issubset(request.GET):
+        command = request.GET['command']
+        osmp_id = request.GET['txn_id']
+        sum = float(request.GET['sum'])
+        account = request.GET['account']
+        if command == 'check':
+            pass
+        elif command == 'pay':
+            pass
+    return
+

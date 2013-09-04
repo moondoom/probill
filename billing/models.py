@@ -569,6 +569,21 @@ class TrafficDetail(models.Model):
         return  ' '.join([unicode(self.datetime),unicode(self.src_ip),unicode(self.dst_ip)])
 
 
+OSMP_CHOICES = (
+    ('check', 0),
+    ('pay', 1),
+)
+
+
+class OsmpPay(models.Model):
+    process_date = models.DateTimeField(verbose_name="Дата сообщения", auto_now_add=True)
+    pay_date = models.DateTimeField(verbose_name="Дата операции")
+    command = models.IntegerField(choices=OSMP_CHOICES,verbose_name="Команда")
+    sum = models.FloatField(verbose_name="Сумма")
+    osmp_txn_id = models.CharField(max_length=20, unique=True)
+    prv_txn = models.ForeignKey(AccountHistory,verbose_name="Операция", null=True)
+    result = models.IntegerField(verbose_name="Код завершения")
+
 
 
 from south.modelsinspector import add_introspection_rules
