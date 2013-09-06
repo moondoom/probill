@@ -6,12 +6,12 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from billing.models import *
+import settings
 
 import datetime
 import json
 from math import ceil
-import time
-
+from xml.dom.minidom import getDOMImplementation
 
 
 def parse_date(request):
@@ -129,15 +129,105 @@ def subscriber_flex(request):
     return render_to_response('moon/subscriber_flex.html', c)
 
 
+def osmp_response(response):
+    xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n<response>'
+    for k in response:
+        xml_str += '\t<{0}>{1}</{0}>\n'.format(k, response[k])
+    xml_str += '</response>'
+    return HttpResponse(content=xml_str, content_type='text/xml')
+
+
 def osmp_gate(request):
-    if {'command', 'txn_id', 'account', 'sum'}.issubset(request.GET):
+    osmp_date_format = '%Y%m%d%H%M%S'
+    txn_date = datetime.datetime.now()
+    ah = None
+    response = {'result': 300, 'comment': 'Not enough arguments'}
+    error = False
+    if not settings.OSMP_ENABLE:
+        response.update({'result': 8, 'comment': 'OSMP gate not enable in server config'})
+    if {'command', 'txn_id', 'account', 'sum'}.issubset(request.GET.keys()):
         command = request.GET['command']
-        osmp_id = request.GET['txn_id']
-        sum = float(request.GET['sum'])
+        try:
+            osmp_id = int(request.GET['txn_id'])
+        except ValueError:
+            error = True
+            osmp_id = 0
+            response.update({'result': 300, 'comment': 'txn_id ({})not INTEGER'.format(request.GET['txn_id'])})
+        response['osmp_txn_id'] = osmp_id
+        try:
+            value = float(request.GET['sum'])
+        except ValueError as e:
+            error = True
+            value = 0
+            response.update({'result': 300, 'comment': 'Can not convert SUM to float'})
         account = request.GET['account']
-        if command == 'check':
+        try:
+            subscriber = Subscriber.objects.get(login__iexact=account, deleted=False)
+        except ObjectDoesNotExist as e:
+            subscriber = None
+            response.update({'result': 5, 'comment': 'Subscriber not found'})
+            error = True
+        if value < settings.OSMP_MIN_SUM and not error:
+            response.update({'result': 241, 'comment': 'SUM too small'})
+            error = True
+        elif value > settings.OSMP_MAX_SUM and not error:
+            response.update({'result': 242, 'comment': 'SUM too big'})
+            error = True
+        osmp_pay = OsmpPay.objects.filter(osmp_txn_id=osmp_id, command=1, result=0)
+        if osmp_pay.count() > 0:
+            error = True
+            response.update({'result': 300, 'comment': 'Not unique request'})
+        if error:
             pass
+        elif command == 'check':
+            response.update({'result': 0, 'comment': 'OK'})
         elif command == 'pay':
-            pass
-    return
+            try:
+                txn_date = datetime.datetime.strptime(request.GET['txn_date'], osmp_date_format)
+            except Exception as e:
+                response.update({'result': 300, 'comment': 'Can not parse txn_date'})
+                error = True
+            if not error:
+                try:
+                    ah = AccountHistory(
+                        datetime=txn_date,
+                        subscriber=subscriber,
+                        value=value,
+                        owner_type='osm',
+                        owner_id=0,
+                    )
+                    ah.save()
+                    response.update({'result': 0, 'comment': 'OK, {}'.format(subscriber.login), 'prv_txn': ah.pk})
+                except Exception as error:
+                    response.update({'result': 300, 'comment': 'Can not save subscriber'})
+                    error = True
+        else:
+            response.update({'result': 300, 'comment': 'Unknown command'})
+            command = 'error'
+            error = True
+        try:
+            command = dict([[f[1],f[0]] for f in OSMP_CHOICES])[command]
+        except KeyError:
+            command = 666
+        osmp_pay = None
+        print command
+        try:
+            osmp_pay = OsmpPay(
+                pay_date=txn_date,
+                command=command,
+                value=value,
+                osmp_txn_id=osmp_id,
+                prv_txn=ah,
+                result=response['result'],
+                comment=response['comment'],
+                error=error
+            )
+            osmp_pay.save()
+        except:
+            if ah:
+                if ah.pk:
+                    ah.delete()
+            response.update({'result': 300, 'comment': 'Unknown command'})
+        return osmp_response(response)
+    return osmp_response(response)
 

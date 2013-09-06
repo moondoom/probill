@@ -31,7 +31,7 @@ class MyTrafficByPeriodAdmin(admin.ModelAdmin):
 
 
 class MyTrafficDetailAdmin(admin.ModelAdmin):
-    list_display = ('datetime','account','src_ip','dst_ip','count')
+    list_display = ('datetime', 'account', 'src_ip','dst_ip','count')
     search_fields = ('datetime',)
 
 
@@ -50,6 +50,11 @@ class MyAccHistAdmin(admin.ModelAdmin):
     search_fields = ('datetime',)
 
 
+class MyOSMPPayAdmin(admin.ModelAdmin):
+    list_display = ('process_date', 'pay_date', 'command', 'value', 'result', 'osmp_txn_id', 'prv_txn')
+    search_fields = ('osmp_txn_id', 'comment')
+    list_filter = ('result', 'command')
+
 admin.site.register(Region)
 admin.site.register(Subscriber,MySubscriberAdmin)
 admin.site.register(Account,MyAccountAdmin)
@@ -57,6 +62,7 @@ admin.site.register(TrafficByPeriod,MyTrafficByPeriodAdmin)
 admin.site.register(TrafficDetail,MyTrafficDetailAdmin)
 admin.site.register(PeriodicLog,MyLogAdmin)
 admin.site.register(AccountHistory,MyAccHistAdmin)
+admin.site.register(OsmpPay, MyOSMPPayAdmin)
 admin.site.register(Manager)
 admin.site.register(Subnets)
 admin.site.register(QosAndCost)

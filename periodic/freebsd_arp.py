@@ -19,7 +19,7 @@ def main():
                 if ssh:
                     ssh.exec_command(' '.join([SUDO_PATH,'arp','-S',str(acc.ip),acc.mac]))
                 else:
-                    call(['arp','-S',str(acc.ip), acc.mac])
+                    call(['arp', '-S', str(acc.ip), acc.mac])
 
 if __name__ == "__main__":
     main()

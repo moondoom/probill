@@ -70,6 +70,11 @@ IPFW_INCLUDE = config.get('ipfw', 'IPFW_INCLUDE')
 ## NAS setting
 LOCAL_NAS_ID = config.getint('nas', 'LOCAL_NAS_ID')
 
+OSMP_ENABLE = False
+if config.has_section('osmp'):
+    OSMP_MIN_SUM = config.getint('osmp', 'OSMP_MIN_SUM')
+    OSMP_MAX_SUM = config.getint('osmp', 'OSMP_MAX_SUM')
+    OSMP_ENABLE = config.getboolean('osmp', 'OSMP_ENABLE')
 
 MEDIA_ROOT = PROBILL_PATH + '/media/'
 MEDIA_URL = '/media/'

@@ -143,6 +143,7 @@ class AccountHistory(models.Model):
         (u'tra',u'За тарфик'),
         (u'us',u'Из UserSide'),
         (u'syn',u'Перенесено'),
+        (u'osm',u'Мультикасcа OSMP')
     )
     datetime = models.DateTimeField('Время',db_index=True)
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь',db_index=True)
@@ -570,19 +571,24 @@ class TrafficDetail(models.Model):
 
 
 OSMP_CHOICES = (
-    ('check', 0),
-    ('pay', 1),
+    (0,'check'),
+    (1, 'pay'),
+    (666, 'error')
 )
 
 
 class OsmpPay(models.Model):
+
     process_date = models.DateTimeField(verbose_name="Дата сообщения", auto_now_add=True)
-    pay_date = models.DateTimeField(verbose_name="Дата операции")
-    command = models.IntegerField(choices=OSMP_CHOICES,verbose_name="Команда")
-    sum = models.FloatField(verbose_name="Сумма")
-    osmp_txn_id = models.CharField(max_length=20, unique=True)
+    pay_date = models.DateTimeField(verbose_name="Дата операции", null=True)
+    command = models.IntegerField(choices=OSMP_CHOICES, verbose_name="Команда")
+    value = models.FloatField(verbose_name="Сумма")
+    osmp_txn_id = models.BigIntegerField(verbose_name="Код операции")
     prv_txn = models.ForeignKey(AccountHistory,verbose_name="Операция", null=True)
     result = models.IntegerField(verbose_name="Код завершения")
+    comment = models.TextField(verbose_name="Коментарий")
+    error = models.BooleanField(verbose_name="Ошибка обработки", blank=True, default=False)
+
 
 
 
