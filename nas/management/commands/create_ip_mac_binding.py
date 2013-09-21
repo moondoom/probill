@@ -29,12 +29,14 @@ class Command(BaseCommand):
                     has_arp = check_arp(acc)
                     if DEBUG:
                         print acc.ip, acc.mac, has_arp
-                    if has_arp[1]:
+                    if not has_arp[1]:
                         nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nS', str(acc.ip), acc.mac]))
                     if has_arp[0]:
                         del arp_dict[str(acc.ip)]
             for ip in arp_dict:
                 if arp_dict[ip]['status'] == 'permanent':
+                    if DEBUG:
+                        print 'Delete old mac'
                     nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nd', ip]))
 
 
