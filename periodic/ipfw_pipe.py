@@ -10,14 +10,14 @@ from subprocess import Popen,PIPE
 
 class IpfwObject(object):
 
-    def __init__(self,ssh=None,*args,**kwargs):
+    def __init__(self, ssh=None, *args, **kwargs):
         self.ssh = ssh
 
-    def get(self,command):
+    def get(self, command):
         if self.ssh:
             stdin , stdout ,stderr = self.ssh.exec_command(' '.join([SUDO_PATH, IPFW_PATH, command]))
         else:
-            process = Popen([IPFW_PATH, command],stderr=PIPE,stdout=PIPE)
+            process = Popen([IPFW_PATH, command], stderr=PIPE, stdout=PIPE)
             stderr = process.stderr
             stdout = process.stdout
         error = stderr.read()
@@ -28,17 +28,17 @@ class IpfwObject(object):
     def list(self):
         pass
 
-    def export(self,id,arg):
+    def export(self, id, arg):
         return ''
 
-    def rewrite(self,id,arg):
+    def rewrite(self, id, arg):
         self.remove(id)
         self.add(id,arg)
 
-    def remove(self,id):
+    def remove(self, id):
         pass
 
-    def add(self,id,arg):
+    def add(self, id, arg):
         self.get(self.export(id,arg))
 
     def check(self,standard):

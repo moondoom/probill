@@ -23,11 +23,9 @@ class NasServer(models.Model):
         verbose_name_plural = u'сервера доступа'
         verbose_name = u'сервер доступа'
 
-
     def __del__(self):
         if self.ssh:
             self.ssh.close()
-
 
     def get_ssh(self):
         import paramiko
@@ -41,14 +39,12 @@ class NasServer(models.Model):
             self.ssh = None
         return self.ssh
 
-
     def check_ssh(self):
         if self.id <> LOCAL_NAS_ID:
             if not self.ssh and not self.ssh_error:
                 self.get_ssh()
             return True
         return False
-
 
     def open(self, file_path, mode):
         if self.check_ssh():
