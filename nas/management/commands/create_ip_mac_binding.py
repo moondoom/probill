@@ -18,16 +18,19 @@ class Command(BaseCommand):
                 arp_dict[arp[1][1:][:-1]] = {'mac': arp[3], 'status': arp[6]}
 
             def check_arp(acc):
-                if acc.ip in arp_dict:
-                    return arp_dict[acc.ip]['mac'] == acc.mac \
-                        and arp_dict[acc.ip]['status'] == 'permanent'
-                return False
+                if str(acc.ip) in arp_dict:
+                    return True, arp_dict[str(acc.ip)]['mac'] == acc.mac \
+                        and arp_dict[str(acc.ip)]['status'] == 'permanent'
+                else:
+                    return False, False
 
             for interface in IPInterface.objects.filter(iface__nas=nas):
                 for acc in Account.objects.filter(ip__in=interface.network).exclude(mac=''):
-                    if check_arp(acc):
+                    has_arp = check_arp(acc)
+                    if has_arp[1]:
                         nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nS', str(acc.ip), acc.mac]))
-                    del arp_dict[acc.ip]
+                    if has_arp[0]:
+                        del arp_dict[str(acc.ip)]
             for ip in arp_dict:
                 if arp_dict[ip]['status'] == 'permanent':
                     nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nd', ip]))
