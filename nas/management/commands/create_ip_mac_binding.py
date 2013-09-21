@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
             def check_arp(acc):
                 if str(acc.ip) in arp_dict:
-                    return True, arp_dict[str(acc.ip)]['mac'] == acc.mac \
+                    return True, arp_dict[str(acc.ip)]['mac'] == acc.mac.lower() \
                         and arp_dict[str(acc.ip)]['status'] == 'permanent'
                 else:
                     return False, False
