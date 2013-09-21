@@ -27,6 +27,8 @@ class Command(BaseCommand):
             for interface in IPInterface.objects.filter(iface__nas=nas):
                 for acc in Account.objects.filter(ip__in=interface.network).exclude(mac=''):
                     has_arp = check_arp(acc)
+                    if DEBUG:
+                        print acc.ip, acc.mac, has_arp
                     if has_arp[1]:
                         nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nS', str(acc.ip), acc.mac]))
                     if has_arp[0]:
