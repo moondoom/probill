@@ -537,7 +537,8 @@ class TrafficDetail(models.Model):
             cursor.execute('select * from %s limit 1' % table_name)
         except DatabaseError, e:
             transaction.commit_unless_managed()
-            if e.args[0].count('does not exist'):
+            if e.args[0].count('не существует'):
+
                 start_date = datetime.combine(date, time(0))
                 end_date = start_date + timedelta(1) - timedelta(0, 0, 0, 1)
                 sql = '''
