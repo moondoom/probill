@@ -236,6 +236,7 @@ class Tariff(models.Model):
     speed_up = models.IntegerField('Коэффициент ускорения',default=1)
     speed_up_start = models.TimeField('Время включения ускорения',default=time(22,0),choices=TIME_CHOICES)
     speed_up_end = models.TimeField('Время выключения ускорения',default=time(6,0),choices=TIME_CHOICES)
+    archive = models.BooleanField('Архивный тариф', default=False)
 
 
     class Meta:
@@ -259,6 +260,10 @@ class Tariff(models.Model):
                     return self.qos_speed * self.speed_up
         return self.qos_speed
 
+    def get_account_count(self):
+        return self.account_set.count()
+
+    get_account_count.short_description = 'Колво Абонентов'
 
     @property
     def qac_iter(self):

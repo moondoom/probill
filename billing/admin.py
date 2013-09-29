@@ -26,7 +26,7 @@ class MyAccountAdmin(FastDelete):
 
 
 class MyTrafficByPeriodAdmin(admin.ModelAdmin):
-    list_display = ('datetime','account','qac_class','count','cost')
+    list_display = ('datetime','account','qac_class','count','cost',)
     search_fields = ('datetime',)
 
 
@@ -55,18 +55,27 @@ class MyOSMPPayAdmin(admin.ModelAdmin):
     search_fields = ('osmp_txn_id', 'comment')
     list_filter = ('result', 'command')
 
+
+class MyTariffAdmin(admin.ModelAdmin):
+    list_display = ('name', 'rental', 'qos_speed', 'speed_up', 'speed_up_start', 'speed_up_end', 'get_account_count')
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def queryset(self,request):
+        return super(MyTariffAdmin, self).queryset(request).exclude(archive=True)
+
 admin.site.register(Region)
 admin.site.register(Subscriber,MySubscriberAdmin)
 admin.site.register(Account,MyAccountAdmin)
 admin.site.register(TrafficByPeriod,MyTrafficByPeriodAdmin)
-admin.site.register(TrafficDetail,MyTrafficDetailAdmin)
 admin.site.register(PeriodicLog,MyLogAdmin)
 admin.site.register(AccountHistory,MyAccHistAdmin)
 admin.site.register(OsmpPay, MyOSMPPayAdmin)
 admin.site.register(Manager)
 admin.site.register(Subnets)
 admin.site.register(QosAndCost)
-admin.site.register(Tariff)
+admin.site.register(Tariff, MyTariffAdmin)
 
 
 
