@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 
 from userside.models_v3 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist

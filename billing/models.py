@@ -538,13 +538,15 @@ class TrafficDetail(models.Model):
         except DatabaseError, e:
             transaction.commit_unless_managed()
             if e.args[0].count('does not exist'):
-                start_date = date.strftime('%Y-%m-%d')
-                end_date = (date + timedelta(1)).strftime('%Y-%m-%d')
+                start_date = datetime.combine(date, time(0))
+                end_date = date + timedelta(1) - timedelta(0, 0, 0, 1)
                 sql = '''
-                CREATE TABLE %s (
-                    CHECK ( datetime >= DATE '%s' AND datetime < DATE '%s' )
-                ) INHERITS (%s);
-                ''' % (table_name,start_date,end_date,cls._meta.db_table)
+                CREATE TABLE {0} (
+                    CHECK (datetime BETWEEN '{1}+07'::timestamp with time zone AND '{2}+07'::timestamp with time zone);
+                ) INHERITS ({3});
+                CREATE INDEX "{0}_datetime" ON "{0}" ("datetime");
+                CREATE INDEX "{0}_account_id" ON "{0}" ("account_id");
+                '''.format(table_name, start_date, end_date, cls._meta.db_table)
                 cursor.execute(sql)
         return table_name
 
