@@ -543,7 +543,7 @@ class TrafficDetail(models.Model):
                 end_date = start_date + timedelta(1) - timedelta(0, 0, 0, 1)
                 sql = '''
                 CREATE TABLE {0} (
-                    CHECK (datetime BETWEEN '{1}+07'::timestamp with time zone AND '{2}+07'::timestamp with time zone);
+                    CHECK (datetime BETWEEN '{1}+07'::timestamp with time zone AND '{2}+07'::timestamp with time zone)
                 ) INHERITS ({3});
                 CREATE INDEX "{0}_datetime" ON "{0}" ("datetime");
                 CREATE INDEX "{0}_account_id" ON "{0}" ("account_id");
