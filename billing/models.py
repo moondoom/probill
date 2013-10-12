@@ -487,9 +487,9 @@ class Account(models.Model):
         PeriodicLog.log('Обработка трафика. Снято %s с %s учётных записей' % (1,1))
 
     def get_last_stats(self):
-        traffic = self.trafficbyperiod_set.order_by('-datetime').values('count')[0]
+        traffic = self.trafficbyperiod_set.order_by('-datetime')[:1]
         if traffic:
-            return traffic['count']
+            return traffic[0].count
         else:
             return 0
 
