@@ -486,6 +486,13 @@ class Account(models.Model):
                 accHist.save()
         PeriodicLog.log('Обработка трафика. Снято %s с %s учётных записей' % (1,1))
 
+    def get_last_stats(self):
+        traffic = self.trafficbyperiod_set.order_by('-datetime').values('count')[0]
+        if traffic:
+            return traffic['count']
+        else:
+            return 0
+
 
 class TariffHistory(models.Model):
     """
