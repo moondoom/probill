@@ -30,6 +30,7 @@ class MyAccountAdmin(FastDelete):
 class MyTrafficByPeriodAdmin(admin.ModelAdmin):
     list_display = ('datetime','account','qac_class','count','cost',)
     search_fields = ('datetime',)
+    ordering = ['-datetime', '-count']
 
 
 class MyTrafficDetailAdmin(admin.ModelAdmin):
