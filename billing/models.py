@@ -5,9 +5,11 @@ from django.db.models import Q
 from django.contrib.admin.models import User
 from django.db.utils import DatabaseError
 from probill.lib.networks import IPNetworkField,IPAddressField,MACAddressField
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 from ipaddr import IPAddress
 import calendar
+
+from settings import TRUST_DAYS_COUNT
 
 class PeriodicLog(models.Model):
     datetime = models.DateTimeField()
@@ -106,6 +108,24 @@ class Subscriber(models.Model):
         else:
             return self.address_street + ' ' + self.address_house
 
+
+    def can_trust(self):
+        if self.balance > 0:
+            return False, 'Услуга доступна только при отрицательном балансе'
+        now = date.today()
+        end_day = now + timedelta(days=TRUST_DAYS_COUNT)
+        first_day = now.replace(day=1)
+        if self.trustpay_set.filter(create_date__gte=first_day):
+            return False, 'В этом месяце вы уже воспользовались доверительным платежом.'
+        if now.month != end_day.month:
+            return False, 'До конца месяце осталось слишком мало дней'
+        accounts = self.account_set.filter(block=True, auto_block=True).order_by('block_date')
+        if accounts:
+            if accounts[0].block_date.month ==  now.month:
+                return True, 'Всё ок!'
+            else:
+                return False, 'Вы были заблокированны до начала месяца'
+
     def save(self, process=True, set_delete_flag=False, *args, **kwargs):
         """
             При сохраннении обязательно проводить блокировку или разблокировку
@@ -143,7 +163,8 @@ class AccountHistory(models.Model):
         (u'tra',u'За тарфик'),
         (u'us',u'Из UserSide'),
         (u'syn',u'Перенесено'),
-        (u'osm',u'Мультикасcа OSMP')
+        (u'osm',u'Мультикасcа OSMP'),
+        (u'tru',u'Доверительный платёж')
     )
     datetime = models.DateTimeField('Время',db_index=True)
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь',db_index=True)
@@ -600,6 +621,35 @@ class OsmpPay(models.Model):
     error = models.BooleanField(verbose_name="Ошибка обработки", blank=True, default=False)
 
 
+class TrustPay(models.Model):
+    subscriber = models.ForeignKey(Subscriber,verbose_name="Пользователь")
+    create_date = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, editable=False)
+    end_date = models.DateTimeField(verbose_name="Дата окончания", blank=True, editable=False)
+    trust_days = models.PositiveSmallIntegerField(verbose_name="Количество дней", default=TRUST_DAYS_COUNT)
+    value = models.PositiveIntegerField(verbose_name="Сумма")
+    active = models.BooleanField(verbose_name="Активна", default=True, editable=False)
+    manager = models.ForeignKey(Manager, verbose_name="Менеджер", null=True, blank=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.end_date = self.create_date + timedelta(days=self.trust_days)
+            super(TrustPay,self).save(*args,**kwargs)
+            self.activate()
+
+    def activate(self):
+        AccountHistory(datetime=datetime.now(),
+                       subscriber=self.subscriber,
+                       value=self.value,
+                       owner_type='tru',
+                       owner_id=self.pk).save()
+
+    def deactivate(self):
+        AccountHistory(datetime=datetime.now(),
+                       subscriber=self.subscriber,
+                       value= -self.value,
+                       owner_type='tru',
+                       owner_id=self.pk).save()
+        super(TrustPay,self).save()
 
 
 from south.modelsinspector import add_introspection_rules

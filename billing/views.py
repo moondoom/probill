@@ -52,6 +52,7 @@ def index(request,template='client_main.html'):
     c = RequestContext(request)
     return render_to_response(template, c)
 
+
 def only_ip_auth(request,template='client_blocked.html'):
     c = RequestContext(request)
     c['REMOTE_ADDR'] = request.META['REMOTE_ADDR']
@@ -122,11 +123,6 @@ def logout(request):
     except KeyError:
         pass
     return HttpResponseRedirect("login")
-
-
-def subscriber_flex(request):
-    c = RequestContext(request)
-    return render_to_response('moon/subscriber_flex.html', c)
 
 
 def osmp_response(response):

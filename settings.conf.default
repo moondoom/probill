@@ -27,6 +27,9 @@ SECRET_KEY = 'c*h)+f_o*sq4&f6#%g#b5%bk1kqa!kg^nvj=!4y4wzlj*-11^1'
 [probill]
 PROBILL_PATH = /usr/local/probill
 
+[billing]
+TRUST_DAYS_COUNT = 5
+
 [prog_path]
 FLOW_CAT = /usr/local/bin/flow-cat
 FLOW_STAT = /usr/local/bin/flow-stat

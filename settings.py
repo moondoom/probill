@@ -42,6 +42,9 @@ SECRET_KEY = config.get('main','SECRET_KEY')
 # Probill custom settings
 PROBILL_PATH = config.get('probill', 'PROBILL_PATH')
 
+# Billing vars
+TRUST_DAYS_COUNT = config.getint('billing', 'TRUST_DAYS_COUNT')
+
 ## Program path
 FLOW_CAT = config.get('prog_path', 'FLOW_CAT')
 FLOW_STAT = config.get('prog_path', 'FLOW_STAT')
@@ -180,9 +183,9 @@ if config.has_section('userside'):
     })
 
 if config.has_section('client_side'):
-    TEMPLATE_DIRS = TEMPLATE_DIRS + (config.get('client_side','TEMPLATE_DIR'),)
+    TEMPLATE_DIRS = TEMPLATE_DIRS + (config.get('client_side', 'TEMPLATE_DIR'),)
 
 if config.has_section('http_redirect'):
-    REDIRECT_TO = config.get('http_redirect','REDIRECT_TO')
+    REDIRECT_TO = config.get('http_redirect', 'REDIRECT_TO')
 else:
     REDIRECT_TO = ''

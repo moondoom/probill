@@ -1,0 +1,9 @@
+{% extends "client_main.html" %}
+
+{% block content %}
+    <h3>Ваш текущий баланс: {{ user.balance|floatformat:2 }} руб.</h3>
+        <br/>
+    <p>{% if user.can_trust %}Вы можете активировать доверительный платёж. Для этого перейдите по
+        <a href="trust?activate=true;">ссылке</a>{% else %}
+        {{ user.can_trust }}{% endif %}</p>
+{% endblock %}
