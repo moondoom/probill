@@ -11,7 +11,6 @@ import settings
 import datetime
 import json
 from math import ceil
-from xml.dom.minidom import getDOMImplementation
 
 
 def parse_date(request):
@@ -51,6 +50,16 @@ def sub_auth(fn):
 def index(request,template='client_main.html'):
     c = RequestContext(request)
     return render_to_response(template, c)
+
+@sub_auth
+def trust_pay_get(request):
+    c = RequestContext(request)
+    sub = request['user']
+    ok, message = sub.can_trust()
+    if ok:
+        sub.get_trust()
+    c['message'] = message
+    return render_to_response('client_trust_pay.html',c)
 
 
 def only_ip_auth(request,template='client_blocked.html'):

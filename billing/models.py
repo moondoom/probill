@@ -126,6 +126,14 @@ class Subscriber(models.Model):
             else:
                 return False, 'Вы были заблокированны до начала месяца'
 
+    def get_trust(self):
+        account = self.account_set.filter(block=True).aggregate(models.Sum('tariff__rental'))
+        sum = account['tariff__rental__sum']
+        TrustPay(
+            subsriber=self,
+            value=sum,
+        ).save()
+
     def save(self, process=True, set_delete_flag=False, *args, **kwargs):
         """
             При сохраннении обязательно проводить блокировку или разблокировку
