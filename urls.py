@@ -17,4 +17,5 @@ urlpatterns = patterns('',
 if settings.DEBUG:
     urlpatterns += patterns('',
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+        url(r'^client_side/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/home/animage/Moon/probill_cs/media/'}),
     )

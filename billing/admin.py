@@ -6,15 +6,16 @@ from lib.admin_models import FastDelete
 #from django import forms
 from models import *
 
-admin.site.disable_action('delete_selected')
 
-
+if 'delete_selected' in admin.site.actions:
+    admin.site.disable_action('delete_selected')
 
 
 class MySubscriberAdmin(FastDelete):
-    list_display = ['first_name','last_name','region','login','address_street','address_house','address_flat','balance', 'deleted']
+    list_display = ['first_name', 'last_name', 'region', 'login', 'address_street',
+                    'address_house', 'address_flat', 'balance', 'deleted']
     list_filter = ['region',]
-    search_fields = ['first_name', 'last_name', 'address_street', 'address_house','address_flat','login']
+    search_fields = ['first_name', 'last_name', 'address_street', 'address_house', 'address_flat', 'login']
     ordering = ['region','first_name']
 
 
@@ -22,13 +23,14 @@ class MyAccountAdmin(FastDelete):
     list_display = ['subscriber', 'login','ip', 'mac','tariff',
                     'block_date', 'active',
                     'auto_block', 'deleted']
-    search_fields = ('login', 'subscriber__first_name', 'ip', 'mac', 'subscriber__last_name', 'tariff__name', 'block_date')
+    search_fields = ('login', 'subscriber__first_name', 'ip', 'mac',
+                     'subscriber__last_name', 'tariff__name', 'block_date')
     list_filter = ('subscriber__region',)
     ordering = ['subscriber','login']
 
 
 class MyTrafficByPeriodAdmin(admin.ModelAdmin):
-    list_display = ('datetime','account','qac_class','count','cost',)
+    list_display = ('datetime', 'account', 'qac_class', 'count', 'cost')
     search_fields = ('datetime',)
     ordering = ['-datetime', '-count']
 
@@ -43,20 +45,16 @@ class MyLogAdmin(admin.ModelAdmin):
     search_fields = ('datetime','message')
 
 
-class MyLogAdmin(admin.ModelAdmin):
-    list_display = ('datetime','message','code')
-    search_fields = ('datetime','message')
-
-
 class MyAccHistAdmin(admin.ModelAdmin):
-    list_display = ('datetime','subscriber','value')
-    search_fields = ('datetime',)
-
+    list_display = ('datetime','subscriber','value', 'owner_type')
+    search_fields = ('datetime', 'subscriber__first_name', 'subscriber__first_name', 'subscriber__account__login',)
+    ordering = ['-datetime']
 
 class MyOSMPPayAdmin(admin.ModelAdmin):
     list_display = ('process_date', 'pay_date', 'command', 'value', 'result', 'osmp_txn_id', 'prv_txn')
-    search_fields = ('osmp_txn_id', 'comment')
-    list_filter = ('result', 'command')
+    search_fields = ('osmp_txn_id', 'comment', 'subscriber__first_name', 'subscriber__last_name',
+                     'subscriber__login', 'subscriber__account__login')
+    list_filter = ('result', 'command',)
 
 
 class MyTariffAdmin(admin.ModelAdmin):
@@ -68,19 +66,25 @@ class MyTariffAdmin(admin.ModelAdmin):
     def queryset(self,request):
         return super(MyTariffAdmin, self).queryset(request).exclude(archive=True)
 
+
+class MyTrustPayAdmin(admin.ModelAdmin):
+    list_display = ('create_date', 'end_date','subscriber','value', 'trust_days')
+    search_fields = ('subscriber__first_name', 'subscriber__last_name',
+                     'subscriber__login', 'subscriber__account__login')
+    ordering = ['create_date']
+
 admin.site.register(Region)
 admin.site.register(Subscriber,MySubscriberAdmin)
 admin.site.register(Account,MyAccountAdmin)
 admin.site.register(TrafficByPeriod,MyTrafficByPeriodAdmin)
 admin.site.register(PeriodicLog,MyLogAdmin)
 admin.site.register(AccountHistory,MyAccHistAdmin)
+admin.site.register(TrustPay,MyTrustPayAdmin)
 admin.site.register(OsmpPay, MyOSMPPayAdmin)
 admin.site.register(Manager)
 admin.site.register(Subnets)
 admin.site.register(QosAndCost)
 admin.site.register(Tariff, MyTariffAdmin)
-
-
 
 
 

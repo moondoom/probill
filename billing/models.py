@@ -112,6 +112,8 @@ class Subscriber(models.Model):
     def can_trust(self):
         if self.balance > 0:
             return False, 'Услуга доступна только при отрицательном балансе'
+        if self.get_rental_sum() + self.balance < 0:
+            return False, 'Долг превышает абонентскую плату'
         now = date.today()
         end_day = now + timedelta(days=TRUST_DAYS_COUNT)
         first_day = now.replace(day=1)
@@ -119,19 +121,22 @@ class Subscriber(models.Model):
             return False, 'В этом месяце вы уже воспользовались доверительным платежом.'
         if now.month != end_day.month:
             return False, 'До конца месяце осталось слишком мало дней'
-        accounts = self.account_set.filter(block=True, auto_block=True).order_by('block_date')
+        accounts = self.account_set.filter(active=False, auto_block=True).order_by('block_date')
         if accounts:
             if accounts[0].block_date.month ==  now.month:
                 return True, 'Всё ок!'
             else:
                 return False, 'Вы были заблокированны до начала месяца'
 
+    def get_rental_sum(self):
+        account = self.account_set.filter(active=False).aggregate(models.Sum('tariff__rental'))
+        return account['tariff__rental__sum']
+
     def get_trust(self):
-        account = self.account_set.filter(block=True).aggregate(models.Sum('tariff__rental'))
-        sum = account['tariff__rental__sum']
+        rent_sum = self.get_rental_sum()
         TrustPay(
-            subsriber=self,
-            value=sum,
+            subscriber=self,
+            value=rent_sum,
         ).save()
 
     def save(self, process=True, set_delete_flag=False, *args, **kwargs):
@@ -628,6 +633,9 @@ class OsmpPay(models.Model):
     comment = models.TextField(verbose_name="Коментарий")
     error = models.BooleanField(verbose_name="Ошибка обработки", blank=True, default=False)
 
+    class Meta:
+        verbose_name_plural = u'Платежи OSMP'
+
 
 class TrustPay(models.Model):
     subscriber = models.ForeignKey(Subscriber,verbose_name="Пользователь")
@@ -638,11 +646,21 @@ class TrustPay(models.Model):
     active = models.BooleanField(verbose_name="Активна", default=True, editable=False)
     manager = models.ForeignKey(Manager, verbose_name="Менеджер", null=True, blank=True, editable=False)
 
+    class Meta:
+        verbose_name_plural = u'Доверительные платежи'
+
     def save(self, *args, **kwargs):
         if not self.pk:
+            self.create_date = datetime.now()
             self.end_date = self.create_date + timedelta(days=self.trust_days)
             super(TrustPay,self).save(*args,**kwargs)
             self.activate()
+
+    def delete(self, *args, **kwargs):
+        if self.pk:
+            if self.active:
+                self.deactivate()
+        super(TrustPay,self).delete()
 
     def activate(self):
         AccountHistory(datetime=datetime.now(),
@@ -658,6 +676,7 @@ class TrustPay(models.Model):
                        owner_type='tru',
                        owner_id=self.pk).save()
         super(TrustPay,self).save()
+
 
 
 from south.modelsinspector import add_introspection_rules

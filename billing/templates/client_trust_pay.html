@@ -3,12 +3,10 @@
 {% block content %}
     <h3>Ваш текущий баланс: {{ user.balance|floatformat:2 }} руб.</h3>
         <br/>
-    {% if message %}
         <h4>{{ message }}</h4>
-    {% else %}
-        <h4>{% if user.can_trust %}Вы можете активировать доверительный платёж. Для этого перейдите по
-            <a href="trust_get">ссылке</a>{% else %}
-            {{ user.can_trust }}
-        {% endif %}</h4>
-    {% endif %}
+        {% if ok %}<h4>Вы можете активировать доверительный платёж. Для этого перейдите по
+                   <a href="/client/trust?get_trust=True">ссылке</a>
+                   </h4>
+        {% endif %}
+
 {% endblock %}

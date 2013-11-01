@@ -52,13 +52,16 @@ def index(request,template='client_main.html'):
     return render_to_response(template, c)
 
 @sub_auth
-def trust_pay_get(request):
+def trust_pay(request):
     c = RequestContext(request)
-    sub = request['user']
+    sub = c['user']
     ok, message = sub.can_trust()
-    if ok:
+    if ok and request.GET.has_key('get_trust'):
         sub.get_trust()
+        message = 'Вы только активировали доверительный платёж'
+        ok = False
     c['message'] = message
+    c['ok'] = ok
     return render_to_response('client_trust_pay.html',c)
 
 
