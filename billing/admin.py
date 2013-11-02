@@ -6,17 +6,16 @@ from lib.admin_models import FastDelete
 #from django import forms
 from models import *
 
-
-if 'delete_selected' in admin.site.actions:
-    admin.site.disable_action('delete_selected')
+admin.site.disable_action('delete_selected')
 
 
 class MySubscriberAdmin(FastDelete):
-    list_display = ['first_name', 'last_name', 'region', 'login', 'address_street',
-                    'address_house', 'address_flat', 'balance', 'deleted']
+    list_display = ['first_name', 'last_name', 'region', 'login', 'password', 'address_street',
+                    'address_house', 'address_flat', 'balance', 'need_change_password', 'deleted']
     list_filter = ['region',]
     search_fields = ['first_name', 'last_name', 'address_street', 'address_house', 'address_flat', 'login']
     ordering = ['region','first_name']
+
 
 
 class MyAccountAdmin(FastDelete):

@@ -111,10 +111,12 @@ class Subscriber(models.Model):
 
 
     def can_trust(self):
-        if self.balance > 0:
+        if self.trustpay_set.filter(end_date__gte=datetime.now()):
+            return False, 'Доверительный платёж уже активирован'
+        elif self.balance > 0:
             return False, 'Услуга доступна только при отрицательном балансе'
-        if self.get_rental_sum() + self.balance < 0:
-            return False, 'Долг превышает абонентскую плату'
+        elif self.get_rental_sum() + self.balance < 0:
+            return False, 'Ваша задолженность превышает минимальную сумму абонентской платы по вашему тарифу. Доверительный платеж не может быть активирован.'
         now = date.today()
         end_day = now + timedelta(days=TRUST_DAYS_COUNT)
         first_day = now.replace(day=1)

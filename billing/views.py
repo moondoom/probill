@@ -58,8 +58,11 @@ def trust_pay(request):
     ok, message = sub.can_trust()
     if ok and request.GET.has_key('get_trust'):
         sub.get_trust()
-        message = 'Вы только активировали доверительный платёж'
+        message = 'Поздравляем! Доверительный платеж успешно ативирован.'
         ok = False
+    elif ok:
+        message = ''
+
     c['message'] = message
     c['ok'] = ok
     return render_to_response('client_trust_pay.html',c)
