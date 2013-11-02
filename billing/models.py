@@ -70,6 +70,7 @@ class Subscriber(models.Model):
     )
     login = models.CharField('Логин',max_length=30,unique=True,db_index=True)
     password = models.CharField('Пароль',max_length=30,blank=True,null=True)
+    need_change_password = models.BooleanField("Сменить пароль", default=True)
     first_name = models.CharField('Фамилия',max_length=100)
     last_name = models.CharField('Имя',max_length=100)
     father_name = models.CharField('Отчество',max_length=100,blank=True,null=True)

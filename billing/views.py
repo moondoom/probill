@@ -11,7 +11,7 @@ import settings
 import datetime
 import json
 from math import ceil
-
+import re
 
 def parse_date(request):
     try:
@@ -63,6 +63,36 @@ def trust_pay(request):
     c['message'] = message
     c['ok'] = ok
     return render_to_response('client_trust_pay.html',c)
+
+@sub_auth
+def change_password(request):
+    c = RequestContext(request)
+    sub = c['user']
+    if sub.need_change_password:
+        if request.POST.has_key('password') and request.POST.has_key('re_password'):
+            password = unicode(request.POST['password'])
+            re_password = unicode(request.POST['re_password'])
+            c['password'], c['re_password'] = password, re_password
+            if len(password) < 6:
+                c['message'] = 'Длинна пароля меньше 6 символов'
+            elif password != re_password:
+                c['message'] = 'Пароли не совпадают'
+            elif password == sub.password:
+                c['message'] = 'Пароль совпадает со старым'
+            else:
+                sub.password = password
+                sub.need_change_password = False
+                sub.save()
+                return HttpResponseRedirect('/client')
+        else:
+            c['message'] = "Вам необходимо сменить пароль"
+        return  render_to_response("client_change_password.html", c)
+    elif request.GET.has_key('user_request'):
+        sub.need_change_password = True
+        sub.save()
+        return  render_to_response("client_change_password.html", c)
+    else:
+        return HttpResponseRedirect('/client')
 
 
 def only_ip_auth(request,template='client_blocked.html'):
@@ -126,7 +156,10 @@ def login(request):
             request.session['subscriber_id'] = sub.id
     elif 'subscriber_id' not in request.session:
         return render_to_response( "client_login.html", c)
-    return HttpResponseRedirect("/client")
+    if sub.need_change_password:
+        return HttpResponseRedirect("/client/change_password")
+    else:
+        return HttpResponseRedirect("/client")
 
 
 def logout(request):
