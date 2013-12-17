@@ -658,11 +658,12 @@ class TrustPay(models.Model):
             self.end_date = self.create_date + timedelta(days=self.trust_days)
             super(TrustPay,self).save(*args,**kwargs)
             self.activate()
+        elif not self.active:
+            super(TrustPay,self).save(*args,**kwargs)
 
     def delete(self, *args, **kwargs):
         if self.pk:
-            if self.active:
-                self.deactivate()
+            self.deactivate()
         super(TrustPay,self).delete()
 
     def activate(self):
@@ -672,12 +673,15 @@ class TrustPay(models.Model):
                        owner_type='tru',
                        owner_id=self.pk).save()
 
+
     def deactivate(self):
-        AccountHistory(datetime=datetime.now(),
-                       subscriber=self.subscriber,
-                       value= -self.value,
-                       owner_type='tru',
-                       owner_id=self.pk).save()
+        if self.active:
+            AccountHistory(datetime=datetime.now(),
+                           subscriber=self.subscriber,
+                           value= -self.value,
+                           owner_type='tru',
+                           owner_id=self.pk).save()
+            self.active = False
         super(TrustPay,self).save()
 
 

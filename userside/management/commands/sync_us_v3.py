@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 
-from userside.models_v3 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist
+from userside.models_v3 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist, TblUnkmac
 
 from billing.models import Subscriber, Tariff, Account, AccountHistory
 
@@ -220,6 +220,11 @@ class Command(BaseCommand):
         p2u_tariff = self.get_us_ip(p_ip,u_code)
         if not self.compare_object(u_ip,p2u_tariff,self.ip_params):
             u_ip.save(using='userside')
+        if u_ip.mac:
+            for x in TblUnkmac.objects.filter(mac = u_ip.mac):
+                print "Delete", x.code, x.mac
+                x.delete()
+
 
 
     def ah_to_us(self):

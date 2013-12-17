@@ -6,6 +6,9 @@ from probill.billing.models import Account
 from settings import LOCAL_NAS_ID,SUDO_PATH
 import os
 
+NAS_CHOICES = (
+    ("freebsd_ipfw", "freebsd_ipfw"),
+    ("linux_ipt_tc", "linux_ipt_tc"))
 
 class NasServer(models.Model):
     #STATIC
@@ -14,6 +17,7 @@ class NasServer(models.Model):
 
     name = models.CharField(max_length=50)
     mng_ip = IPAddressField()
+    type = models.CharField(max_length="20", default="freebsd_ipfw", choices=NAS_CHOICES )
     username = models.CharField(max_length=50,null=True,blank=True)
     password = models.CharField(max_length=50,null=True,blank=True)
     active = models.BooleanField(default=True)
