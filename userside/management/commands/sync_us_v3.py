@@ -221,9 +221,9 @@ class Command(BaseCommand):
         if not self.compare_object(u_ip,p2u_tariff,self.ip_params):
             u_ip.save(using='userside')
         if u_ip.mac:
-            for x in TblUnkmac.objects.filter(mac = u_ip.mac):
+            for x in TblUnkmac.objects.using("userside").filter(mac = u_ip.mac):
                 print "Delete", x.code, x.mac
-                x.delete()
+                x.delete(using="userside")
 
 
 
