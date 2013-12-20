@@ -372,21 +372,40 @@ class Tariff(models.Model):
         else:
             return 0
 
+STATE_CHOICES = (
+    (200, u'Работает'),
+    (301, u'Новый'),
+    (302, u'Импортирован'),
+    (401, u'Приостановлен'),
+    (402, u'Долг'),
+    (404, u'Отключен'),
+    (500, u'Авария'),
+    )
+
+class AccountLog(models.Model):
+    datetime = models.DateTimeField("Дата/Время", auto_created=True)
+    account = models.ForeignKey("Account", verbose_name="Учётная запись")
+    old_status = models.IntegerField("Был", choices=STATE_CHOICES)
+    new_status = models.IntegerField("Стал", choices=STATE_CHOICES)
+
 class Account(models.Model):
     """
     Учётные записи пользователей
     """
+
+
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь')
     login = models.CharField('Имя учётной записи',max_length=30,unique=True,db_index=True)
     password = models.CharField('Пароль',max_length=30,blank=True,null=True)
     tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name='Тариф')
-    ip = IPAddressField('IP адрес',unique=True,db_index=True)
-    mac = MACAddressField('MAC адрес',max_length=17,blank=True,null=True)
-    create_date = models.DateTimeField('Дата создания',auto_now=True)
+    ip = IPAddressField('IP адрес',db_index=True, null=True, blank=True)
+    mac = MACAddressField('MAC адрес',max_length=17, blank=True, null=True)
+    create_date = models.DateTimeField('Дата создания', auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name='Создатель',db_index=True)
     block_date = models.DateTimeField('Дата блокировки',null=True,editable=False)
     auto_block = models.BooleanField('Автоматическая блокировка',default=True)
     active = models.BooleanField('Активна',default=True)
+    status = models.IntegerField('Статус', default=200, choices=STATE_CHOICES)
     deleted = models.BooleanField('Удалена', default=False, editable=False)
     #alt_route = models.BooleanField('Альтернативный маршрут',default=False)
 
@@ -408,10 +427,11 @@ class Account(models.Model):
             old = Account.objects.get(id = self.id)
             old_tariff = old.tariff
         else:
+            old = None
             old_tariff = None
         super(Account,self).save(*args,**kwargs)
         # Проверяем не сменился ли тариф
-        if old_tariff <> self.tariff:
+        if old_tariff != self.tariff:
             rentalDiff = Tariff.calcRentalDiff(old_tariff,self.tariff)
             if rentalDiff:
                 accHist = AccountHistory(
@@ -422,6 +442,10 @@ class Account(models.Model):
                     value = rentalDiff
                 )
                 accHist.save()
+        # Проверяем изменение статуса
+        if old:
+            if self.status != old.status:
+                AccountLog(account=self, old_status=old.status, new_status=self.status)
 
     def clean_traffic(self):
         if self.pk:

@@ -5,8 +5,9 @@ from userside.models_v3 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, Tb
 
 from billing.models import Subscriber, Tariff, Account, AccountHistory
 
-
 import re
+import string
+
 
 class Command(BaseCommand):
     args = ''
@@ -68,7 +69,7 @@ class Command(BaseCommand):
 
     def sync_users(self):
         billing_users = {}
-        for user in Subscriber.objects.all():
+        for user in Subscriber.objects.exclude(region__is_null=True):
             billing_users[user.login] = user
         for user in TblBase.objects.using('userside').all():
             if user.logname in billing_users:
@@ -76,8 +77,6 @@ class Command(BaseCommand):
                 del billing_users[user.logname]
             else:
                 pass
-                #self.sync_ip(None,user)
-                #user.delete(using='userside')
         for user in billing_users:
             self.create_user(billing_users[user])
 
@@ -226,15 +225,19 @@ class Command(BaseCommand):
                 x.delete(using="userside")
 
 
+    def import_from_us(self):
 
-    def ah_to_us(self):
-        AccountHistory.objects.filter(type='syn')
+        def get_us_login(us_user):
+            if [f for f in us_user.logname if f not in string.printable]:
+                us_user
+
+        us_users = {}
+        for user in TblBase.objects.using('userside').all():
+            us_users[user.logname] = user
+        for user in Subscriber.objects.all():
 
 
     def handle(self, *args, **options):
-        if len(args) > 0:
-            if 'ah_to_us' in args:
-                self.ah_to_us()
         self.sync_balance()
         self.sync_tariff()
         self.sync_users()
