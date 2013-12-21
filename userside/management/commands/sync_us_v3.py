@@ -7,7 +7,8 @@ from billing.models import Subscriber, Tariff, Account, AccountHistory
 
 import re
 import string
-
+import socket
+import struct
 
 class Command(BaseCommand):
     args = ''
@@ -69,7 +70,7 @@ class Command(BaseCommand):
 
     def sync_users(self):
         billing_users = {}
-        for user in Subscriber.objects.exclude(region__is_null=True):
+        for user in Subscriber.objects.exclude(region=None):
             billing_users[user.login] = user
         for user in TblBase.objects.using('userside').all():
             if user.logname in billing_users:
@@ -225,19 +226,40 @@ class Command(BaseCommand):
                 x.delete(using="userside")
 
 
-    def import_from_us(self):
 
+    def import_from_us(self):
         def get_us_login(us_user):
             if [f for f in us_user.logname if f not in string.printable]:
-                us_user
-
-        us_users = {}
-        for user in TblBase.objects.using('userside').all():
-            us_users[user.logname] = user
+                try:
+                    house = TblHouse.objects.using("userside").get(code=us_user.housec)
+                    street = TblStreet.objects.using("userside").get(code=house.streetcode)
+                    print street.street, house.house
+                    sub = Subscriber.objects.filter(address_street=street.street,
+                        login__iregex="^[^\d]+[\d\-]+").exclude(region=None)[0]
+                    if us_user.apart:
+                        return '{}{}-{}'.format(re.split('\d',sub.login)[0],house.house,us_user.apart)
+                    else:
+                        return '{}{}'.format(re.split('\d',sub.login)[0],house.house)
+                except ObjectDoesNotExist as error:
+                    return 'us_user_{}'.format(us_user.code)
+                except IndexError as error:
+                    return 'us_user_{}'.format(us_user.code)
+            else:
+                return us_user.logname
+        p_users = {}
         for user in Subscriber.objects.all():
+            p_users[user.login] = user
+        for user in TblBase.objects.using("userside").exclude(logname__in=p_users.keys()):
+            ip = TblIp.objects.using("userside").filter(typer=1,usercode=user.code)
+            login = get_us_login(user)
+            print login, user.fio, ' '.join([socket.inet_ntoa(struct.pack("!I", f.userip)) for f in ip])
 
 
     def handle(self, *args, **options):
-        self.sync_balance()
-        self.sync_tariff()
-        self.sync_users()
+        if args > 0:
+            if args[0] == 'import':
+                self.import_from_us()
+            elif args[0] == 'sync':
+                self.sync_balance()
+                self.sync_tariff()
+                self.sync_users()

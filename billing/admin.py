@@ -20,7 +20,7 @@ class MySubscriberAdmin(FastDelete):
 
 class MyAccountAdmin(FastDelete):
     list_display = ['subscriber', 'login','ip', 'mac','tariff',
-                    'block_date', 'active',
+                    'block_date', 'status', 'active',
                     'auto_block', 'deleted']
     search_fields = ('login', 'subscriber__first_name', 'ip', 'mac',
                      'subscriber__last_name', 'tariff__name', 'block_date')
@@ -72,6 +72,12 @@ class MyTrustPayAdmin(admin.ModelAdmin):
                      'subscriber__login', 'subscriber__account__login')
     ordering = ['create_date']
 
+class MyAccountLogAdmin(admin.ModelAdmin):
+    list_display = ('datetime', 'account','old_status','new_status')
+    search_fields = ('account__login', 'account__subscriber__first_name','account__subscriber__last_name')
+    ordering = ['datetime']
+
+
 admin.site.register(Region)
 admin.site.register(Subscriber,MySubscriberAdmin)
 admin.site.register(Account,MyAccountAdmin)
@@ -79,6 +85,7 @@ admin.site.register(TrafficByPeriod,MyTrafficByPeriodAdmin)
 admin.site.register(PeriodicLog,MyLogAdmin)
 admin.site.register(AccountHistory,MyAccHistAdmin)
 admin.site.register(TrustPay,MyTrustPayAdmin)
+admin.site.register(AccountLog,MyAccountLogAdmin)
 admin.site.register(OsmpPay, MyOSMPPayAdmin)
 admin.site.register(Manager)
 admin.site.register(Subnets)

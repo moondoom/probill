@@ -153,13 +153,14 @@ class Subscriber(models.Model):
         if not process:
             return super(Subscriber,self).save(*args,**kwargs)
         self.balance = round(self.balance,2)
+        super(Subscriber,self).save(*args,**kwargs)
         if self.balance < 0:
             for account in self.account_set.filter(active=True,auto_block=True):
                 account.block()
         else:
             for account in self.account_set.filter(active=False,auto_block=True):
                 account.unblock()
-        super(Subscriber,self).save(*args,**kwargs)
+
 
     def delete(self, force_delete=False, *args, **kwargs):
         if force_delete:
@@ -383,22 +384,21 @@ STATE_CHOICES = (
     )
 
 class AccountLog(models.Model):
-    datetime = models.DateTimeField("Дата/Время", auto_created=True)
-    account = models.ForeignKey("Account", verbose_name="Учётная запись")
-    old_status = models.IntegerField("Был", choices=STATE_CHOICES)
-    new_status = models.IntegerField("Стал", choices=STATE_CHOICES)
+    datetime = models.DateTimeField("Дата/Время", auto_now_add=True, editable=False)
+    account = models.ForeignKey("Account", verbose_name="Учётная запись", editable=False)
+    old_status = models.IntegerField("Был", choices=STATE_CHOICES, editable=False)
+    new_status = models.IntegerField("Стал", choices=STATE_CHOICES, editable=False)
 
 class Account(models.Model):
     """
     Учётные записи пользователей
     """
 
-
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь')
     login = models.CharField('Имя учётной записи',max_length=30,unique=True,db_index=True)
     password = models.CharField('Пароль',max_length=30,blank=True,null=True)
     tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name='Тариф')
-    ip = IPAddressField('IP адрес',db_index=True, null=True, blank=True)
+    ip = IPAddressField('IP адрес',db_index=True)
     mac = MACAddressField('MAC адрес',max_length=17, blank=True, null=True)
     create_date = models.DateTimeField('Дата создания', auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name='Создатель',db_index=True)
@@ -415,6 +415,21 @@ class Account(models.Model):
     def __unicode__(self):
         return self.login
 
+
+    def calc_status(self):
+        if self.tariff == None:
+            self.status = 401
+            self.active = False
+        elif self.status == 200 and self.active == False:
+            if self.subscriber.balance < 0:
+                self.status = 402
+            elif self.subscriber.balance >= 0:
+                self.status = 404
+        elif self.status in [401,402,404,500] and self.active == True:
+            self.status = 200
+
+
+
     def save(self, process=True, set_delete_flag=False, *args,  **kwargs):
         if self.deleted:
             return None
@@ -429,6 +444,16 @@ class Account(models.Model):
         else:
             old = None
             old_tariff = None
+        # Проверяем изменение статуса
+        if old:
+            if self.status == old.status:
+                self.calc_status()
+            if self.status != old.status:
+                AccountLog(account=self, old_status=old.status, new_status=self.status).save()
+            else:
+                pass
+        else:
+            AccountLog(account=self, old_status=self.status, new_status=self.status).save()
         super(Account,self).save(*args,**kwargs)
         # Проверяем не сменился ли тариф
         if old_tariff != self.tariff:
@@ -442,10 +467,9 @@ class Account(models.Model):
                     value = rentalDiff
                 )
                 accHist.save()
-        # Проверяем изменение статуса
-        if old:
-            if self.status != old.status:
-                AccountLog(account=self, old_status=old.status, new_status=self.status)
+
+
+
 
     def clean_traffic(self):
         if self.pk:
