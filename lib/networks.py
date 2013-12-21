@@ -103,7 +103,7 @@ class IPAddressField(models.Field):
 
     def to_python(self, value):
         if not value:
-            return None
+            return '0.0.0.0'
 
         if isinstance(value, _IPAddrBase):
             return value

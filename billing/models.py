@@ -398,7 +398,7 @@ class Account(models.Model):
     login = models.CharField('Имя учётной записи',max_length=30,unique=True,db_index=True)
     password = models.CharField('Пароль',max_length=30,blank=True,null=True)
     tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name='Тариф')
-    ip = IPAddressField('IP адрес',db_index=True)
+    ip = IPAddressField('IP адрес',db_index=True, null=True, default='0.0.0.0', blank='True')
     mac = MACAddressField('MAC адрес',max_length=17, blank=True, null=True)
     create_date = models.DateTimeField('Дата создания', auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name='Создатель',db_index=True)
