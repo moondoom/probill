@@ -77,7 +77,7 @@ class Subscriber(models.Model):
     document = models.CharField('Документ',max_length=100,blank=True,null=True)
     create_date = models.DateTimeField('Дата создания',auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name='Создатель')
-    region = models.ForeignKey(Region,verbose_name='Регион',null=True,on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region,verbose_name='Регион',null=True, blank=True, on_delete=models.SET_NULL)
     address_street = models.CharField('Улица',max_length=100)
     address_house = models.CharField('Дом',max_length=10)
     address_type = models.CharField('Тип адреса',max_length=2,choices=ADDRESS_CHOICES,default='fl')
@@ -389,23 +389,29 @@ class AccountLog(models.Model):
     old_status = models.IntegerField("Был", choices=STATE_CHOICES, editable=False)
     new_status = models.IntegerField("Стал", choices=STATE_CHOICES, editable=False)
 
+    class Meta:
+        verbose_name_plural = u'Изменения статуса учётых записей'
+
+    def __unicode__(self):
+        return unicode(self.account)
+
 class Account(models.Model):
     """
     Учётные записи пользователей
     """
 
     subscriber = models.ForeignKey(Subscriber,verbose_name='Пользователь')
-    login = models.CharField('Имя учётной записи',max_length=30,unique=True,db_index=True)
-    password = models.CharField('Пароль',max_length=30,blank=True,null=True)
-    tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL,null=True,blank=True,verbose_name='Тариф')
     ip = IPAddressField('IP адрес',db_index=True, null=True, default='0.0.0.0', blank='True')
     mac = MACAddressField('MAC адрес',max_length=17, blank=True, null=True)
+    tariff = models.ForeignKey(Tariff,on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Тариф')
+    login = models.CharField('Имя учётной записи',max_length=30, db_index=True, blank=True, null=True)
+    password = models.CharField('Пароль',max_length=30, blank=True, null=True)
     create_date = models.DateTimeField('Дата создания', auto_now=True)
     owner = models.ForeignKey(Manager,verbose_name='Создатель',db_index=True)
     block_date = models.DateTimeField('Дата блокировки',null=True,editable=False)
     auto_block = models.BooleanField('Автоматическая блокировка',default=True)
     active = models.BooleanField('Активна',default=True)
-    status = models.IntegerField('Статус', default=200, choices=STATE_CHOICES)
+    status = models.IntegerField('Статус', default=301, choices=STATE_CHOICES)
     deleted = models.BooleanField('Удалена', default=False, editable=False)
     #alt_route = models.BooleanField('Альтернативный маршрут',default=False)
 
@@ -413,19 +419,20 @@ class Account(models.Model):
         verbose_name_plural = u'Учётные записи'
 
     def __unicode__(self):
-        return self.login
+        return u'{} ({})'.format(self.subscriber,self.ip)
 
 
     def calc_status(self):
         if self.tariff == None:
-            self.status = 401
+            if not self.status in [301, 302]:
+                self.status = 401
             self.active = False
         elif self.status == 200 and self.active == False:
             if self.subscriber.balance < 0:
                 self.status = 402
             elif self.subscriber.balance >= 0:
                 self.status = 404
-        elif self.status in [401,402,404,500] and self.active == True:
+        elif self.status in [401,402,404] and self.active == True:
             self.status = 200
 
 
@@ -445,15 +452,7 @@ class Account(models.Model):
             old = None
             old_tariff = None
         # Проверяем изменение статуса
-        if old:
-            if self.status == old.status:
-                self.calc_status()
-            if self.status != old.status:
-                AccountLog(account=self, old_status=old.status, new_status=self.status).save()
-            else:
-                pass
-        else:
-            AccountLog(account=self, old_status=self.status, new_status=self.status).save()
+        self.calc_status()
         super(Account,self).save(*args,**kwargs)
         # Проверяем не сменился ли тариф
         if old_tariff != self.tariff:
@@ -467,6 +466,13 @@ class Account(models.Model):
                     value = rentalDiff
                 )
                 accHist.save()
+        if old:
+            if self.status != old.status:
+                AccountLog(account=self, old_status=old.status, new_status=self.status).save()
+            else:
+                pass
+        else:
+            AccountLog(account=self, old_status=self.status, new_status=self.status).save()
 
 
 

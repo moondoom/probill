@@ -19,7 +19,7 @@ class MySubscriberAdmin(FastDelete):
 
 
 class MyAccountAdmin(FastDelete):
-    list_display = ['subscriber', 'login','ip', 'mac','tariff',
+    list_display = ['__unicode__', 'ip', 'mac','tariff', 'login',
                     'block_date', 'status', 'active',
                     'auto_block', 'deleted']
     search_fields = ('login', 'subscriber__first_name', 'ip', 'mac',

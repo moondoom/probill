@@ -2,13 +2,15 @@ from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 
 from userside.models_v3 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist, TblUnkmac
+from billing.models import Subscriber, Tariff, Account, AccountHistory, Manager
 
-from billing.models import Subscriber, Tariff, Account, AccountHistory
+
 
 import re
 import string
 import socket
 import struct
+from django.db import connection
 
 class Command(BaseCommand):
     args = ''
@@ -228,14 +230,31 @@ class Command(BaseCommand):
 
 
     def import_from_us(self):
+
+        def get_street(us_user):
+            try:
+                house = TblHouse.objects.using("userside").get(code=us_user.housec)
+                street = TblStreet.objects.using("userside").get(code=house.streetcode)
+            except ObjectDoesNotExist as error:
+                return None, None
+            except IndexError as error:
+                return None, None
+            return  street, house
+        def get_fio(us_user):
+            fio = re.split('\s*',us_user.fio)[:3]
+            if len(fio) == 3:
+                return fio[0], fio[1], fio[2]
+            elif len(fio) == 2:
+                return fio[0], fio[1], None
+            else:
+                return None, None, None
         def get_us_login(us_user):
-            if [f for f in us_user.logname if f not in string.printable]:
+            if [f for f in us_user.logname if f not in string.printable] and us_user.logname:
                 try:
                     house = TblHouse.objects.using("userside").get(code=us_user.housec)
                     street = TblStreet.objects.using("userside").get(code=house.streetcode)
-                    print street.street, house.house
                     sub = Subscriber.objects.filter(address_street=street.street,
-                        login__iregex="^[^\d]+[\d\-]+").exclude(region=None)[0]
+                        login__iregex="^[^\d\-\_]+[\d\-]+")[0]
                     if us_user.apart:
                         return '{}{}-{}'.format(re.split('\d',sub.login)[0],house.house,us_user.apart)
                     else:
@@ -247,16 +266,54 @@ class Command(BaseCommand):
             else:
                 return us_user.logname
         p_users = {}
+        manager = Manager.objects.all()[0]
         for user in Subscriber.objects.all():
             p_users[user.login] = user
         for user in TblBase.objects.using("userside").exclude(logname__in=p_users.keys()):
-            ip = TblIp.objects.using("userside").filter(typer=1,usercode=user.code)
             login = get_us_login(user)
-            print login, user.fio, ' '.join([socket.inet_ntoa(struct.pack("!I", f.userip)) for f in ip])
+            if login in p_users:
+                continue
+            ips = TblIp.objects.using("userside").filter(typer=1,usercode=user.code)
+            street, house = get_street(user)
+            first_name, last_name, father_name = get_fio(user)
+            if street and house and first_name and last_name:
+                new_sub = Subscriber(
+                    login = login,
+                    password = '123456',
+                    first_name = first_name,
+                    last_name = last_name,
+                    father_name = father_name,
+                    address_street = street.street,
+                    address_house = ''.join([f for f in [str(house.house), house.house_b] if f]),
+                    address_flat = ''.join([f for f in [str(user.apart), user.apart_b] if f]),
+                    email = user.email,
+                    phone = ', '.join([f for f in [user.tel, user.telmob] if f]),
+                    balance = user.balans,
+                    owner = manager
+                )
+                new_sub.save()
+                p_users[new_sub.login] = new_sub
+                print new_sub.pk, new_sub.login
+                for ip in ips:
+                    if ip.mac:
+                        mac = ':'.join(map(''.join, zip(*[iter(ip.mac)]*2))).lower()
+                    else:
+                        mac = None
+                    account = Account(
+                        subscriber = new_sub,
+                        ip = socket.inet_ntoa(struct.pack("!I", ip.userip)),
+                        mac = mac,
+                        owner = manager,
+                        status = 302
+                    )
+                    #try:
+                    account.save()
+                    #except:
+                    #    print connection.queries
 
 
     def handle(self, *args, **options):
-        if args > 0:
+        if len(args) > 0:
             if args[0] == 'import':
                 self.import_from_us()
             elif args[0] == 'sync':
