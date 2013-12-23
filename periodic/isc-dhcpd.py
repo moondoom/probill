@@ -30,9 +30,9 @@ def process_nas(nas):
         for account in Account.objects.filter(ip__in=subnet.network).exclude(mac=None):
             new_config += hostConfig(account)
 
-    old_config = nas.open('/usr/local/etc/dhcpd.conf','r').read()
+    old_config = nas.open('/usr/local/etc/dhcpd.conf', 'r').read()
     if old_config <> new_config:
-        nas.open('/usr/local/etc/dhcpd.conf','w').write(new_config)
+        nas.open('/usr/local/etc/dhcpd.conf', 'w').write(new_config)
         if checkConfig(nas):
             if settings.DEBUG:
                 PeriodicLog.log('New dhcp config check ok. Restarting dhcpd.')
@@ -41,24 +41,29 @@ def process_nas(nas):
             print stderr.read()
         else:
             PeriodicLog.log('New dhcp config check fail!!!! Restor old config.')
-            nas.open('/usr/local/etc/dhcpd.conf','w').write(old_config)
+            nas.open('/usr/local/etc/dhcpd.conf', 'w').write(old_config)
 
 
 def checkConfig(nas):
-    stdin, stdout, stderr = nas.exec_command(' '.join([SUDO_PATH,'dhcpd -t']))
+    stdin, stdout, stderr = nas.exec_command(' '.join([SUDO_PATH, 'dhcpd -t']))
     test = stderr.read()
     if test.find('Configuration file errors') <> -1:
         return False
     else:
         return True
 
+
 def hostConfig(account):
+    if account.login:
+        login = account.login
+    else:
+        login = '{}-{}'.format(account.subscriber.login, str(account.ip).replace('.', '-'))
     return """
 host %s {
         hardware ethernet %s;
         fixed-address %s;
 }
-    """%(account.login,account.mac,account.ip)
+    """ % (login, account.mac, account.ip)
 
 
 def netConfig (dhcp_subnet):
