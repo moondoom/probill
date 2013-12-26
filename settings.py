@@ -4,8 +4,8 @@ from ConfigParser import RawConfigParser
 config = RawConfigParser()
 
 config.read('settings.conf.default')
-config.read('/etc/probill/settings.conf')
-config.read('/usr/local/etc/probill/settings.conf')
+config.read('/etc/probill/dev-settings.conf')
+config.read('/usr/local/etc/probill/dev-settings.conf')
 
 DATABASES = {
     'default': {
