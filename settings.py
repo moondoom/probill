@@ -143,8 +143,14 @@ INSTALLED_APPS = (
     'billing',
     'nas',
     'mptt',
-    'south'
+    'south',
+    'zpayment'
 )
+
+
+ZPAYMENT_SHOP_ID = '123'
+ZPAYMENT_SECRET_KEY = '123'
+ZPAYMENT_PASSWORD_INITIALIZATION = '123'
 
 
 LOGIN_URL='/moon/login'

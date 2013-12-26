@@ -11,7 +11,6 @@ urlpatterns = patterns('',
     url(r'^extadmin/', include('main.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^moon/', include('moon.urls', namespace='moon', app_name='moon')),
-
 )
 
 if settings.DEBUG:

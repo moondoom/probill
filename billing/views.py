@@ -11,7 +11,12 @@ import settings
 import datetime
 import json
 from math import ceil
-import re
+
+from annoying.decorators import render_to
+from django.template import loader, RequestContext
+from zpayment.models import Invoice
+from zpayment.forms import PaymentRequestForm, get_zp_sign
+
 
 def parse_date(request):
     try:
@@ -275,3 +280,24 @@ def osmp_gate(request):
         return osmp_response(response)
     return osmp_response(response)
 
+
+
+@sub_auth
+@render_to('client_z_pay.html')
+def zpayment(request):
+    response = {}
+    invoice = Invoice.objects.create(user=request.user)
+    payment_no = invoice.payment_no
+    description = unicode(request.user)[:255]
+    amount = 101.42
+    zp_sign = get_zp_sign(payment_no, amount)
+    initial = {
+        'LMI_PAYMENT_NO': invoice.payment_no,
+        'LMI_PAYMENT_DESC': description,
+        'LMI_PAYMENT_AMOUNT': amount,
+        'CLIENT_MAIL': 'testmail@example.com',
+        'ZP_SIGN': zp_sign
+    }
+    response['form'] = PaymentRequestForm(initial=initial)
+
+    return response

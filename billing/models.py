@@ -271,6 +271,7 @@ class Tariff(models.Model):
     traffic_cost = models.FloatField('Стоимость за Мб',default=0)
     qos_speed = models.IntegerField('Основная скорость',default=0)
     qac_class = models.ManyToManyField(QosAndCost,blank=True,null=True,verbose_name='Классы трафика')
+
     speed_up = models.IntegerField('Коэффициент ускорения',default=1)
     speed_up_start = models.TimeField('Время включения ускорения',default=time(22,0),choices=TIME_CHOICES)
     speed_up_end = models.TimeField('Время выключения ускорения',default=time(6,0),choices=TIME_CHOICES)

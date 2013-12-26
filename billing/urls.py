@@ -1,13 +1,15 @@
 from django.conf.urls.defaults import patterns, url, include
 from views import *
 from moon_views import *
-
+from views import zpayment
 
 urlpatterns = patterns('',
     url(r'^$', index),
     url(r'^info$', index, {'template': 'client_info.html'}),
     url(r'^money$', index, {'template': 'client_money.html'}),
     url(r'^stat$', index, {'template': 'client_stat.html'}),
+    url(r'^zpayment_pay$', zpayment),
+    url(r'^zpayment/', include('zpayment.urls')),
     url(r'^trust$', trust_pay),
     url(r'^change_password', change_password),
     url(r'^stat/json/$', stat_json),
