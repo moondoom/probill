@@ -33,6 +33,7 @@ class Command(BaseCommand):
         'telmob',
         'tel',
         'groupn',
+        'billcode',
         )
     ip_params = (
         'usercode',
@@ -134,7 +135,7 @@ class Command(BaseCommand):
             house = None
             print error
         try:
-            p_tariff = user.account_set.all()[0].tariff
+            p_tariff = user.account_set.exclude(tariff=None)[0].tariff
             tariff = TblGroup.objects.using('userside').get(groupname=p_tariff.name)
             tariff = tariff.code
         except ObjectDoesNotExist as error:
@@ -172,7 +173,7 @@ class Command(BaseCommand):
             telmob = telmob,
             balans = user.balance,
             groupn = tariff,
-            #billcode = user.id
+            billcode = 1,
         )
 
     def create_user(self,user):
