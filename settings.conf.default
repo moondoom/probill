@@ -13,6 +13,7 @@ DATABASE_NAME = probill
 #DATABASE_PORT =
 #DATABASE_ENGINE = django.db.backends.mysql
 #DATABASE_NAME = userside
+#EXTRA_FIELDS = DOPDATA_ID,SUBSCRIBER_ATTR,.....
 
 [debug]
 DEBUG = FALSE

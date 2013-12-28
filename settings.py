@@ -181,6 +181,11 @@ if config.has_section('userside'):
             'NAME' : config.get('userside', 'DATABASE_NAME'),
             }
     })
+    if config.has_option('userside','EXTRA_FIELDS'):
+        def sx(x): return x.split(',')
+        EXTRA_FIELDS = map(sx,[f for f in config.get('userside', 'EXTRA_FIELDS').split(';') if f])
+    else:
+        EXTRA_FIELDS = []
 
 if config.has_section('client_side'):
     TEMPLATE_DIRS = TEMPLATE_DIRS + (config.get('client_side', 'TEMPLATE_DIR'),)

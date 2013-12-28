@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
+from probill.settings import EXTRA_FIELDS
 
-from userside.models_v3 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist, TblUnkmac
+from userside.models_v3 import TblBase, TblIp, TblGroup, TblStreet, TblHouse, TblBilhist, TblUnkmac, TblBaseDopdata
 from billing.models import Subscriber, Tariff, Account, AccountHistory, Manager
 
 
@@ -41,6 +42,7 @@ class Command(BaseCommand):
         'typer',
         )
 
+
     def compare_object(self,obj_a,obj_b,attr_list):
         result = True
         for attr in attr_list:
@@ -70,6 +72,18 @@ class Command(BaseCommand):
 
         for ip in billing_ip:
             self.get_us_ip(billing_ip[ip],u_user.code).save(using='userside')
+
+    def sync_dop_data(self,p_user,u_user):
+        for id, attr in EXTRA_FIELDS:
+            if hasattr(p_user, attr):
+                value = str(getattr(p_user, attr))
+                dop_data, created = TblBaseDopdata.objects.using('userside').get_or_create(usercode=u_user.code,
+                                                                                           datacode=int(id),
+                                                                                           defaults={'valuestr': value})
+                if dop_data.valuestr != value:
+                    dop_data.valuestr = value
+                    dop_data.save(using='userside')
+
 
     def sync_users(self):
         billing_users = {}
@@ -190,6 +204,7 @@ class Command(BaseCommand):
         if not self.compare_object(u_user,p2u_user,self.user_params):
             u_user.save(using='userside')
         self.sync_ip(p_user,u_user)
+        self.sync_dop_data(p_user,u_user)
 
     def get_us_tariff(self,tariff):
         return TblGroup(
@@ -217,6 +232,7 @@ class Command(BaseCommand):
             userip = int(ip.ip),
             mac = ''.join(ip.mac.split(':'))
         )
+
 
 
     def check_ip(self,p_ip,u_ip,u_code):
