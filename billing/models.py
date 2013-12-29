@@ -321,7 +321,7 @@ class Tariff(models.Model):
         date = datetime.now()
         if not self.rental:
             return 0
-        if self.rental_period == 'h':
+        if self.rental_period == 'd':
             return self.rental
         elif self.rental_period == 'w':
             return self.rental - self.rental / 7 * date.weekday
@@ -337,7 +337,7 @@ class Tariff(models.Model):
         if not date:
             date = datetime.now()
         if not date.hour:
-            q_filter = Q(rental_period='h')
+            q_filter = Q(rental_period='d')
             if date.weekday == 1:
                 q_filter.add(Q(rental_period='w'),Q.OR)
             if date.day == 1:

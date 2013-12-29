@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import string
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -82,6 +83,8 @@ def change_password(request):
                 c['message'] = 'Пароли не совпадают'
             elif password == sub.password:
                 c['message'] = 'Пароль совпадает со старым'
+            elif [f for f in password if f not in string.printable]:
+                c['message'] = 'Пароль содержит недопустимые символы'
             else:
                 sub.password = password
                 sub.need_change_password = False
