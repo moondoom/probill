@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models, connection, transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.contrib.admin.models import User
 from django.db.utils import DatabaseError
 from probill.lib.networks import IPNetworkField,IPAddressField,MACAddressField
@@ -271,6 +271,8 @@ class Tariff(models.Model):
     traffic_cost = models.FloatField('Стоимость за Мб',default=0)
     qos_speed = models.IntegerField('Основная скорость',default=0)
     qac_class = models.ManyToManyField(QosAndCost,blank=True,null=True,verbose_name='Классы трафика')
+    use_traffic_threshold = models.BooleanField('Использовать порог трафика', default=False)
+    traffic_threshold = models.IntegerField('Порог трафика (Мб)', default=0, blank=True)
     speed_up = models.IntegerField('Коэффициент ускорения',default=1)
     speed_up_start = models.TimeField('Время включения ускорения',default=time(22,0),choices=TIME_CHOICES)
     speed_up_end = models.TimeField('Время выключения ускорения',default=time(6,0),choices=TIME_CHOICES)
@@ -344,6 +346,9 @@ class Tariff(models.Model):
                 q_filter.add(Q(rental_period='m'),Q.OR)
             for tariff in cls.objects.filter(q_filter).exclude(rental=0):
                 for account in tariff.account_set.filter(active=True):
+                    if tariff.use_traffic_threshold:
+                        if tariff.traffic_threshold >= account.get_traffic_by_period(tariff.rental_period):
+                            continue
                     accHist = AccountHistory(
                         datetime = date,
                         owner_id = tariff.id,
@@ -576,6 +581,24 @@ class Account(models.Model):
                 )
                 accHist.save()
         PeriodicLog.log('Обработка трафика. Снято %s с %s учётных записей' % (1,1))
+
+    def get_traffic_by_period(self, period='m'):
+        end = datetime.now()
+        if period == 'd':
+            days = 1
+        elif period == 'w':
+            days = 7
+        elif period == 'm':
+            if end.month == 1:
+                days = calendar.mdays[12]
+            else:
+                days = calendar.mdays[end.month-1]
+        else:
+            return 0
+        start = end - timedelta(days)
+        sum = self.trafficbyperiod_set.filter(datetime__gte=start,datetime__lt=end)
+        sum = sum.aggregate(total_traffic=Sum('count'))
+        return sum['total_traffic']
 
 
 

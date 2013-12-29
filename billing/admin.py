@@ -57,7 +57,9 @@ class MyOSMPPayAdmin(admin.ModelAdmin):
 
 
 class MyTariffAdmin(admin.ModelAdmin):
-    list_display = ('name', 'rental', 'qos_speed', 'speed_up', 'speed_up_start', 'speed_up_end', 'get_account_count')
+    list_display = ('name', 'rental', 'qos_speed', 'speed_up',
+                    'speed_up_start', 'speed_up_end', 'get_account_count',
+                    'use_traffic_threshold')
 
     def has_delete_permission(self, request, obj=None):
         return False
