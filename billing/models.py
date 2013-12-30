@@ -530,6 +530,7 @@ class Account(models.Model):
         bad_ip = []
         traffic_periods = {}
         traffic_details = []
+        total_traffic = 0
         for row in raw_traffic:
             src_ip = row[0]
             dst_ip = row[1]
@@ -548,7 +549,10 @@ class Account(models.Model):
             )
             if dst_ip in good_ip:
                 traffic_details[-1][-1] = good_ip[dst_ip].id
-                qac = good_ip[dst_ip].tariff.get_traffic_qac(src_ip)
+                if good_ip[dst_ip].tariff:
+                    qac = good_ip[dst_ip].tariff.get_traffic_qac(src_ip)
+                else:
+                    qac = None
                 if qac:
                     period_id = '_'.join([dst_ip, str(qac.id)])
                 else:
@@ -570,6 +574,7 @@ class Account(models.Model):
                 traffic_periods[i].cost = traffic_periods[i].count * traffic_periods[i].qac_class.traffic_cost
             else:
                 traffic_periods[i].cost = traffic_periods[i].count * traffic_periods[i].account.tariff.traffic_cost
+            total_traffic += traffic_periods[i].count
             traffic_periods[i].save()
             if traffic_periods[i].cost > 0:
                 accHist = AccountHistory(
@@ -580,7 +585,7 @@ class Account(models.Model):
                     value = -traffic_periods[i].cost
                 )
                 accHist.save()
-        PeriodicLog.log('Обработка трафика. Снято %s с %s учётных записей' % (1,1))
+        PeriodicLog.log('Обработка трафика. Загруженно {} Мб на сервере'.format(total_traffic))
 
     def get_traffic_by_period(self, period='m'):
         end = datetime.now()
