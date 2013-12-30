@@ -572,8 +572,10 @@ class Account(models.Model):
         for i in traffic_periods:
             if traffic_periods[i].qac_class:
                 traffic_periods[i].cost = traffic_periods[i].count * traffic_periods[i].qac_class.traffic_cost
-            else:
+            elif traffic_periods[i].account.tariff:
                 traffic_periods[i].cost = traffic_periods[i].count * traffic_periods[i].account.tariff.traffic_cost
+            else:
+                traffic_periods[i].cost = 0
             total_traffic += traffic_periods[i].count
             traffic_periods[i].save()
             if traffic_periods[i].cost > 0:
@@ -629,8 +631,8 @@ class TrafficByPeriod(models.Model):
     """
     datetime = models.DateTimeField('Время',db_index=True)
     account = models.ForeignKey("Account",verbose_name='Учётная запись',db_index=True)
-    tariff = models.ForeignKey("Tariff",verbose_name='Тариф')
-    qac_class = models.ForeignKey("QosAndCost",blank=True,null=True,verbose_name='Класс трафика')
+    tariff = models.ForeignKey("Tariff",verbose_name='Тариф', null=True, blank=True)
+    qac_class = models.ForeignKey("QosAndCost",blank=True, null=True, verbose_name='Класс трафика')
     count = models.FloatField('Количество')
     cost = models.FloatField('Стоимость по тарифу')
 
