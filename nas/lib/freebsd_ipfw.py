@@ -13,7 +13,8 @@ class IpfwObject(object):
 
     def get(self, command):
         if self.ssh:
-            stdin , stdout ,stderr = self.ssh.exec_command(' '.join([SUDO_PATH, IPFW_PATH, command]))
+            stdin , stdout ,stderr = self.ssh.exec_command(' '.join([SUDO_PATH, IPFW_PATH,
+                                                                     re.sub(r'([()])',r'\\\1',command)]))
         else:
             process = Popen([IPFW_PATH, command], stderr=PIPE, stdout=PIPE)
             stderr = process.stderr
@@ -164,118 +165,149 @@ class IpfwQueues(IpfwObject):
     def remove(self,id):
         self.get('queue %s delete' % id)
 
-
-def process_nas(nas):
+class IPFWManager():
+    off_line_rules = []
     QOS_TABLE = IPFW_MIN_TABLE + 1
-    ipfw_tables = {IPFW_MIN_TABLE:{},QOS_TABLE:{},QOS_TABLE+1:{},IPFW_NAT_TABLE:{}}
-    ipfw_rules_in = {
-        IPFW_END_IN - IPFW_RULE_STEP*3 : 'pipe tablearg ip from table(%s) to any' % QOS_TABLE,
-        IPFW_END_IN - IPFW_RULE_STEP*2: 'allow ip from table(%s) to any' % IPFW_MIN_TABLE,
-        IPFW_END_IN : 'deny ip from any to any',
-        }
-    ipfw_rules_out = {
-        IPFW_END_OUT - IPFW_RULE_STEP*3 : 'pipe tablearg ip from any to table(%s)' % (QOS_TABLE + 1),
-        IPFW_END_OUT - IPFW_RULE_STEP*2: 'allow ip from any to table(%s)' % IPFW_MIN_TABLE,
-        IPFW_END_OUT : 'deny ip from any to any',
-        }
-    if REDIRECT_TO:
-        ipfw_rules_in[IPFW_END_IN - IPFW_RULE_STEP] = 'fwd {} tcp from any to any dst-port 80'.format(REDIRECT_TO)
-        ipfw_rules_out[IPFW_END_OUT - IPFW_RULE_STEP] = 'allow tcp from any 80 to any'
+    cursor = IPFW_NAT_START
+    ipfw_rules_in = {}
+    ipfw_rules_out = {}
     ipfw_rules_nat = {}
 
-    # NAT section
-    nats = UpLink.objects.filter(enabled=True,nas=nas)
-    cursor = IPFW_NAT_START
-    ipfw_rules_nat[cursor] = 'nat tablearg ip from table(%s) to any' % IPFW_NAT_TABLE
-    cursor += IPFW_RULE_STEP
-    nat_priority_table = {}
-    nat_max_priority = 0
-    active_nat = []
-    for nat in nats:
-        if nat.active:
-            active_nat.append(nat.id)
-            if nat.priority > nat_max_priority:
-                nat_max_priority = nat.priority
-            if nat.priority not in nat_priority_table:
-                nat_priority_table[nat.priority] = [nat]
-            else:
-                nat_priority_table[nat.priority].append(nat)
-        ipfw_rules_nat[cursor] = 'nat %s ip from any to %s' % (nat.ipfw_nat_id,nat.local_address)
-        cursor += IPFW_RULE_STEP
-        ipfw_rules_nat[cursor] = 'fwd %s ip from %s to any' % (nat.remote_address,nat.local_address)
-        cursor += IPFW_RULE_STEP
+    def __init__(self,nas):
+        self.nas = nas
+        self.ipfw_tables = {IPFW_MIN_TABLE:{},
+                            self.QOS_TABLE:{},
+                            self.QOS_TABLE + 1:{},
+                            IPFW_NAT_TABLE:{}}
 
-    account_static_nat = {}
-    for nat_rule in UpLinkPolice.objects.filter(nat_address__in=active_nat,nat_address__nas=nas):
-        if nat_rule.accounts:
-            for account in nat_rule.accounts.all():
-                account_static_nat[account.id] = nat_rule.nat_address
-        if nat_rule.network:
-            for account in Account.objects.filter(ip__in=nat_rule.network):
-                account_static_nat[account.id] = nat_rule.nat_address
 
-    # Если нет неодного доступного правила натирования то рубим пользователей! Иначе трафик будет уходить нетуда.
-    if nat_max_priority > 0:
-        nat_choice_length = len(nat_priority_table[nat_max_priority]) - 1
-        nat_choice = 0
-        for subnet in IPInterface.objects.filter(iface__nas=nas):
-            for account in Account.objects.filter(active=True,ip__in=subnet.network):
-                ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
-                if account.id in account_static_nat:
-                    nat_id = account_static_nat[account.id].ipfw_nat_id
+
+        self.init_ssh()
+
+    def sync_rules(self):
+        self.ipfw_rules_in = {
+            IPFW_END_IN - IPFW_RULE_STEP*3 : 'pipe tablearg ip from table(%s) to any' % self.QOS_TABLE,
+            IPFW_END_IN - IPFW_RULE_STEP*2: 'allow ip from table(%s) to any' % IPFW_MIN_TABLE,
+            IPFW_END_IN : 'deny ip from any to any',
+            }
+        self.ipfw_rules_out = {
+            IPFW_END_OUT - IPFW_RULE_STEP*3 : 'pipe tablearg ip from any to table(%s)' % (self.QOS_TABLE + 1),
+            IPFW_END_OUT - IPFW_RULE_STEP*2: 'allow ip from any to table(%s)' % IPFW_MIN_TABLE,
+            IPFW_END_OUT : 'deny ip from any to any',
+            }
+        if REDIRECT_TO:
+            self.ipfw_rules_in[IPFW_END_IN - IPFW_RULE_STEP] = 'fwd {} tcp from any to any dst-port 80'.format(REDIRECT_TO)
+            self.ipfw_rules_out[IPFW_END_OUT - IPFW_RULE_STEP] = 'allow tcp from any 80 to any'
+
+    def init_ssh(self):
+        if self.nas.id <> LOCAL_NAS_ID:
+            self.ssh = self.nas.get_ssh()
+            if not self.ssh:
+                return False
+        else:
+            self.ssh = None
+
+    def sync_nat_rules(self):
+        self.ipfw_rules_nat[self.cursor] = 'nat tablearg ip from table(%s) to any' % IPFW_NAT_TABLE
+        self.cursor += IPFW_RULE_STEP
+        for nat in self.nats:
+            self.ipfw_rules_nat[self.cursor] = 'nat %s ip from any to %s' % (nat.ipfw_nat_id,nat.local_address)
+            self.cursor += IPFW_RULE_STEP
+            self.ipfw_rules_nat[self.cursor] = 'fwd %s ip from %s to any' % (nat.remote_address,nat.local_address)
+            self.cursor += IPFW_RULE_STEP
+
+    def sync_nat_tables(self):
+        account_static_nat = {}
+        for nat_rule in UpLinkPolice.objects.filter(nat_address__in=self.active_nat,nat_address__nas=self.nas):
+            if nat_rule.accounts:
+                for account in nat_rule.accounts.all():
+                    account_static_nat[account.id] = nat_rule.nat_address
+            if nat_rule.network:
+                for account in Account.objects.filter(ip__in=nat_rule.network):
+                    account_static_nat[account.id] = nat_rule.nat_address
+
+        # Если нет неодного доступного правила натирования то рубим пользователей! Иначе трафик будет уходить нетуда.
+        if self.nat_max_priority > 0:
+            nat_choice_length = len(self.nat_priority_table[self.nat_max_priority]) - 1
+            nat_choice = 0
+            for subnet in IPInterface.objects.filter(iface__nas=self.nas):
+                for account in Account.objects.filter(active=True,ip__in=subnet.network):
+                    self.ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
+                    if account.id in account_static_nat:
+                        nat_id = account_static_nat[account.id].ipfw_nat_id
+                    else:
+                        if nat_choice > nat_choice_length:
+                            nat_choice = 0
+                        nat_id = self.nat_priority_table[self.nat_max_priority][nat_choice].ipfw_nat_id
+                        nat_choice += 1
+                    self.ipfw_tables[IPFW_NAT_TABLE][account.CIDR] = nat_id
+
+    def calc_nat_priority(self):
+        for nat in self.nats:
+            if nat.active:
+                self.active_nat.append(nat.id)
+                if nat.priority > self.nat_max_priority:
+                    self.nat_max_priority = nat.priority
+                if nat.priority not in self.nat_priority_table:
+                    self.nat_priority_table[nat.priority] = [nat]
                 else:
-                    if nat_choice > nat_choice_length:
-                        nat_choice = 0
-                    nat_id = nat_priority_table[nat_max_priority][nat_choice].ipfw_nat_id
-                    nat_choice += 1
-                ipfw_tables[IPFW_NAT_TABLE][account.CIDR] = nat_id
+                    self.nat_priority_table[nat.priority].append(nat)
 
 
-    queue_map = {}
-    queue_map_id = 1
+    def sync_nat(self):
+        # NAT section
+        self.nats = UpLink.objects.filter(enabled=True,nas=self.nas)
+        self.cursor += IPFW_RULE_STEP
+        self.nat_priority_table = {}
+        self.nat_max_priority = 0
+        self.active_nat = []
+        self.calc_nat_priority()
+        self.sync_nat_rules()
+        self.sync_nat_tables()
 
 
-    for subnet in IPInterface.objects.filter(iface__nas=nas):
-        for account in Account.objects.filter(active=True, tariff__isnull=False, ip__in=subnet.network):
-            if account.tariff.qos_speed:
-                speed_id = str(account.tariff.get_speed())
-                if speed_id not in queue_map:
-                    queue_map[speed_id] = queue_map_id
-                    queue_map_id += 2
-                ipfw_tables[QOS_TABLE][account.CIDR] = queue_map[speed_id]
-                ipfw_tables[QOS_TABLE+1][account.CIDR] = queue_map[speed_id]+1
 
-    pipe_std = {}
-    for x in queue_map:
-        pipe_std[queue_map[x]] = int(x.split('_')[0])
-        pipe_std[queue_map[x]+1] = int(x.split('_')[0])
+    def sync_qos(self):
+        queue_map = {}
+        queue_map_id = 1
+        for subnet in IPInterface.objects.filter(iface__nas=self.nas):
+            for account in Account.objects.filter(active=True, tariff__isnull=False, ip__in=subnet.network):
+                if account.tariff.qos_speed:
+                    speed_id = str(account.tariff.get_speed())
+                    if speed_id not in queue_map:
+                        queue_map[speed_id] = queue_map_id
+                        queue_map_id += 2
+                    self.ipfw_tables[self.QOS_TABLE][account.CIDR] = queue_map[speed_id]
+                    self.ipfw_tables[self.QOS_TABLE+1][account.CIDR] = queue_map[speed_id]+1
 
-    off_line_rules = []
-
-    if nas.id <> LOCAL_NAS_ID:
-        ssh = nas.get_ssh()
-        if not ssh:
-            return False
-    else:
-        ssh = None
-    Pipes = IpfwPipes(ssh=ssh)
-    Pipes.check(pipe_std)
+        pipe_std = {}
+        for x in queue_map:
+            pipe_std[queue_map[x]] = int(x.split('_')[0])
+            pipe_std[queue_map[x]+1] = int(x.split('_')[0])
 
 
-    for num in ipfw_tables:
-        ipfw_table = IpfwTable(num,ssh=ssh)
-        off_line_rules += ipfw_table.check(ipfw_tables[num])
+        Pipes = IpfwPipes(ssh=self.ssh)
+        self.off_line_rules += Pipes.check(pipe_std)
 
-    rule_in = IpfwRuleSet(IPFW_START_IN,IPFW_END_IN,ssh=ssh)
-    off_line_rules += rule_in.check(ipfw_rules_in)
-    rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT,ssh=ssh)
-    off_line_rules += rule_out.check(ipfw_rules_out)
-    rule_nat = IpfwRuleSet(IPFW_NAT_START,IPFW_NAT_END,ssh=ssh)
-    off_line_rules += rule_nat.check(ipfw_rules_nat)
-    if ssh:
-        off_line_file = ssh.open_sftp().open(IPFW_INCLUDE,'wb')
-    else:
-        off_line_file = open(IPFW_INCLUDE,'wb')
-    off_line_file.write('\n'.join(off_line_rules))
-    off_line_file.close()
-    return True
+    def sync_all(self):
+        self.sync_rules()
+        self.sync_qos()
+        self.sync_nat()
+        for num in self.ipfw_tables:
+            ipfw_table = IpfwTable(num,ssh=self.ssh)
+            self.off_line_rules += ipfw_table.check(self.ipfw_tables[num])
+
+        rule_in = IpfwRuleSet(IPFW_START_IN,IPFW_END_IN,ssh=self.ssh)
+        self.off_line_rules += rule_in.check(self.ipfw_rules_in)
+        rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT,ssh=self.ssh)
+        self.off_line_rules += rule_out.check(self.ipfw_rules_out)
+        rule_nat = IpfwRuleSet(IPFW_NAT_START,IPFW_NAT_END,ssh=self.ssh)
+        self.off_line_rules += rule_nat.check(self.ipfw_rules_nat)
+        off_line_file = self.nas.open(IPFW_INCLUDE,'wb')
+        off_line_file.write('\n'.join(self.off_line_rules) + '\n')
+        off_line_file.close()
+        return True
+
+def process_nas(nas):
+    ipfw = IPFWManager(nas)
+    ipfw.sync_all()

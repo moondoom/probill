@@ -3,11 +3,12 @@
 from django.db import models
 from probill.lib.networks import IPAddressField,IPNetworkField
 from probill.billing.models import Account
-from settings import LOCAL_NAS_ID,SUDO_PATH
+from settings import LOCAL_NAS_ID, SUDO_PATH
 import os
 
 NAS_CHOICES = (
     ("freebsd_ipfw", "freebsd_ipfw"),
+    ("freebsd_ipfw_no_fwd", "freebsd_ipfw_no_fwd"),
     ("linux_ipt_tc", "linux_ipt_tc"))
 
 class NasServer(models.Model):
