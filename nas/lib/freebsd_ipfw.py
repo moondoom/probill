@@ -169,18 +169,18 @@ class IPFWManager():
     off_line_rules = []
     QOS_TABLE = IPFW_MIN_TABLE + 1
     cursor = IPFW_NAT_START
-    ipfw_rules_in = {}
-    ipfw_rules_out = {}
-    ipfw_rules_nat = {}
 
-    def __init__(self,nas):
+
+    def __init__(self, nas):
         self.nas = nas
         self.ipfw_tables = {IPFW_MIN_TABLE:{},
                             self.QOS_TABLE:{},
                             self.QOS_TABLE + 1:{},
                             IPFW_NAT_TABLE:{}}
 
-
+        self.ipfw_rules_in = {}
+        self.ipfw_rules_out = {}
+        self.ipfw_rules_nat = {}
 
         self.init_ssh()
 
@@ -256,7 +256,7 @@ class IPFWManager():
 
     def sync_nat(self):
         # NAT section
-        self.nats = UpLink.objects.filter(enabled=True,nas=self.nas)
+        self.nats = UpLink.objects.filter(enabled=True, nas=self.nas)
         self.cursor += IPFW_RULE_STEP
         self.nat_priority_table = {}
         self.nat_max_priority = 0
