@@ -6,6 +6,7 @@ from probill.nas.models import *
 import re
 from subprocess import Popen,PIPE
 
+
 class IpfwObject(object):
 
     def __init__(self, ssh=None, *args, **kwargs):
@@ -13,15 +14,15 @@ class IpfwObject(object):
 
     def get(self, command):
         if self.ssh:
-            stdin , stdout ,stderr = self.ssh.exec_command(' '.join([SUDO_PATH, IPFW_PATH,
-                                                                     re.sub(r'([()])',r'\\\1',command)]))
+            stdin, stdout, stderr = self.ssh.exec_command(' '.join([SUDO_PATH, IPFW_PATH,
+                                                          re.sub(r'([()])', r'\\\1', command)]))
         else:
             process = Popen([IPFW_PATH, command], stderr=PIPE, stdout=PIPE)
             stderr = process.stderr
             stdout = process.stdout
         error = stderr.read()
         if DEBUG:
-            print [command,error]
+            print [command, error]
         return stdout.read()
 
     def list(self):
@@ -44,11 +45,13 @@ class IpfwObject(object):
         export_list = []
         new_rows = standard.keys()
         for id, arg in self.list():
-            if id in standard:
-                if DEBUG: print 'Compare: ',[arg,standard[id]]
-                if arg <> standard[id]:
+            if id in standard :
+                if DEBUG:
+                    print 'Compare: ',[arg,standard[id]]
+                if arg != standard[id]:
                     self.rewrite(id,standard[id])
-                new_rows.remove(id)
+                if id in new_rows:
+                    new_rows.remove(id)
             else:
                 self.remove(id)
         for id in new_rows:
@@ -87,11 +90,11 @@ class IpfwTable(IpfwObject):
 class IpfwRuleSet(IpfwObject):
 
     def __init__(self, start, end, *args, **kwargs):
-        super(IpfwRuleSet,self).__init__(*args, **kwargs)
+        super(IpfwRuleSet, self).__init__(*args, **kwargs)
         self.start = start
         self.end = end
 
-    def export(self,id,arg):
+    def export(self, id, arg):
         return 'add %s %s' % (id, arg)
 
     def remove(self,rule_num):
@@ -99,11 +102,11 @@ class IpfwRuleSet(IpfwObject):
 
     def rewrite(self,rule_num,rule):
         self.remove(rule_num)
-        self.add(rule_num,rule)
+        self.add(rule_num, rule)
 
     def list(self):
         self.rows = []
-        res = self.get('list %s-%s' % (self.start,self.end))
+        res = self.get('list %s-%s' % (self.start, self.end))
         for row in res.splitlines():
             row = row.split(' ')
             self.rows.append([int(row[0]),' '.join(row[1:])])
@@ -155,17 +158,18 @@ class IpfwQueues(IpfwObject):
             self.rows.append([id,pipe])
         return self.rows
 
-    def export(self,id,arg):
+    def export(self, id,arg):
         if id % 2:
             mask = 'src-ip'
         else:
             mask = 'dst-ip'
         return 'queue %s config pipe %s weight 50 mask %s 0xffffffff' % (id,arg,mask)
 
-    def remove(self,id):
+    def remove(self, id):
         self.get('queue %s delete' % id)
 
-class IPFWManager():
+
+class Firewall():
     off_line_rules = []
     QOS_TABLE = IPFW_MIN_TABLE + 1
     cursor = IPFW_NAT_START
@@ -307,7 +311,3 @@ class IPFWManager():
         off_line_file.write('\n'.join(self.off_line_rules) + '\n')
         off_line_file.close()
         return True
-
-def process_nas(nas):
-    ipfw = IPFWManager(nas)
-    ipfw.sync_all()
