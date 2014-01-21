@@ -33,31 +33,32 @@ class IpfwObject(object):
 
     def rewrite(self, id, arg):
         self.remove(id)
-        self.add(id,arg)
+        self.add(id, arg)
 
     def remove(self, id):
         pass
 
     def add(self, id, arg):
-        self.get(self.export(id,arg))
+        self.get(self.export(id, arg))
 
-    def check(self,standard):
+    def check(self, standard):
         export_list = []
         new_rows = standard.keys()
-        for id, arg in self.list():
-            if id in standard :
+        current = self.list()
+        for idx, arg in current:
+            if idx in standard:
                 if DEBUG:
-                    print 'Compare: ',[arg,standard[id]]
-                if arg != standard[id]:
-                    self.rewrite(id,standard[id])
-                if id in new_rows:
-                    new_rows.remove(id)
+                    print 'Compare: ', [arg, standard[idx]]
+                if arg != standard[idx] or idx not in new_rows:
+                    self.rewrite(idx, standard[idx])
+                if idx in new_rows:
+                    new_rows.remove(idx)
             else:
-                self.remove(id)
-        for id in new_rows:
-            self.add(id,standard[id])
-        for id in standard:
-            export_list.append(self.export(id, standard[id]))
+                self.remove(idx)
+        for idx in new_rows:
+            self.add(idx, standard[idx])
+        for idx in standard:
+            export_list.append(self.export(idx, standard[idx]))
         return export_list
 
 
