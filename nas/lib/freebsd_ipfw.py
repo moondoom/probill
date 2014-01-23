@@ -205,7 +205,7 @@ class Firewall():
             self.ipfw_rules_out[IPFW_END_OUT - IPFW_RULE_STEP] = 'allow tcp from any 80 to any'
 
     def init_ssh(self):
-        if self.nas.id <> LOCAL_NAS_ID:
+        if not self.nas.local:
             self.ssh = self.nas.get_ssh()
             if not self.ssh:
                 return False
@@ -223,7 +223,7 @@ class Firewall():
 
     def sync_nat_tables(self):
         account_static_nat = {}
-        for nat_rule in UpLinkPolice.objects.filter(nat_address__in=self.active_nat,nat_address__nas=self.nas):
+        for nat_rule in UpLinkPolice.objects.filter(nat_address__in=self.active_nat, nat_address__nas=self.nas):
             if nat_rule.accounts:
                 for account in nat_rule.accounts.all():
                     account_static_nat[account.id] = nat_rule.nat_address
@@ -236,7 +236,7 @@ class Firewall():
             nat_choice_length = len(self.nat_priority_table[self.nat_max_priority]) - 1
             nat_choice = 0
             for subnet in IPInterface.objects.filter(iface__nas=self.nas):
-                for account in Account.objects.filter(active=True,ip__in=subnet.network):
+                for account in Account.objects.filter(active=True, ip__in=subnet.network):
                     self.ipfw_tables[IPFW_MIN_TABLE][account.CIDR] = 0
                     if account.id in account_static_nat:
                         nat_id = account_static_nat[account.id].ipfw_nat_id
@@ -290,9 +290,41 @@ class Firewall():
             pipe_std[queue_map[x]] = int(x.split('_')[0])
             pipe_std[queue_map[x]+1] = int(x.split('_')[0])
 
-
         Pipes = IpfwPipes(ssh=self.ssh)
         self.off_line_rules += Pipes.check(pipe_std)
+
+    def sync_arp(self):
+        stdin, stdout, stderr = self.nas.exec_command(' '.join([SUDO_PATH, 'arp', '-an']))
+        arp_table = stdout.read()
+        arp_table = [f.split(' ') for f in arp_table.splitlines()]
+        arp_dict = {}
+        for arp in arp_table:
+            arp_dict[arp[1][1:][:-1]] = {'mac': arp[3], 'status': arp[6]}
+
+        def check_arp(acc):
+            if str(acc.ip) in arp_dict:
+                return True, arp_dict[str(acc.ip)]['mac'] == acc.mac.lower() \
+                    and arp_dict[str(acc.ip)]['status'] == 'permanent'
+            else:
+                return False, False
+        account_ips = []
+        for interface in IPInterface.objects.filter(iface__nas=self.nas):
+            for acc in Account.objects.filter(ip__in=interface.network):
+                account_ips.append(str(acc.ip))
+                if not acc.mac:
+                    continue
+                has_arp = check_arp(acc)
+                if DEBUG:
+                    print acc.ip, acc.mac, has_arp
+                if not has_arp[1]:
+                    self.nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nS', str(acc.ip), acc.mac]))
+                if has_arp[0]:
+                    del arp_dict[str(acc.ip)]
+        for ip in arp_dict:
+            if arp_dict[ip]['status'] == 'permanent' and ip in account_ips:
+                if DEBUG:
+                    print 'Delete old mac', ip, arp_dict[ip]
+                self.nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nd', ip]))
 
     def sync_all(self):
         self.sync_rules()
@@ -302,13 +334,14 @@ class Firewall():
             ipfw_table = IpfwTable(num,ssh=self.ssh)
             self.off_line_rules += ipfw_table.check(self.ipfw_tables[num])
 
-        rule_in = IpfwRuleSet(IPFW_START_IN,IPFW_END_IN,ssh=self.ssh)
+        rule_in = IpfwRuleSet(IPFW_START_IN, IPFW_END_IN, ssh=self.ssh)
         self.off_line_rules += rule_in.check(self.ipfw_rules_in)
-        rule_out = IpfwRuleSet(IPFW_START_OUT,IPFW_END_OUT,ssh=self.ssh)
+        rule_out = IpfwRuleSet(IPFW_START_OUT, IPFW_END_OUT, ssh=self.ssh)
         self.off_line_rules += rule_out.check(self.ipfw_rules_out)
-        rule_nat = IpfwRuleSet(IPFW_NAT_START,IPFW_NAT_END,ssh=self.ssh)
+        rule_nat = IpfwRuleSet(IPFW_NAT_START, IPFW_NAT_END, ssh=self.ssh)
         self.off_line_rules += rule_nat.check(self.ipfw_rules_nat)
-        off_line_file = self.nas.open(IPFW_INCLUDE,'wb')
+        off_line_file = self.nas.open(IPFW_INCLUDE, 'wb')
         off_line_file.write('\n'.join(self.off_line_rules) + '\n')
         off_line_file.close()
+        self.sync_arp()
         return True

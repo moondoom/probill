@@ -18,7 +18,7 @@ def process_nas(nas):
     row_split = re.compile(r'\s*')
 
     flow_files = []
-    for days in range(0,3):
+    for days in range(0, 3):
         flow_dir = (datetime.now() - timedelta(days=days)).strftime(settings.FLOW_PATH)
         try:
             flow_files += [[flow_dir, f] for f in nas.listdir(flow_dir) if f.startswith('ft')]

@@ -10,18 +10,17 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        for nas in NasServer.objects.filter(active=True):
+        for fire in Firewall.objects.filter(nas__active=True):
             try:
-                firewall_module = importlib.import_module('nas.lib.' + nas.type)
+                firewall_module = importlib.import_module('nas.lib.' + fire.kind)
                 if hasattr(firewall_module, 'Firewall'):
-                    firewall_class = firewall_module.Firewall
-                    firewall_obj = firewall_class(nas)
+                    firewall_obj = firewall_module.Firewall(fire.nas)
                     firewall_obj.sync_all()
-                    del firewall_obj, firewall_class
+                    del firewall_obj
                 del firewall_module
             except ImportError as error:
                 print error.message, error.args
-                print "Firewall type {} not found".format(nas.type)
+                print "Firewall type {} not found".format(fire.kind)
                 return None
 
 

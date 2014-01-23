@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from default_periodic import settings
 from probill.nas.models import *
 from probill.billing.models import PeriodicLog,Account
-from settings import  *
+from settings import *
 
 
 def main():

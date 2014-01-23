@@ -17,7 +17,7 @@ def main():
         for iface in IPInterface.objects.filter(iface__nas=nas):
             for acc in  Account.objects.filter(ip__in=iface.network).exclude(mac=''):
                 if ssh:
-                    ssh.exec_command(' '.join([SUDO_PATH,'arp','-S',str(acc.ip),acc.mac]))
+                    ssh.exec_command(' '.join([SUDO_PATH, 'arp', '-S', str(acc.ip),acc.mac]))
                 else:
                     call(['arp', '-S', str(acc.ip), acc.mac])
 

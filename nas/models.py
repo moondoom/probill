@@ -6,10 +6,7 @@ from probill.billing.models import Account
 from settings import LOCAL_NAS_ID, SUDO_PATH
 import os
 
-NAS_CHOICES = (
-    ("freebsd_ipfw", "freebsd_ipfw"),
-    ("freebsd_ipfw_no_fwd", "freebsd_ipfw_no_fwd"),
-    ("linux_ipt_tc", "linux_ipt_tc"))
+
 
 class NasServer(models.Model):
     #STATIC
@@ -18,10 +15,10 @@ class NasServer(models.Model):
 
     name = models.CharField(max_length=50)
     mng_ip = IPAddressField()
-    type = models.CharField(max_length="20", default="freebsd_ipfw", choices=NAS_CHOICES )
-    username = models.CharField(max_length=50,null=True,blank=True)
-    password = models.CharField(max_length=50,null=True,blank=True)
+    username = models.CharField(max_length=50, null=True, blank=True)
+    password = models.CharField(max_length=50, null=True, blank=True)
     active = models.BooleanField(default=True)
+    local = models.BooleanField(default=False)
 
 
     class Meta():
@@ -45,7 +42,7 @@ class NasServer(models.Model):
         return self.ssh
 
     def check_ssh(self):
-        if self.id <> LOCAL_NAS_ID:
+        if not self.local:
             if not self.ssh and not self.ssh_error:
                 self.get_ssh()
             return True
@@ -76,6 +73,7 @@ class NasServer(models.Model):
     def __unicode__(self):
         return u'%s(%s)' % (self.name,self.mng_ip)
 
+
 class NetworkInterface(models.Model):
     nas = models.ForeignKey(NasServer,verbose_name=u'Сервер доступа')
     name = models.CharField(u'Имя интервейса',max_length=30)
@@ -86,6 +84,7 @@ class NetworkInterface(models.Model):
 
     def __unicode__(self):
         return u'%s in %s' % (self.name,self.nas.__unicode__())
+
 
 class IPInterface(models.Model):
     iface = models.ForeignKey(NetworkInterface,verbose_name=u'Интерфейс')
@@ -124,6 +123,7 @@ class DHCPSubnet(models.Model):
     def __unicode__(self):
         return self.subnet.__unicode__()
 
+
 PRIORITY_CHOICES = (
     (1, u'Низкий'),
     (2, u'Ниже среднего'),
@@ -132,14 +132,15 @@ PRIORITY_CHOICES = (
     (5, u'Высокий'),
 )
 
+
 class UpLink(models.Model):
-    nas = models.ForeignKey(NasServer,verbose_name=u'Сервер доступа')
+    nas = models.ForeignKey(NasServer, verbose_name=u'Сервер доступа')
     local_address = models.IPAddressField(u'Локальный адрес')
     remote_address = models.IPAddressField(u'Адрес шлюза')
     ipfw_nat_id = models.IntegerField(u'Номер правила трансляции в IPFW')
-    priority = models.IntegerField(u'Приоритет',choices=PRIORITY_CHOICES,default=3)
-    enabled = models.BooleanField(u'Включина',default=False)
-    active = models.BooleanField(u'Активна',default=False)
+    priority = models.IntegerField(u'Приоритет', choices=PRIORITY_CHOICES, default=3)
+    enabled = models.BooleanField(u'Включина', default=False)
+    active = models.BooleanField(u'Активна', default=False)
 
     class Meta():
         verbose_name_plural = u'Внешние каналы'
@@ -149,6 +150,7 @@ class UpLink(models.Model):
 
     def __unicode__(self):
         return u'%s - %s на %s' % (self.local_address,self.remote_address,self.nas.__unicode__())
+
 
 class UpLinkPolice(models.Model):
     nat_address = models.ForeignKey(UpLink,verbose_name=u'Трансляция адерсов')
@@ -165,13 +167,52 @@ class UpLinkPolice(models.Model):
         return u'%s приоритет %s' % (self.nat_address.__unicode__(), self.priority)
 
 
+class NetFlowProcessor(models.Model):
+    nas = models.ForeignKey(NasServer, verbose_name="сервер")
+    flow_source_path = models.CharField('Путь к папке с данными',
+                                        max_length=100,
+                                        default='/usr/local/flowdata/%Y/%Y-%m/%Y-%m-%d')
+    flow_source_time_mask = models.CharField('Шаблон времени',
+                                             max_length=100,
+                                             default='ft-v05.%Y-%m-%d.%H%M%S')
+    flow_tools_path = models.CharField('Префикc программ flowtools',
+                                       max_length=100,
+                                       default='/usr/local/bin')
+
+    def __unicode__(self):
+        return u'Нетфлоу на %s' % (self.nas.__unicode__())
+
+    class Meta():
+        verbose_name_plural = u'обработчики нетвлоу'
+        verbose_name = u'обработчик нетфлоу'
+
+
 class NetFlowSource(models.Model):
-    nas = models.ForeignKey(NasServer,verbose_name='сервер')
+    nas = models.ForeignKey(NasServer, verbose_name='сервер')
     file_time = models.DateTimeField('время файла')
-    file_name = models.CharField(max_length=100,verbose_name='имя файла')
-    file_dir = models.CharField(max_length=200,verbose_name='путь к файлу')
+    file_name = models.CharField(max_length=100, verbose_name='имя файла')
+    file_dir = models.CharField(max_length=200, verbose_name='путь к файлу')
 
 
     class Meta():
         verbose_name_plural = u'файлы нетвлоу'
         verbose_name = u'файл нетфлоу'
+
+
+FIREWALL_CHOICES = (
+    ("freebsd_ipfw", "freebsd_ipfw"),
+    ("freebsd_ipfw_no_fwd", "freebsd_ipfw_no_fwd"),
+    ("mikrotik", "mikrotik"),
+    ("linux_ipt_tc", "linux_ipt_tc"))
+
+
+class Firewall(models.Model):
+    nas = models.ForeignKey(NasServer, verbose_name=u'Сервер доступа')
+    kind = models.CharField(max_length="20", default="freebsd_ipfw", choices=FIREWALL_CHOICES)
+
+    def __unicode__(self):
+        return u'Фаэрвол %s на %s' % ( self.kind, self.nas.__unicode__())
+
+    class Meta():
+        verbose_name_plural = u'фаэрволы'
+        verbose_name = u'фаэрвол'

@@ -10,15 +10,18 @@ class UpLinkPoliceAdmin(admin.ModelAdmin):
 
 
 class NetFlowAdmin(admin.ModelAdmin):
-    list_display = ('nas','file_time','file_dir','file_name')
+    list_display = ('nas', 'file_time', 'file_dir', 'file_name')
 
 
 admin.site.register(NasServer)
 admin.site.register(IPInterface)
 admin.site.register(NetworkInterface)
 admin.site.register(DHCPServer)
+
 admin.site.register(DHCPSubnet)
 admin.site.register(UpLink)
 admin.site.register(UpLinkPolice,UpLinkPoliceAdmin)
-admin.site.register(NetFlowSource,NetFlowAdmin)
+admin.site.register(NetFlowProcessor)
+admin.site.register(NetFlowSource, NetFlowAdmin)
+admin.site.register(Firewall)
 
