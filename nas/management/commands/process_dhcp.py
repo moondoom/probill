@@ -13,6 +13,7 @@ class Command(BaseCommand):
         for dhcp_serv in DHCPServer.objects.filter(nas__active=True):
             process_dhcp(dhcp_serv)
 
+
 def process_dhcp(d_server):
     local_subnet = []
     new_config = configHead(d_server)
@@ -23,7 +24,6 @@ def process_dhcp(d_server):
         for account in Account.objects.filter(ip__in=subnet.network, mac__isnull=False):
             if account.mac and account.ip:
                 new_config += hostConfig(account)
-    print new_config
     old_config = d_server.nas.open('/usr/local/etc/dhcpd.conf', 'r').read()
     if old_config != new_config:
         d_server.nas.open('/usr/local/etc/dhcpd.conf', 'w').write(new_config)
