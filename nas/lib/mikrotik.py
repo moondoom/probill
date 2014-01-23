@@ -7,7 +7,7 @@ import re
 class Firewall:
     address_list_name = "PROBILL_USERS"
     qos_re = re.compile(r'(?ms).*?(\d+)\s*;;;.*?name="([^"]*)"\s*target=(\S*).*?limit-at=([^/]*)/(\S*).*?')
-    access_re = re.compile(r'\s+(\d+)\s+(\S*)\s+([\.\da-f:]+)\s+')
+    access_re = re.compile(r'(\d+)\s+(\S*)\s+([\.\da-f:]+)\s+')
     dhcp_re = re.compile(r'(\d+)\s+([\.\da-f:]+)\s+([\dA-Fa-f:]+)\s+')
 
     def __init__(self, nas):
