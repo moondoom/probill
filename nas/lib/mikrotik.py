@@ -15,8 +15,8 @@ class Firewall:
 
     def sync_access(self):
         print "ACCESS"
-        stdin, stdout, stderr = self.nas.exec_command("/ip firewall address-list print without-paging "
-                                                      "where list={}".format(self.address_list_name))
+        stdin, stdout, stderr = self.nas.exec_command('/ip firewall address-list print without-paging '
+                                                      'where list={} '.format(self.address_list_name))
         mik_table = self.access_re.findall(stdout.read())
         mik_dict = {}
         for row in mik_table:
@@ -46,7 +46,7 @@ class Firewall:
             else:
                 return int(x)/1024
         stdin, stdout, stderr = self.nas.exec_command('/queue simple print without-paging '
-                                                      'where comment={}'.format(self.address_list_name))
+                                                      'where comment={} '.format(self.address_list_name))
         mik_qos_dict = {}
         mik_qos = stdout.read()
         mik_qos = self.qos_re.findall(mik_qos)
@@ -75,7 +75,7 @@ class Firewall:
                 else:
                     print 'Add', ip
                     self.nas.exec_command('/queue simple add '
-                                          'comment={0} target={2}/32 queue=default/default '
+                                          'comment={0} target={2}/32 queue=default/default packet-marks="no-mark" '
                                           'name={0}_{1} max-limit={3}k/{3}k'.format(self.address_list_name,
                                                                                      account.id,
                                                                                      ip,
