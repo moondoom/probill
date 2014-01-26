@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
+from django.db.models import Q
 from probill.lib.networks import IPAddressField,IPNetworkField
 from probill.billing.models import Account
-from settings import LOCAL_NAS_ID, SUDO_PATH
+
 import os
+import operator
 
 
 
@@ -20,7 +22,6 @@ class NasServer(models.Model):
     active = models.BooleanField(default=True)
     local = models.BooleanField(default=False)
 
-
     class Meta():
         verbose_name_plural = u'сервера доступа'
         verbose_name = u'сервер доступа'
@@ -29,12 +30,63 @@ class NasServer(models.Model):
         if self.ssh:
             self.ssh.close()
 
+    def get_networks_filter(self, **kwargs):
+        qset = Q()
+        for subnet in IPInterface.objects.filter(iface__nas=self):
+            qset |= Q(ip__in=subnet.network)
+        return qset
+
+    def get_accounts_query(self, **kwargs):
+        return Account.objects.filter(self.get_networks_filter(), **kwargs).prefetch_related('tariff')
+
+    def get_up_link_table(self):
+        account_table = {}
+        account_static = []
+        up_link_load = {}
+        up_link_load_per = {}
+        up_link_table = []
+        up_link_speed = {}
+        def cal_speed(up_link_id, account):
+            account_table[up_link_id].append(account)
+            up_link_load[up_link_id] += account.tariff.get_speed()
+            up_link_load_per[up_link_id] = up_link_load[up_link_id] / up_link_speed[up_link_id]
+
+
+        def get_next_up_link():
+            return sorted(up_link_load_per.iteritems(), key=operator.itemgetter(1))[0][0]
+
+        for up_link in self.uplink_set.filter(enabled=True, active=True):
+            up_link_load[up_link.id] = .0
+            up_link_load_per[up_link.id] = .0
+            account_table[up_link.id] = []
+            up_link_table.append(up_link)
+            if up_link.speed:
+                up_link_speed[up_link.id] = up_link.speed * 1024
+            else:
+                up_link_speed[up_link.id] = 50 * 1024
+
+        for up in UpLinkPolice.objects.filter(nat_address__nas=self,
+                                              nat_address__active=True,
+                                              nat_address__enabled=True):
+            if up.accounts:
+                for account in up.accounts.filter(self.get_networks_filter()):
+                    account_static.append(account.id)
+                    cal_speed(up.nat_address.id, account)
+
+        for account in self.get_accounts_query(active=True, tariff__isnull=False).exclude(id__in=account_static):
+            up_link =  get_next_up_link()
+            cal_speed(up_link, account)
+        return account_table, up_link_table
+
     def get_ssh(self):
         import paramiko
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            self.ssh.connect(str(self.mng_ip),username=str(self.username),password=str(self.password))
+            self.ssh.connect(str(self.mng_ip),
+                             username=str(self.username),
+                             password=str(self.password),
+                             look_for_keys=False)
         except Exception as error:
             print error
             self.ssh_error =  error
@@ -139,6 +191,7 @@ class UpLink(models.Model):
     remote_address = models.IPAddressField(u'Адрес шлюза')
     ipfw_nat_id = models.IntegerField(u'Номер правила трансляции в IPFW')
     priority = models.IntegerField(u'Приоритет', choices=PRIORITY_CHOICES, default=3)
+    speed = models.IntegerField(u'Скорость канала в Мб', null=True, blank=True)
     enabled = models.BooleanField(u'Включина', default=False)
     active = models.BooleanField(u'Активна', default=False)
 
@@ -150,7 +203,6 @@ class UpLink(models.Model):
 
     def __unicode__(self):
         return u'%s - %s на %s' % (self.local_address,self.remote_address,self.nas.__unicode__())
-
 
 class UpLinkPolice(models.Model):
     nat_address = models.ForeignKey(UpLink,verbose_name=u'Трансляция адерсов')
@@ -203,6 +255,7 @@ FIREWALL_CHOICES = (
     ("freebsd_ipfw", "freebsd_ipfw"),
     ("freebsd_ipfw_no_fwd", "freebsd_ipfw_no_fwd"),
     ("mikrotik", "mikrotik"),
+    ("mikrotik_ssh", "mikrotik_ssh"),
     ("linux_ipt_tc", "linux_ipt_tc"))
 
 
