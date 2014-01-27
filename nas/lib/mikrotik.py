@@ -26,9 +26,33 @@ class Firewall:
 
     def sync_nat(self):
         print "NAT"
-        account_table, up_link_table = self.nas.get_up_link_table()
-        for up_link in up_link_table:
-            self.sync_table(account_table[up_link.id], self.address_list_name_nat.format(up_link.ipfw_nat_id))
+        account_up_link = self.nas.get_up_link_table()
+        up_link_account = {}
+        for account in account_up_link:
+            if  account_up_link[account] in up_link_account:
+                up_link_account[account_up_link[account]].append(account)
+            else:
+                up_link_account[account_up_link[account]] = [account]
+        # SYNC TABLE
+        good_id = []
+        for up_link in up_link_account:
+            good_id.append(up_link.ipfw_nat_id)
+            self.sync_table(up_link_account[up_link], self.address_list_name_nat.format(up_link.ipfw_nat_id))
+        # REMOVE UNUSED TABLE
+        self.remove_bad_table(self.address_list_name_nat, good_id)
+
+    def remove_bad_table(self, list_template, good_id):
+        query = self.api.talk(['/ip/firewall/address-list/print',])
+        mik_response = self.api.response_handler(query)
+        list_prefix = list_template.format('')
+        good_list = [list_template.format(f) for f in good_id]
+        for row in mik_response:
+            if row['list'].startswith(list_prefix) and row['list'] not in good_list:
+                query = self.api.talk(['/ip/firewall/address-list/remove','=.id={}'.format(row['.id'])])
+                mik_response = self.api.response_handler(query)
+                print 'Remove', row['list'], row['address'], mik_response
+
+
 
     def sync_table(self, accounts, list_name):
         query = self.api.talk(['/ip/firewall/address-list/print','?list={}'.format(list_name)])
@@ -90,7 +114,7 @@ class Firewall:
                                            '=name={}_{}'.format(self.address_list_name, account.id),
                                            '=max-limit={0}k/{0}k'.format(account.tariff.get_speed())])
                     mik_response = self.api.response_handler(query)
-                    print 'Update', account, mik_response
+                    print 'Update', account, mik_qos_dict[ip], account.tariff.get_speed()
                 del mik_qos_dict[ip]
             else:
 
@@ -99,7 +123,7 @@ class Firewall:
                                        '=comment={}'.format(self.address_list_name),
                                        '=name={}_{}'.format(self.address_list_name, account.id),
                                        '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
-                                       '=queue=default/default',
+                                       '=queue=hotspot-default/hotspot-default',
                                        '=packet-marks="no-mark"'])
                 mik_response = self.api.response_handler(query)
                 print 'Add', account, mik_response

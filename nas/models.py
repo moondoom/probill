@@ -7,7 +7,7 @@ from probill.billing.models import Account
 
 import os
 import operator
-
+from itertools import cycle
 
 
 class NasServer(models.Model):
@@ -39,44 +39,41 @@ class NasServer(models.Model):
     def get_accounts_query(self, **kwargs):
         return Account.objects.filter(self.get_networks_filter(), **kwargs).prefetch_related('tariff')
 
-    def get_up_link_table(self):
-        account_table = {}
-        account_static = []
-        up_link_load = {}
-        up_link_load_per = {}
-        up_link_table = []
-        up_link_speed = {}
-        def cal_speed(up_link_id, account):
-            account_table[up_link_id].append(account)
-            up_link_load[up_link_id] += account.tariff.get_speed()
-            up_link_load_per[up_link_id] = up_link_load[up_link_id] / up_link_speed[up_link_id]
 
-
-        def get_next_up_link():
-            return sorted(up_link_load_per.iteritems(), key=operator.itemgetter(1))[0][0]
-
-        for up_link in self.uplink_set.filter(enabled=True, active=True):
-            up_link_load[up_link.id] = .0
-            up_link_load_per[up_link.id] = .0
-            account_table[up_link.id] = []
-            up_link_table.append(up_link)
-            if up_link.speed:
-                up_link_speed[up_link.id] = up_link.speed * 1024
-            else:
-                up_link_speed[up_link.id] = 50 * 1024
-
+    def get_static_account(self):
+        account_up_link = {}
         for up in UpLinkPolice.objects.filter(nat_address__nas=self,
-                                              nat_address__active=True,
-                                              nat_address__enabled=True):
+            nat_address__active=True,
+            nat_address__enabled=True):
             if up.accounts:
                 for account in up.accounts.filter(self.get_networks_filter()):
-                    account_static.append(account.id)
-                    cal_speed(up.nat_address.id, account)
+                    account_up_link[account] = up.nat_address
+        return account_up_link
 
-        for account in self.get_accounts_query(active=True, tariff__isnull=False).exclude(id__in=account_static):
-            up_link =  get_next_up_link()
-            cal_speed(up_link, account)
-        return account_table, up_link_table
+
+    def get_up_link_by_priority(self):
+        priority_up_link = {}
+        for up in self.uplink_set.filter(active=True, enabled=True):
+            if up.priority in priority_up_link:
+                priority_up_link[up.priority].append(up)
+            else:
+                priority_up_link[up.priority] = [up]
+        return priority_up_link
+
+    def get_up_link_table(self):
+        account_up_link = self.get_static_account()
+        top_up_link = sorted(self.get_up_link_by_priority().items(),reverse=True, key=operator.itemgetter(0))
+        if len(top_up_link) >= 1:
+            top_up_link = cycle(top_up_link[0][1])
+        else:
+            return {}
+
+        for account in self.get_accounts_query(active=True, tariff__isnull=False):
+            if account not in account_up_link:
+                account_up_link[account] = top_up_link.next()
+        return account_up_link
+
+
 
     def get_ssh(self):
         import paramiko
