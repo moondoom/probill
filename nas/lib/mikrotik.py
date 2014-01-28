@@ -74,7 +74,7 @@ class Firewall:
                 print 'Add', account, mik_response
         for ip in mik_table:
             for address_id in mik_table[ip]:
-                query = self.api.talk(['/ip/firewall/address-list/remove','=.id={}'.format(address_id)])
+                query = self.api.talk(['/ip/firewall/address-list/remove', '=.id={}'.format(address_id)])
                 mik_response = self.api.response_handler(query)
                 print 'Remove', ip, mik_response, address_id
 
