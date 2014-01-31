@@ -293,7 +293,7 @@ class Tariff(models.Model):
         if self.speed_up > 1:
             now = datetime.now().time()
             if self.speed_up_start > self.speed_up_end:
-                if now >= self.speed_up_start or (0 <= now < self.speed_up_end):
+                if now >= self.speed_up_start or (time(0,0) <= now < self.speed_up_end):
                     return self.qos_speed * self.speed_up
             else:
                 if self.speed_up_start <= now < self.speed_up_end:
