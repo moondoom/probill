@@ -715,7 +715,7 @@ class OsmpPay(models.Model):
     command = models.IntegerField(choices=OSMP_CHOICES, verbose_name="Команда")
     value = models.FloatField(verbose_name="Сумма")
     osmp_txn_id = models.BigIntegerField(verbose_name="Код операции")
-    prv_txn = models.ForeignKey(AccountHistory,verbose_name="Операция", null=True)
+    prv_txn = models.ForeignKey(AccountHistory,verbose_name="Операция", null=True, editable=False)
     result = models.IntegerField(verbose_name="Код завершения")
     comment = models.TextField(verbose_name="Коментарий")
     error = models.BooleanField(verbose_name="Ошибка обработки", blank=True, default=False)
