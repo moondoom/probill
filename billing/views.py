@@ -266,7 +266,7 @@ def osmp_gate(request):
                 osmp_txn_id=osmp_id,
                 prv_txn=ah,
                 result=response['result'],
-                comment=response['comment'],
+                comment=response['comment'] + ' OSMP_ACCOUNT: {}'.format(account),
                 error=error
             )
             osmp_pay.save()
