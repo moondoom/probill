@@ -293,7 +293,7 @@ class Tariff(models.Model):
         if self.speed_up > 1:
             now = datetime.now().time()
             if self.speed_up_start > self.speed_up_end:
-                if now >= self.speed_up_start or (0 <= now < self.speed_up_end):
+                if now >= self.speed_up_start or (time(0,0) <= now < self.speed_up_end):
                     return self.qos_speed * self.speed_up
             else:
                 if self.speed_up_start <= now < self.speed_up_end:
@@ -715,7 +715,7 @@ class OsmpPay(models.Model):
     command = models.IntegerField(choices=OSMP_CHOICES, verbose_name="Команда")
     value = models.FloatField(verbose_name="Сумма")
     osmp_txn_id = models.BigIntegerField(verbose_name="Код операции")
-    prv_txn = models.ForeignKey(AccountHistory,verbose_name="Операция", null=True)
+    prv_txn = models.ForeignKey(AccountHistory,verbose_name="Операция", null=True, editable=False)
     result = models.IntegerField(verbose_name="Код завершения")
     comment = models.TextField(verbose_name="Коментарий")
     error = models.BooleanField(verbose_name="Ошибка обработки", blank=True, default=False)
