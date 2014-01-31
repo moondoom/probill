@@ -51,8 +51,7 @@ class MyAccHistAdmin(admin.ModelAdmin):
 
 class MyOSMPPayAdmin(admin.ModelAdmin):
     list_display = ('process_date', 'pay_date', 'command', 'value', 'result', 'osmp_txn_id', 'prv_txn', 'comment')
-    search_fields = ('osmp_txn_id', 'comment', 'subscriber__first_name', 'subscriber__last_name',
-                     'subscriber__login', 'subscriber__account__login')
+    search_fields = ('osmp_txn_id', 'comment')
     list_filter = ('result', 'command',)
 
 
