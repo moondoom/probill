@@ -227,7 +227,7 @@ class Command(BaseCommand):
 
     def get_us_ip(self,ip,u_code):
         if ip.mac:
-            mac = ip.mac.split(':')
+            mac = ''.join(ip.mac.split(':'))
         else:
             mac = None
         return TblIp(
