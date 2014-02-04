@@ -175,7 +175,6 @@ class Firewall():
     QOS_TABLE = IPFW_MIN_TABLE + 1
     cursor = IPFW_NAT_START
 
-
     def __init__(self, nas):
         self.nas = nas
         self.ipfw_tables = {IPFW_MIN_TABLE:{},
@@ -187,7 +186,7 @@ class Firewall():
         self.ipfw_rules_out = {}
         self.ipfw_rules_nat = {}
 
-        self.init_ssh()
+        self.active = self.init_ssh()
 
     def sync_rules(self):
         self.ipfw_rules_in = {
@@ -209,8 +208,10 @@ class Firewall():
             self.ssh = self.nas.get_ssh()
             if not self.ssh:
                 return False
+            return True
         else:
             self.ssh = None
+            return True
 
     def sync_nat_rules(self):
         self.ipfw_rules_nat[self.cursor] = 'nat tablearg ip from table(%s) to any' % IPFW_NAT_TABLE
@@ -327,21 +328,24 @@ class Firewall():
                 self.nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nd', ip]))
 
     def sync_all(self):
-        self.sync_rules()
-        self.sync_qos()
-        self.sync_nat()
-        for num in self.ipfw_tables:
-            ipfw_table = IpfwTable(num,ssh=self.ssh)
-            self.off_line_rules += ipfw_table.check(self.ipfw_tables[num])
+        if self.active:
+            self.sync_rules()
+            self.sync_qos()
+            self.sync_nat()
+            for num in self.ipfw_tables:
+                ipfw_table = IpfwTable(num,ssh=self.ssh)
+                self.off_line_rules += ipfw_table.check(self.ipfw_tables[num])
 
-        rule_in = IpfwRuleSet(IPFW_START_IN, IPFW_END_IN, ssh=self.ssh)
-        self.off_line_rules += rule_in.check(self.ipfw_rules_in)
-        rule_out = IpfwRuleSet(IPFW_START_OUT, IPFW_END_OUT, ssh=self.ssh)
-        self.off_line_rules += rule_out.check(self.ipfw_rules_out)
-        rule_nat = IpfwRuleSet(IPFW_NAT_START, IPFW_NAT_END, ssh=self.ssh)
-        self.off_line_rules += rule_nat.check(self.ipfw_rules_nat)
-        off_line_file = self.nas.open(IPFW_INCLUDE, 'wb')
-        off_line_file.write('\n'.join(self.off_line_rules) + '\n')
-        off_line_file.close()
-        self.sync_arp()
-        return True
+            rule_in = IpfwRuleSet(IPFW_START_IN, IPFW_END_IN, ssh=self.ssh)
+            self.off_line_rules += rule_in.check(self.ipfw_rules_in)
+            rule_out = IpfwRuleSet(IPFW_START_OUT, IPFW_END_OUT, ssh=self.ssh)
+            self.off_line_rules += rule_out.check(self.ipfw_rules_out)
+            rule_nat = IpfwRuleSet(IPFW_NAT_START, IPFW_NAT_END, ssh=self.ssh)
+            self.off_line_rules += rule_nat.check(self.ipfw_rules_nat)
+            off_line_file = self.nas.open(IPFW_INCLUDE, 'wb')
+            off_line_file.write('\n'.join(self.off_line_rules) + '\n')
+            off_line_file.close()
+            self.sync_arp()
+            return True
+        else:
+            return False

@@ -39,7 +39,6 @@ class NasServer(models.Model):
     def get_accounts_query(self, **kwargs):
         return Account.objects.filter(self.get_networks_filter(), **kwargs).prefetch_related('tariff')
 
-
     def get_static_account(self):
         account_up_link = {}
         for up in UpLinkPolice.objects.filter(nat_address__nas=self,
@@ -73,8 +72,6 @@ class NasServer(models.Model):
                 account_up_link[account] = top_up_link.next()
         return account_up_link
 
-
-
     def get_ssh(self):
         import paramiko
         self.ssh = paramiko.SSHClient()
@@ -83,10 +80,11 @@ class NasServer(models.Model):
             self.ssh.connect(str(self.mng_ip),
                              username=str(self.username),
                              password=str(self.password),
-                             look_for_keys=False)
+                             look_for_keys=False,
+                             timeout=10)
         except Exception as error:
             print error
-            self.ssh_error =  error
+            self.ssh_error = error
             self.ssh = None
         return self.ssh
 
