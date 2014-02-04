@@ -13,14 +13,27 @@ class NetFlowAdmin(admin.ModelAdmin):
     list_display = ('nas', 'file_time', 'file_dir', 'file_name')
 
 
-admin.site.register(NasServer)
-admin.site.register(IPInterface)
-admin.site.register(NetworkInterface)
+class MyNasServer(admin.ModelAdmin):
+    list_display = ('name', 'mng_ip', 'active', 'local')
+
+class MyNetworkInterface(admin.ModelAdmin):
+    list_display = ('nas', 'name')
+
+class MyIPInterface(admin.ModelAdmin):
+    list_display = ('iface',  'network')
+
+
+class MyUpLink(admin.ModelAdmin):
+    list_display = ('nas',  'local_address', 'remote_address', 'priority', 'enabled', 'active')
+
+admin.site.register(NasServer, MyNasServer)
+admin.site.register(IPInterface, MyIPInterface)
+admin.site.register(NetworkInterface, MyNetworkInterface)
 admin.site.register(DHCPServer)
 
 admin.site.register(DHCPSubnet)
-admin.site.register(UpLink)
-admin.site.register(UpLinkPolice,UpLinkPoliceAdmin)
+admin.site.register(UpLink, MyUpLink)
+admin.site.register(UpLinkPolice, UpLinkPoliceAdmin)
 admin.site.register(NetFlowProcessor)
 admin.site.register(NetFlowSource, NetFlowAdmin)
 admin.site.register(Firewall)

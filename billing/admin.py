@@ -22,7 +22,7 @@ class MyAccountAdmin(FastDelete):
     list_display = ['__unicode__', 'ip', 'mac','tariff', 'login',
                     'block_date', 'status', 'active',
                     'auto_block', 'deleted']
-    search_fields = ('login', 'subscriber__first_name', 'ip', 'mac',
+    search_fields = ('login', 'subscriber__first_name', 'subscriber__login', 'ip', 'mac',
                      'subscriber__last_name', 'tariff__name', 'block_date')
     list_filter = ('subscriber__region',)
     ordering = ['subscriber','login']
@@ -50,7 +50,7 @@ class MyAccHistAdmin(admin.ModelAdmin):
     ordering = ['-datetime']
 
 class MyOSMPPayAdmin(admin.ModelAdmin):
-    list_display = ('process_date', 'pay_date', 'command', 'value', 'result', 'osmp_txn_id', 'prv_txn', 'comment')
+    list_display = ('process_date', 'command', 'value', 'result', 'osmp_txn_id','comment')
     search_fields = ('osmp_txn_id', 'comment')
     list_filter = ('result', 'command',)
 
