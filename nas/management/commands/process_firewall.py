@@ -15,7 +15,9 @@ class Command(BaseCommand):
                 firewall_module = importlib.import_module('nas.lib.' + fire.kind)
                 if hasattr(firewall_module, 'Firewall'):
                     firewall_obj = firewall_module.Firewall(fire.nas)
-                    firewall_obj.sync_all()
+                    ok = firewall_obj.sync_all()
+                    if not ok:
+                        print "Firewall {} error!".format(firewall_obj)
                     del firewall_obj
                 del firewall_module
             except ImportError as error:
