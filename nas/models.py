@@ -80,7 +80,8 @@ class NasServer(models.Model):
             self.ssh.connect(str(self.mng_ip),
                              username=str(self.username),
                              password=str(self.password),
-                             look_for_keys=False)
+                             look_for_keys=False,
+                             timeout=10)
         except Exception as error:
             print error
             self.ssh_error = error

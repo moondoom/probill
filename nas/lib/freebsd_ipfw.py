@@ -186,7 +186,7 @@ class Firewall():
         self.ipfw_rules_out = {}
         self.ipfw_rules_nat = {}
 
-        self.error = not self.init_ssh()
+        self.active = self.init_ssh()
 
     def sync_rules(self):
         self.ipfw_rules_in = {
@@ -328,7 +328,7 @@ class Firewall():
                 self.nas.exec_command(' '.join([SUDO_PATH, 'arp', '-nd', ip]))
 
     def sync_all(self):
-        if not self.error:
+        if self.active:
             self.sync_rules()
             self.sync_qos()
             self.sync_nat()

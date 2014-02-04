@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from nas.models import *
+from billing.models import PeriodicLog
 
 import importlib
 
@@ -17,7 +18,7 @@ class Command(BaseCommand):
                     firewall_obj = firewall_module.Firewall(fire.nas)
                     ok = firewall_obj.sync_all()
                     if not ok:
-                        print "Firewall {} error!".format(firewall_obj)
+                        PeriodicLog.log("Firewall {} error! ({})".format(fire.nas, fire.nas.ssh_error))
                     del firewall_obj
                 del firewall_module
             except ImportError as error:
