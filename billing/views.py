@@ -5,6 +5,9 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers import reverse
+import urllib
 
 from billing.models import *
 import settings
@@ -47,17 +50,53 @@ def sub_auth(fn):
             return login(request)
     return new
 
+
 @sub_auth
-def index(request,template='client_main.html'):
+def index(request, template='client_main.html'):
     c = RequestContext(request)
     return render_to_response(template, c)
+
+
+@sub_auth
+def index(request, template='client_money.html'):
+    c = RequestContext(request)
+    account_history = request.user.accounthistory_set.all()
+    paginator = Paginator(account_history, 25)
+    page = request.GET.get('page')
+    try:
+        account_history = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        account_history = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        account_history = paginator.page(paginator.num_pages)
+    c['account_history'] = account_history
+    return render_to_response(template, c)
+
+
+@sub_auth
+def pay(request):
+    c = RequestContext(request)
+    sub = c['user']
+    if sub.balance < 0:
+        trust_ok, trust_message = sub.can_trust()
+    else:
+        trust_ok = False
+    c['trust_ok'] = trust_ok
+    if settings.VISA_ENABLE:
+        print 'visa'
+        c['visa_ok'] = True
+
+    return render_to_response('client_pay.html', c)
+
 
 @sub_auth
 def trust_pay(request):
     c = RequestContext(request)
     sub = c['user']
     ok, message = sub.can_trust()
-    if ok and request.GET.has_key('get_trust'):
+    if ok and 'get_trust' in request.GET:
         sub.get_trust()
         message = 'Поздравляем! Доверительный платеж успешно ативирован.'
         ok = False
@@ -66,7 +105,7 @@ def trust_pay(request):
 
     c['message'] = message
     c['ok'] = ok
-    return render_to_response('client_trust_pay.html',c)
+    return render_to_response('client_trust_pay.html', c)
 
 @sub_auth
 def change_password(request):
@@ -92,11 +131,11 @@ def change_password(request):
                 return HttpResponseRedirect('/client')
         else:
             c['message'] = "Вам необходимо сменить пароль"
-        return  render_to_response("client_change_password.html", c)
+        return render_to_response("client_change_password.html", c)
     elif request.GET.has_key('user_request'):
         sub.need_change_password = True
         sub.save()
-        return  render_to_response("client_change_password.html", c)
+        return render_to_response("client_change_password.html", c)
     else:
         return HttpResponseRedirect('/client')
 
@@ -105,6 +144,7 @@ def only_ip_auth(request,template='client_blocked.html'):
     c = RequestContext(request)
     c['REMOTE_ADDR'] = request.META['REMOTE_ADDR']
     return render_to_response(template, c)
+
 
 @sub_auth
 def stat_json(request):
@@ -182,6 +222,7 @@ def osmp_response(response):
         xml_str += '\t<{0}>{1}</{0}>\n'.format(k, response[k])
     xml_str += '</response>'
     return HttpResponse(content=xml_str, content_type='text/xml')
+
 
 
 def osmp_gate(request):
@@ -278,3 +319,164 @@ def osmp_gate(request):
         return osmp_response(response)
     return osmp_response(response)
 
+
+@sub_auth
+def visa_gpb(request):
+    c = RequestContext(request)
+    sub = c['user']
+    if 'amount' in request.GET:
+        amount = request.GET['amount']
+        try:
+            amount = int(amount)
+        except:
+            c['error'] = 'Сумма введена неверно'
+            c['sum'] = int(sub.get_rental_sum(active_all=1))
+            return render_to_response('client_visa.html', c)
+        tran = VisaPay(
+            subscriber=sub,
+            amount=amount,
+        )
+        tran.save()
+        params = urllib.urlencode({
+            'lang': 'RU',
+            'merch_id': settings.VISA_MERCHANT_ID,
+            'back_url_s': reverse('billing:visa_success'),
+            'back_url_f': reverse('billing:visa_fail'),
+            'o.order_id': tran.pk,
+        })
+        print settings.VISA_PAY_URL + '?' + params
+        #return HttpResponseRedirect(settings.VISA_PAY_URL + '?' + params)
+    else:
+        c['sum'] = int(ceil(sub.get_rental_sum(active_all=1)/100.0) * 100)
+        print c['sum']
+        if not c['sum']:
+            c['sum'] = 50
+    return render_to_response('client_visa.html', c)
+
+def check_visa_get(param_list, request_get):
+    not_found = []
+    for x in param_list:
+        if x not in request_get:
+            not_found.append(x)
+    return not_found
+
+
+def serialize(root):
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    for key in root.keys():
+        if isinstance(root[key], dict):
+            xml = '%s<%s>\n%s</%s>\n' % (xml, key, serialize(root[key]), key)
+        elif isinstance(root[key], list):
+            xml = '%s<%s>' % (xml, key)
+            for item in root[key]:
+                xml = '%s%s' % (xml, serialize(item))
+            xml = '%s</%s>' % (xml, key)
+        else:
+            value = root[key]
+            xml = '%s<%s>%s</%s>\n' % (xml, key, value, key)
+    return xml
+
+
+
+def visa_gpb_no_auth(request, command=None):
+
+    if command == 'check':
+        resp_dict = {
+            'payment-avail-response': {
+                'result': {
+                    'code': 2,
+                    'desc': '',
+                }
+            }
+        }
+        not_found = check_visa_get(['merch_id', 'trx_id', 'amount', 'o.order_id', 'ts'], request.GET)
+        if not_found:
+            resp_dict['payment-avail-response']['result']['desc'] = 'Params: {} not found in request'.format(
+                ', '.join(not_found)
+            )
+            return serialize(resp_dict)
+        else:
+            trx_id = int(request.GET['o.order_id'])
+            try:
+                visa_trx = VisaPay.objects.get(pk=trx_id, end=False)
+            except ObjectDoesNotExist:
+                resp_dict['payment-avail-response']['result']['desc'] = 'Trx number {} not found in database'.format(
+                    trx_id
+                )
+                return HttpResponse(content=serialize(resp_dict), content_type='text/xml')
+            except Exception:
+                resp_dict['payment-avail-response']['result']['desc'] = 'Database error'
+                return HttpResponse(content=serialize(resp_dict), content_type='text/xml')
+            resp_dict['payment-avail-response']['result']['desc'] = 'OK'
+            resp_dict['payment-avail-response']['result']['code'] = 1
+            resp_dict['payment-avail-response']['merchant-trx'] = visa_trx.pk
+            resp_dict['payment-avail-response']['purchase'] = {
+                'shortDesc': 'Pay for {}'.format(visa_trx.subscriber.login),
+                'longDesc': 'Pay for {}'.format(visa_trx.subscriber.login),
+                'account-amount': {
+                    'amount': visa_trx.amount,
+                    'currency': 643,
+                    'exponent': 2,
+                }
+            }
+            resp_body = serialize(resp_dict)
+            visa_trx.check_date = datetime.datetime.now()
+            visa_trx.state = 2
+            visa_trx.pay_req_body = serialize(dict(request.GET))
+            visa_trx.pay_resp_body = resp_body
+            visa_trx.save()
+            return HttpResponse(content=resp_body, content_type='text/xml')
+    elif command == 'pay':
+        resp_dict = {
+            'register-payment-response': {
+                'result': {
+                    'code': 2,
+                    'desc': '',
+                }
+            }
+        }
+        not_found = check_visa_get(['merch_id', 'trx_id', 'amount', 'o.order_id', 'ts', 'result_code'], request.GET)
+        if not_found:
+            resp_dict['register-payment-response']['result']['desc'] = 'Params: {} not found in request'.format(
+                ', '.join(not_found)
+            )
+            return serialize(resp_dict)
+        else:
+            trx_id = int(request.GET['o.order_id'])
+            try:
+                visa_trx = VisaPay.objects.get(pk=trx_id, end=False)
+            except ObjectDoesNotExist:
+                resp_dict['register-payment-response']['result']['desc'] = 'Trx number {} not found in database'.format(
+                    trx_id
+                )
+                return HttpResponse(content=serialize(resp_dict), content_type='text/xml')
+            except Exception:
+                resp_dict['register-payment-response']['result']['desc'] = 'Database error'
+                return HttpResponse(content=serialize(resp_dict), content_type='text/xml')
+            visa_trx.pay_date = datetime.datetime.now()
+            if request.GET['result_code'] == '1':
+                try:
+                    ah = AccountHistory(
+                        datetime=visa_trx.pay_date,
+                        subscriber=visa_trx.subscriber,
+                        value=visa_trx.amount,
+                        owner_type='vis',
+                        owner_id=0,
+                    )
+                    ah.save()
+                    visa_trx.success = True
+                except Exception as error:
+                    resp_dict['register-payment-response']['result']['desc'] = 'Database error'
+                    return HttpResponse(content=serialize(resp_dict), content_type='text/xml')
+
+            resp_dict['register-payment-response']['result']['desc'] = 'OK'
+            resp_dict['register-payment-response']['result']['code'] = 1
+            resp_body = serialize(resp_dict)
+            visa_trx.state = 3
+            visa_trx.pay_req_body = serialize(dict(request.GET))
+            visa_trx.pay_resp_body = resp_body
+            visa_trx.end = True
+            visa_trx.save()
+            return HttpResponse(content=resp_body, content_type='text/xml')
+    else:
+        return Http404()

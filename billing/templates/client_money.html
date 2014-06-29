@@ -4,8 +4,9 @@
     <p>Ваш текущий баланс: {{ user.balance|floatformat:2 }}</p>
     <p>История списания: </p>
     <ul>
-        {% for mon in user.accounthistory_set.all %}
+        {% for mon in user.account_history %}
             <li>{{ mon }}</li>
         {% endfor %}
     </ul>
+
 {% endblock %}

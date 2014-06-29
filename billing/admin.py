@@ -55,6 +55,13 @@ class MyOSMPPayAdmin(admin.ModelAdmin):
     list_filter = ('result', 'command',)
 
 
+
+class MyVisaPayAdmin(admin.ModelAdmin):
+    list_display = ('gpb_trx_id', 'start_date', 'subscriber', 'amount', 'success','end')
+    search_fields = ('osmp_txn_id', 'pay_req_body')
+    list_filter = ('success', 'state',)
+
+
 class MyTariffAdmin(admin.ModelAdmin):
     list_display = ('name', 'rental', 'qos_speed', 'speed_up',
                     'speed_up_start', 'speed_up_end', 'get_account_count',
@@ -88,6 +95,7 @@ admin.site.register(AccountHistory,MyAccHistAdmin)
 admin.site.register(TrustPay,MyTrustPayAdmin)
 admin.site.register(AccountLog,MyAccountLogAdmin)
 admin.site.register(OsmpPay, MyOSMPPayAdmin)
+admin.site.register(VisaPay, MyVisaPayAdmin)
 admin.site.register(Manager)
 admin.site.register(Subnets)
 admin.site.register(QosAndCost)
