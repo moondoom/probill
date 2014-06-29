@@ -321,16 +321,23 @@ def osmp_gate(request):
 
 
 @sub_auth
-def visa_gpb(request):
+def visa_gpb(request, command=None):
     c = RequestContext(request)
     sub = c['user']
+    if command == 'success':
+        c['message'] = 'Ваш платёж успешно проведён'
+        return render_to_response('client_visa.html', c)
+    elif command == 'fail':
+        c['message'] = 'Ваш платёж завершился с ошибкой'
+        return render_to_response('client_visa.html', c)
+
     if 'amount' in request.GET:
         amount = request.GET['amount']
         try:
             amount = int(amount)
         except:
-            c['error'] = 'Сумма введена неверно'
-            c['sum'] = int(sub.get_rental_sum(active_all=1))
+            c['error'] = 'Сумма введена неверно! '
+            c['sum'] = int(ceil(sub.get_rental_sum(active_all=1)/100.0) * 100)
             return render_to_response('client_visa.html', c)
         tran = VisaPay(
             subscriber=sub,
@@ -340,18 +347,19 @@ def visa_gpb(request):
         params = urllib.urlencode({
             'lang': 'RU',
             'merch_id': settings.VISA_MERCHANT_ID,
-            'back_url_s': reverse('billing:visa_success'),
-            'back_url_f': reverse('billing:visa_fail'),
+            'back_url_s': request.build_absolute_uri(reverse('billing:visa_success')),
+            'back_url_f': request.build_absolute_uri(reverse('billing:visa_fail')),
             'o.order_id': tran.pk,
         })
         print settings.VISA_PAY_URL + '?' + params
-        #return HttpResponseRedirect(settings.VISA_PAY_URL + '?' + params)
+        return HttpResponseRedirect(settings.VISA_PAY_URL + '?' + params)
     else:
         c['sum'] = int(ceil(sub.get_rental_sum(active_all=1)/100.0) * 100)
         print c['sum']
         if not c['sum']:
             c['sum'] = 50
     return render_to_response('client_visa.html', c)
+
 
 def check_visa_get(param_list, request_get):
     not_found = []

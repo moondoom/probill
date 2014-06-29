@@ -63,9 +63,9 @@ class Command(BaseCommand):
         billing_ip = {}
         for ip in Account.objects.filter(subscriber=p_user):
             billing_ip[int(ip.ip)] = ip
-        for ip in TblIp.objects.using('userside').filter(usercode=u_user.code,typer=1):
+        for ip in TblIp.objects.using('userside').filter(usercode=u_user.code, typer=1):
             if int(ip.userip) in billing_ip:
-                self.check_ip(billing_ip[ip.userip],ip,u_user.code)
+                self.check_ip(billing_ip[ip.userip], ip, u_user.code)
                 del billing_ip[int(ip.userip)]
             else:
                 ip.delete(using='userside')
@@ -87,7 +87,9 @@ class Command(BaseCommand):
 
     def sync_users(self):
         billing_users = {}
-        for user in Subscriber.objects.exclude(region=None):
+        query = Subscriber.objects.exclude(region=None)
+        query = query.exclude(deleted=True)
+        for user in query:
             billing_users[user.login] = user
         for user in TblBase.objects.using('userside').all():
             if user.logname in billing_users:
