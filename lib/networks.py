@@ -94,6 +94,7 @@ class IPNetworkField(models.Field):
         defaults.update(kwargs)
         return super(IPNetworkField, self).formfield(**defaults)
 
+
 class IPAddressField(models.Field):
     __metaclass__ = models.SubfieldBase
     description = "IP Address Field with IPv6 support"

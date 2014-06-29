@@ -143,13 +143,14 @@ INSTALLED_APPS = (
     'billing',
     'nas',
     'mptt',
-    'south'
+    'south',
+    'iptv'
 )
 
 
-LOGIN_URL='/moon/login'
-LOGOUT_URL='/moon/logout'
-LOGIN_REDIRECT_URL='/moon'
+LOGIN_URL = '/moon/login'
+LOGOUT_URL = '/moon/logout'
+LOGIN_REDIRECT_URL = '/moon'
 
 LOGGING = {
     'version': 1,
@@ -173,17 +174,17 @@ if config.has_section('userside'):
     INSTALLED_APPS = INSTALLED_APPS + ('userside',)
     DATABASES.update({
         'userside': {
-            'USER' : config.get('userside', 'DATABASE_USER'),
-            'PASSWORD' : config.get('userside', 'DATABASE_PASSWORD'),
-            'HOST' : config.get('userside', 'DATABASE_HOST'),
-            'PORT' : config.get('userside', 'DATABASE_PORT'),
-            'ENGINE' : config.get('userside', 'DATABASE_ENGINE'),
-            'NAME' : config.get('userside', 'DATABASE_NAME'),
+            'USER': config.get('userside', 'DATABASE_USER'),
+            'PASSWORD': config.get('userside', 'DATABASE_PASSWORD'),
+            'HOST': config.get('userside', 'DATABASE_HOST'),
+            'PORT': config.get('userside', 'DATABASE_PORT'),
+            'ENGINE': config.get('userside', 'DATABASE_ENGINE'),
+            'NAME': config.get('userside', 'DATABASE_NAME'),
             }
     })
-    if config.has_option('userside','EXTRA_FIELDS'):
+    if config.has_option('userside', 'EXTRA_FIELDS'):
         def sx(x): return x.split(',')
-        EXTRA_FIELDS = map(sx,[f for f in config.get('userside', 'EXTRA_FIELDS').split(';') if f])
+        EXTRA_FIELDS = map(sx, [f for f in config.get('userside', 'EXTRA_FIELDS').split(';') if f])
     else:
         EXTRA_FIELDS = []
 
@@ -194,3 +195,14 @@ if config.has_section('http_redirect'):
     REDIRECT_TO = config.get('http_redirect', 'REDIRECT_TO')
 else:
     REDIRECT_TO = ''
+
+
+
+if config.has_section('visa_gpb'):
+    VISA_ENABLE = True
+    VISA_MERCHANT_ID = config.get('visa_gpb', 'VISA_MERCH_ID')
+    VISA_PAY_URL = config.get('visa_gpb', 'VISA_PAY_URL')
+else:
+    VISA_ENABLE = False
+    VISA_MERCHANT_ID = ''
+    VISA_PAY_URL = ''

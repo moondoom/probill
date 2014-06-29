@@ -130,10 +130,19 @@ class Subscriber(models.Model):
                 return True, 'Всё ок!'
             else:
                 return False, 'Вы были заблокированны до начала месяца'
+        return False, 'Произошла ошибка, обратитесь в службу технической подержки'
 
-    def get_rental_sum(self):
-        account = self.account_set.filter(active=False).aggregate(models.Sum('tariff__rental'))
-        return account['tariff__rental__sum']
+    def get_rental_sum(self, active_all=0):
+        account = self.account_set
+        if not active_all:
+            account = account.filter(active=False)
+        else:
+            account = account.filter(status__in=[200,402])
+        account = account.aggregate(models.Sum('tariff__rental'))
+        if account['tariff__rental__sum']:
+            return account['tariff__rental__sum']
+        else:
+            return 0
 
     def get_trust(self):
         rent_sum = self.get_rental_sum()
@@ -181,6 +190,7 @@ class AccountHistory(models.Model):
         (u'us',u'Из UserSide'),
         (u'syn',u'Перенесено'),
         (u'osm',u'Мультикасcа OSMP'),
+        (u'vis',u'VISA ГазПромБанк'),
         (u'tru',u'Доверительный платёж')
     )
     datetime = models.DateTimeField('Время',db_index=True)
@@ -767,6 +777,23 @@ class TrustPay(models.Model):
                            owner_id=self.pk).save()
             self.active = False
         super(TrustPay,self).save()
+
+class VisaPay(models.Model):
+    gpb_trx_id = models.CharField(max_length=32, blank=True, null=True)
+    start_date = models.DateTimeField(auto_now_add=True, verbose_name="Начало операции")
+    check_date = models.DateTimeField(blank=True, null=True, verbose_name="Запрос банка")
+    pay_date = models.DateTimeField(blank=True, null=True,  verbose_name="Подтвеждения банка")
+    subscriber = models.ForeignKey(Subscriber, verbose_name="Пользователь")
+    amount = models.FloatField()
+    state = models.IntegerField(default=1, blank=True, verbose_name="Стадия операции")
+    success = models.BooleanField(blank=True, default=False, verbose_name="Успешная операция")
+    end = models.BooleanField(blank=True, default=False, verbose_name="Операция завершена")
+    check_req_body = models.TextField(null=True)
+    check_resp_body = models.TextField(null=True)
+    pay_req_body = models.TextField(null=True)
+    pay_resp_body = models.TextField(null=True)
+
+
 
 
 
