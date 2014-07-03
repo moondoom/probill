@@ -159,12 +159,12 @@ class IpfwQueues(IpfwObject):
             self.rows.append([id,pipe])
         return self.rows
 
-    def export(self, id,arg):
+    def export(self, id, arg):
         if id % 2:
             mask = 'src-ip'
         else:
             mask = 'dst-ip'
-        return 'queue %s config pipe %s weight 50 mask %s 0xffffffff' % (id,arg,mask)
+        return 'queue %s config pipe %s weight 50 mask %s 0xffffffff' % (id, arg, mask)
 
     def remove(self, id):
         self.get('queue %s delete' % id)
@@ -176,6 +176,7 @@ class Firewall():
     cursor = IPFW_NAT_START
 
     def __init__(self, nas):
+        self.off_line_rules = []
         self.nas = nas
         self.ipfw_tables = {IPFW_MIN_TABLE:{},
                             self.QOS_TABLE:{},
