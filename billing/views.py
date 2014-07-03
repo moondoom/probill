@@ -370,24 +370,27 @@ def check_visa_get(param_list, request_get):
 
 
 def serialize(root):
-    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    for key in root.keys():
-        if isinstance(root[key], dict):
-            xml = '%s<%s>\n%s</%s>\n' % (xml, key, serialize(root[key]), key)
-        elif isinstance(root[key], list):
-            xml = '%s<%s>' % (xml, key)
-            for item in root[key]:
-                xml = '%s%s' % (xml, serialize(item))
-            xml = '%s</%s>' % (xml, key)
-        else:
-            value = root[key]
-            xml = '%s<%s>%s</%s>\n' % (xml, key, value, key)
-    return xml
+    def recursive(root):
+        xml = ''
+        for key in root.keys():
+            if isinstance(root[key], dict):
+                xml = '%s<%s>\n%s</%s>\n' % (xml, key, recursive(root[key]), key)
+            elif isinstance(root[key], list):
+                xml = '%s<%s>' % (xml, key)
+                for item in root[key]:
+                    xml = '%s%s' % (xml, recursive(item))
+                xml = '%s</%s>' % (xml, key)
+            else:
+                value = root[key]
+                xml = '%s<%s>%s</%s>\n' % (xml, key, value, key)
+        return xml
+    xml = recursive(root)
+    return '<?xml version="1.0" encoding="UTF-8"?>\n%s' % xml
 
 
 
 def visa_gpb_no_auth(request, command=None):
-
+    print command
     if command == 'check':
         resp_dict = {
             'payment-avail-response': {
@@ -397,12 +400,12 @@ def visa_gpb_no_auth(request, command=None):
                 }
             }
         }
-        not_found = check_visa_get(['merch_id', 'trx_id', 'amount', 'o.order_id', 'ts'], request.GET)
+        not_found = check_visa_get(['merch_id', 'trx_id', 'o.order_id', 'ts'], request.GET)
         if not_found:
             resp_dict['payment-avail-response']['result']['desc'] = 'Params: {} not found in request'.format(
                 ', '.join(not_found)
             )
-            return serialize(resp_dict)
+            return HttpResponse(content=serialize(resp_dict), content_type='text/xml')
         else:
             trx_id = int(request.GET['o.order_id'])
             try:
@@ -430,9 +433,10 @@ def visa_gpb_no_auth(request, command=None):
             resp_body = serialize(resp_dict)
             visa_trx.check_date = datetime.datetime.now()
             visa_trx.state = 2
-            visa_trx.pay_req_body = serialize(dict(request.GET))
-            visa_trx.pay_resp_body = resp_body
+            visa_trx.check_req_body = serialize(request.GET)
+            visa_trx.check_resp_body = resp_body
             visa_trx.save()
+            print resp_body
             return HttpResponse(content=resp_body, content_type='text/xml')
     elif command == 'pay':
         resp_dict = {
@@ -481,7 +485,7 @@ def visa_gpb_no_auth(request, command=None):
             resp_dict['register-payment-response']['result']['code'] = 1
             resp_body = serialize(resp_dict)
             visa_trx.state = 3
-            visa_trx.pay_req_body = serialize(dict(request.GET))
+            visa_trx.pay_req_body = serialize(request.GET)
             visa_trx.pay_resp_body = resp_body
             visa_trx.end = True
             visa_trx.save()
