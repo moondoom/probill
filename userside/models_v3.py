@@ -24,11 +24,22 @@ class TblActivtable(models.Model):
     class Meta:
         db_table = u'tbl_activtable'
 
+class TblAdrArea(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    citycode = models.IntegerField(null=True, db_column='CITYCODE', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_adr_area'
+
 class TblAdrCity(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
     districtcode = models.IntegerField(null=True, db_column='DISTRICTCODE', blank=True) # Field name made lowercase.
     provincecode = models.IntegerField(null=True, db_column='PROVINCECODE', blank=True) # Field name made lowercase.
+    mapcode = models.IntegerField(null=True, db_column='MAPCODE', blank=True) # Field name made lowercase.
+    geo_x = models.FloatField(null=True, db_column='GEO_X', blank=True) # Field name made lowercase.
+    geo_y = models.FloatField(null=True, db_column='GEO_Y', blank=True) # Field name made lowercase.
+    geo_scale = models.IntegerField(null=True, db_column='GEO_SCALE', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_adr_city'
 
@@ -66,6 +77,7 @@ class TblAttr(models.Model):
     valuestr = models.CharField(max_length=765, db_column='VALUESTR', blank=True) # Field name made lowercase.
     valueint = models.IntegerField(null=True, db_column='VALUEINT', blank=True) # Field name made lowercase.
     valuedate = models.DateField(null=True, db_column='VALUEDATE', blank=True) # Field name made lowercase.
+    valuememo = models.TextField(db_column='VALUEMEMO', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_attr'
 
@@ -73,10 +85,9 @@ class TblBase(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     codeti = models.CharField(max_length=108, db_column='CODETI', blank=True) # Field name made lowercase.
     groupn = models.CharField(max_length=114, db_column='GROUPN', blank=True) # Field name made lowercase.
-    groupr = models.IntegerField(null=True, db_column='GROUPR', blank=True) # Field name made lowercase.
     isreg = models.IntegerField(null=True, db_column='ISREG', blank=True) # Field name made lowercase.
-    logname = models.CharField(max_length=60, db_column='LOGNAME', blank=True) # Field name made lowercase.
-    dognumber = models.CharField(max_length=60, db_column='DOGNUMBER', blank=True) # Field name made lowercase.
+    logname = models.CharField(max_length=765, db_column='LOGNAME', blank=True) # Field name made lowercase.
+    dognumber = models.CharField(max_length=765, db_column='DOGNUMBER', blank=True) # Field name made lowercase.
     datedog2 = models.CharField(max_length=30, db_column='DATEDOG2', blank=True) # Field name made lowercase.
     fio = models.CharField(max_length=765, db_column='FIO', blank=True) # Field name made lowercase.
     pass_field = models.CharField(max_length=150, db_column='PASS', blank=True) # Field name made lowercase. Field renamed because it was a Python reserved word.
@@ -84,21 +95,19 @@ class TblBase(models.Model):
     podezd = models.IntegerField(null=True, db_column='PODEZD', blank=True) # Field name made lowercase.
     floor = models.IntegerField(null=True, db_column='FLOOR', blank=True) # Field name made lowercase.
     apart = models.IntegerField(null=True, db_column='APART', blank=True) # Field name made lowercase.
-    apart_b = models.CharField(max_length=96, db_column='APART_B', default='', blank=True) # Field name made lowercase.
+    apart_b = models.CharField(max_length=96, db_column='APART_B', blank=True) # Field name made lowercase.
     email = models.CharField(max_length=300, db_column='EMAIL', blank=True) # Field name made lowercase.
     tel = models.CharField(max_length=765, db_column='TEL', blank=True) # Field name made lowercase.
     telmob = models.CharField(max_length=765, db_column='TELMOB', blank=True) # Field name made lowercase.
     dop = models.TextField(db_column='DOP', blank=True) # Field name made lowercase.
     dop2 = models.TextField(db_column='DOP2', blank=True) # Field name made lowercase.
-    scet = models.FloatField(null=True, db_column='SCET', blank=True) # Field name made lowercase.
     balans = models.FloatField(null=True, db_column='BALANS', blank=True) # Field name made lowercase.
     kredit = models.FloatField(null=True, db_column='KREDIT', blank=True) # Field name made lowercase.
-    inkredit = models.IntegerField(null=True, db_column='INKREDIT', blank=True) # Field name made lowercase.
     skidka = models.IntegerField(null=True, db_column='SKIDKA', blank=True) # Field name made lowercase.
-    dateplus = models.DateField(null=True, db_column='DATEPLUS', auto_now_add=True, blank=True) # Field name made lowercase.
-    lastact = models.DateTimeField(null=True, db_column='LASTACT', auto_now_add=True, blank=True) # Field name made lowercase.
-    lastping = models.DateTimeField(null=True, db_column='LASTPING', auto_now_add=True, blank=True) # Field name made lowercase.
-    workstatus = models.IntegerField(null=True, db_column='WORKSTATUS', default=2, blank=True) # Field name made lowercase.
+    dateplus = models.DateField(null=True, db_column='DATEPLUS', blank=True) # Field name made lowercase.
+    lastact = models.DateTimeField(null=True, db_column='LASTACT', blank=True) # Field name made lowercase.
+    lastping = models.DateTimeField(null=True, db_column='LASTPING', blank=True) # Field name made lowercase.
+    workstatus = models.IntegerField(null=True, db_column='WORKSTATUS', blank=True) # Field name made lowercase.
     rxtraf = models.CharField(max_length=45, db_column='RXTRAF', blank=True) # Field name made lowercase.
     txtraf = models.CharField(max_length=45, db_column='TXTRAF', blank=True) # Field name made lowercase.
     dateinnet = models.DateField(null=True, db_column='DATEINNET', blank=True) # Field name made lowercase.
@@ -113,13 +122,16 @@ class TblBase(models.Model):
     lastvisit = models.DateTimeField(null=True, db_column='LASTVISIT', blank=True) # Field name made lowercase.
     logonip = models.FloatField(null=True, db_column='LOGONIP', blank=True) # Field name made lowercase.
     dateakciya = models.DateField(null=True, db_column='DATEAKCIYA', blank=True) # Field name made lowercase.
-    metr = models.IntegerField(null=True, db_column='METR', default=0, blank=True) # Field name made lowercase.
-    dateadd = models.DateTimeField(null=True, db_column='DATEADD', auto_now_add=True, blank=True) # Field name made lowercase.
-    datecorrect = models.DateTimeField(null=True, db_column='DATECORRECT', auto_now_add=True, blank=True) # Field name made lowercase.
+    metr = models.IntegerField(null=True, db_column='METR', blank=True) # Field name made lowercase.
+    dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     housecode = models.CharField(max_length=30, db_column='HOUSECODE', blank=True) # Field name made lowercase.
     billcode = models.IntegerField(null=True, db_column='BILLCODE', blank=True) # Field name made lowercase.
     notinbilling = models.IntegerField(null=True, db_column='NOTINBILLING', blank=True) # Field name made lowercase.
     datepaid = models.DateField(null=True, db_column='DATEPAID', blank=True) # Field name made lowercase.
+    tarif_datestart = models.DateField(null=True, db_column='TARIF_DATESTART', blank=True) # Field name made lowercase.
+    acc_f = models.IntegerField(null=True, db_column='ACC_F', blank=True) # Field name made lowercase.
+    parentcode = models.IntegerField(null=True, db_column='PARENTCODE', blank=True) # Field name made lowercase.
+    notsms = models.IntegerField(null=True, db_column='NOTSMS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_base'
 
@@ -161,6 +173,8 @@ class TblBaseOld(models.Model):
     dateinnet = models.DateField(null=True, db_column='DATEINNET', blank=True) # Field name made lowercase.
     tel = models.CharField(max_length=765, db_column='TEL', blank=True) # Field name made lowercase.
     telmob = models.CharField(max_length=765, db_column='TELMOB', blank=True) # Field name made lowercase.
+    logname = models.CharField(max_length=765, db_column='LOGNAME', blank=True) # Field name made lowercase.
+    billcode = models.IntegerField(null=True, db_column='BILLCODE', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_base_old'
 
@@ -171,6 +185,20 @@ class TblBasesist(models.Model):
     lastact = models.DateTimeField(null=True, db_column='LASTACT', blank=True) # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     uzelcode = models.IntegerField(null=True, db_column='UZELCODE', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    ipport = models.CharField(max_length=15, db_column='IPPORT', blank=True) # Field name made lowercase.
+    port = models.IntegerField(null=True, db_column='PORT', blank=True) # Field name made lowercase.
+    com_public = models.CharField(max_length=765, db_column='COM_PUBLIC', blank=True) # Field name made lowercase.
+    com_private = models.CharField(max_length=765, db_column='COM_PRIVATE', blank=True) # Field name made lowercase.
+    snmpver = models.IntegerField(null=True, db_column='SNMPVER', blank=True) # Field name made lowercase.
+    profile = models.IntegerField(null=True, db_column='PROFILE', blank=True) # Field name made lowercase.
+    x1 = models.IntegerField(null=True, db_column='X1', blank=True) # Field name made lowercase.
+    y1 = models.IntegerField(null=True, db_column='Y1', blank=True) # Field name made lowercase.
+    log_status = models.IntegerField(null=True, db_column='LOG_STATUS', blank=True) # Field name made lowercase.
+    onmail = models.IntegerField(null=True, db_column='ONMAIL', blank=True) # Field name made lowercase.
+    ismailsend = models.IntegerField(null=True, db_column='ISMAILSEND', blank=True) # Field name made lowercase.
+    onsms = models.IntegerField(null=True, db_column='ONSMS', blank=True) # Field name made lowercase.
+    issmssend = models.IntegerField(null=True, db_column='ISSMSSEND', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_basesist'
 
@@ -183,6 +211,8 @@ class TblBilhist(models.Model):
     doing = models.CharField(max_length=765, db_column='DOING', blank=True) # Field name made lowercase.
     pko = models.IntegerField(null=True, db_column='PKO', blank=True) # Field name made lowercase.
     oldbalans = models.FloatField(null=True, db_column='OLDBALANS', blank=True) # Field name made lowercase.
+    billdata = models.TextField(db_column='BILLDATA', blank=True) # Field name made lowercase.
+    paidtyper = models.IntegerField(null=True, db_column='PAIDTYPER', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_bilhist'
 
@@ -192,7 +222,6 @@ class TblBlagPaid(models.Model):
     usercode = models.IntegerField(null=True, db_column='USERCODE', blank=True) # Field name made lowercase.
     summa = models.FloatField(null=True, db_column='SUMMA', blank=True) # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
-    ishide = models.IntegerField(null=True, db_column='ISHIDE', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_blag_paid'
 
@@ -206,26 +235,16 @@ class TblBuhOper(models.Model):
     kolvo = models.FloatField(null=True, db_column='KOLVO', blank=True) # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     opercode = models.IntegerField(null=True, db_column='OPERCODE', blank=True) # Field name made lowercase.
-    operaprove = models.IntegerField(null=True, db_column='OPERAPROVE', blank=True) # Field name made lowercase.
     dop = models.CharField(max_length=765, db_column='DOP', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_buh_oper'
-
-class TblBuhOst(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    dateadd = models.DateField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
-    scet = models.BigIntegerField(null=True, db_column='SCET', blank=True) # Field name made lowercase.
-    tovarcode = models.IntegerField(null=True, db_column='TOVARCODE', blank=True) # Field name made lowercase.
-    summa = models.FloatField(null=True, db_column='SUMMA', blank=True) # Field name made lowercase.
-    kolvo = models.FloatField(null=True, db_column='KOLVO', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_buh_ost'
 
 class TblBuhPromise(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     usercode = models.IntegerField(null=True, db_column='USERCODE', blank=True) # Field name made lowercase.
     datestop = models.DateTimeField(null=True, db_column='DATESTOP', blank=True) # Field name made lowercase.
     isact = models.IntegerField(null=True, db_column='ISACT', blank=True) # Field name made lowercase.
+    oldkredit = models.FloatField(null=True, db_column='OLDKREDIT', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_buh_promise'
 
@@ -260,6 +279,12 @@ class TblConf(models.Model):
     class Meta:
         db_table = u'tbl_conf'
 
+class TblConfAccf(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_conf_accf'
+
 class TblConfAttr(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     katcode = models.IntegerField(null=True, db_column='KATCODE', blank=True) # Field name made lowercase.
@@ -270,6 +295,8 @@ class TblConfAttr(models.Model):
     fmaxsize = models.IntegerField(null=True, db_column='FMAXSIZE', blank=True) # Field name made lowercase.
     ftyper = models.IntegerField(null=True, db_column='FTYPER', blank=True) # Field name made lowercase.
     subkatcode = models.IntegerField(null=True, db_column='SUBKATCODE', blank=True) # Field name made lowercase.
+    valuemas = models.TextField(db_column='VALUEMAS', blank=True) # Field name made lowercase.
+    isreq = models.IntegerField(null=True, db_column='ISREQ', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_attr'
 
@@ -281,6 +308,7 @@ class TblConfBasedopdata(models.Model):
     maxlenfield = models.IntegerField(null=True, db_column='MAXLENFIELD', blank=True) # Field name made lowercase.
     position = models.IntegerField(null=True, db_column='POSITION', blank=True) # Field name made lowercase.
     inuser = models.IntegerField(null=True, db_column='INUSER', blank=True) # Field name made lowercase.
+    valuemas = models.TextField(db_column='VALUEMAS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_basedopdata'
 
@@ -309,12 +337,10 @@ class TblConfBillingRegion(models.Model):
 class TblConfBlag(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    pict = models.CharField(max_length=765, db_column='PICT', blank=True) # Field name made lowercase.
     opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     inmain = models.IntegerField(null=True, db_column='INMAIN', blank=True) # Field name made lowercase.
     isactive = models.IntegerField(null=True, db_column='ISACTIVE', blank=True) # Field name made lowercase.
-    ishideusers = models.IntegerField(null=True, db_column='ISHIDEUSERS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_blag'
 
@@ -351,26 +377,17 @@ class TblConfDoppaid(models.Model):
     opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
     isenabled = models.IntegerField(null=True, db_column='ISENABLED', blank=True) # Field name made lowercase.
     summa = models.FloatField(null=True, db_column='SUMMA', blank=True) # Field name made lowercase.
+    billcode = models.IntegerField(null=True, db_column='BILLCODE', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_doppaid'
 
-class TblConfEquip(models.Model):
+class TblConfEquipProfile(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    dateadd = models.DateField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
-    typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
-    firma = models.CharField(max_length=765, db_column='FIRMA', blank=True) # Field name made lowercase.
-    model = models.CharField(max_length=765, db_column='MODEL', blank=True) # Field name made lowercase.
-    opis = models.CharField(max_length=765, db_column='OPIS', blank=True) # Field name made lowercase.
-    dop = models.TextField(db_column='DOP', blank=True) # Field name made lowercase.
-    fn = models.CharField(max_length=765, db_column='FN', blank=True) # Field name made lowercase.
-    param1 = models.IntegerField(null=True, db_column='PARAM1', blank=True) # Field name made lowercase.
-    param2 = models.IntegerField(null=True, db_column='PARAM2', blank=True) # Field name made lowercase.
-    oid_reset = models.CharField(max_length=765, db_column='OID_RESET', blank=True) # Field name made lowercase.
-    oid_reset_2 = models.IntegerField(null=True, db_column='OID_RESET_2', blank=True) # Field name made lowercase.
-    fdpcommand = models.IntegerField(null=True, db_column='FDPCOMMAND', blank=True) # Field name made lowercase.
-    oid_proshivka = models.CharField(max_length=765, db_column='OID_PROSHIVKA', blank=True) # Field name made lowercase.
+    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    param = models.TextField(db_column='PARAM', blank=True) # Field name made lowercase.
+    isport = models.IntegerField(null=True, db_column='ISPORT', blank=True) # Field name made lowercase.
     class Meta:
-        db_table = u'tbl_conf_equip'
+        db_table = u'tbl_conf_equip_profile'
 
 class TblConfGroupZ(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -388,7 +405,6 @@ class TblConfJournal(models.Model):
     color_fon = models.CharField(max_length=18, db_column='COLOR_FON', blank=True) # Field name made lowercase.
     color_text = models.CharField(max_length=18, db_column='COLOR_TEXT', blank=True) # Field name made lowercase.
     color_link = models.CharField(max_length=18, db_column='COLOR_LINK', blank=True) # Field name made lowercase.
-    pict = models.CharField(max_length=765, db_column='PICT', blank=True) # Field name made lowercase.
     deadline = models.IntegerField(null=True, db_column='DEADLINE', blank=True) # Field name made lowercase.
     deadline_info = models.IntegerField(null=True, db_column='DEADLINE_INFO', blank=True) # Field name made lowercase.
     maingroup = models.IntegerField(null=True, db_column='MAINGROUP', blank=True) # Field name made lowercase.
@@ -401,6 +417,12 @@ class TblConfJournal(models.Model):
     def_pers = models.TextField(db_column='DEF_PERS', blank=True) # Field name made lowercase.
     def_loop = models.TextField(db_column='DEF_LOOP', blank=True) # Field name made lowercase.
     doc_sh = models.IntegerField(null=True, db_column='DOC_SH', blank=True) # Field name made lowercase.
+    addhour = models.IntegerField(null=True, db_column='ADDHOUR', blank=True) # Field name made lowercase.
+    timeline_info = models.FloatField(null=True, db_column='TIMELINE_INFO', blank=True) # Field name made lowercase.
+    opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
+    onmain = models.IntegerField(null=True, db_column='ONMAIN', blank=True) # Field name made lowercase.
+    pos = models.IntegerField(null=True, db_column='POS', blank=True) # Field name made lowercase.
+    isonaboncard = models.IntegerField(null=True, db_column='ISONABONCARD', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_journal'
 
@@ -413,42 +435,34 @@ class TblConfJournalAnswer(models.Model):
 class TblConfJournalGroup(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    pos = models.IntegerField(null=True, db_column='POS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_journal_group'
 
 class TblConfJournalStatus(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    pict = models.CharField(max_length=765, db_column='PICT', blank=True) # Field name made lowercase.
     isact = models.IntegerField(null=True, db_column='ISACT', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_journal_status'
 
-class TblConfLoyalityGroup(models.Model):
+class TblConfLayer(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    groupcode = models.CharField(max_length=765, db_column='GROUPCODE', blank=True) # Field name made lowercase.
+    devtyper = models.TextField(db_column='DEVTYPER', blank=True) # Field name made lowercase.
+    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    property = models.TextField(db_column='PROPERTY', blank=True) # Field name made lowercase.
     class Meta:
-        db_table = u'tbl_conf_loyality_group'
+        db_table = u'tbl_conf_layer'
 
-class TblConfLoyalityNet(models.Model):
+class TblConfMapMarker(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    startdate = models.IntegerField(null=True, db_column='STARTDATE', blank=True) # Field name made lowercase.
-    finishdate = models.IntegerField(null=True, db_column='FINISHDATE', blank=True) # Field name made lowercase.
-    skidka = models.IntegerField(null=True, db_column='SKIDKA', blank=True) # Field name made lowercase.
+    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
     class Meta:
-        db_table = u'tbl_conf_loyality_net'
-
-class TblConfMac(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    mac = models.CharField(max_length=18, db_column='MAC', blank=True) # Field name made lowercase.
-    proizv = models.CharField(max_length=765, db_column='PROIZV', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_conf_mac'
+        db_table = u'tbl_conf_map_marker'
 
 class TblConfMark(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    pict = models.CharField(max_length=765, db_column='PICT', blank=True) # Field name made lowercase.
     color = models.CharField(max_length=18, db_column='COLOR', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_mark'
@@ -462,23 +476,10 @@ class TblConfOpticaCol(models.Model):
     class Meta:
         db_table = u'tbl_conf_optica_col'
 
-class TblConfRealip(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    userip1 = models.FloatField(null=True, db_column='USERIP1', blank=True) # Field name made lowercase.
-    userip2 = models.FloatField(null=True, db_column='USERIP2', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_conf_realip'
-
-class TblConfRightsKat(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    position = models.IntegerField(null=True, db_column='POSITION', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_conf_rights_kat'
-
 class TblConfRightsProfile(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    acc_f = models.CharField(max_length=765, db_column='ACC_F', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_rights_profile'
 
@@ -489,13 +490,6 @@ class TblConfRightsProfileInc(models.Model):
     class Meta:
         db_table = u'tbl_conf_rights_profile_inc'
 
-class TblConfRightsSubkat(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    katcode = models.IntegerField(null=True, db_column='KATCODE', blank=True) # Field name made lowercase.
-    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_conf_rights_subkat'
-
 class TblConfRouter(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     routerip = models.CharField(max_length=45, db_column='ROUTERIP', blank=True) # Field name made lowercase.
@@ -503,8 +497,7 @@ class TblConfRouter(models.Model):
     rport = models.IntegerField(null=True, db_column='RPORT', blank=True) # Field name made lowercase.
     ruser = models.CharField(max_length=765, db_column='RUSER', blank=True) # Field name made lowercase.
     rpass = models.CharField(max_length=765, db_column='RPASS', blank=True) # Field name made lowercase.
-    statusconn = models.IntegerField(null=True, db_column='STATUSCONN', blank=True) # Field name made lowercase.
-    ispiring = models.IntegerField(null=True, db_column='ISPIRING', blank=True) # Field name made lowercase.
+    dhcpname = models.CharField(max_length=765, db_column='DHCPNAME', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_router'
 
@@ -514,8 +507,6 @@ class TblConfRouterDiapazon(models.Model):
     userip1 = models.FloatField(null=True, db_column='USERIP1', blank=True) # Field name made lowercase.
     userip2 = models.FloatField(null=True, db_column='USERIP2', blank=True) # Field name made lowercase.
     typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
-    outint = models.CharField(max_length=765, db_column='OUTINT', blank=True) # Field name made lowercase.
-    inint = models.CharField(max_length=765, db_column='ININT', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_router_diapazon'
 
@@ -544,6 +535,13 @@ class TblConfSwitchPass(models.Model):
     class Meta:
         db_table = u'tbl_conf_switch_pass'
 
+class TblConfTable(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    tbltyper = models.IntegerField(null=True, db_column='TBLTYPER', blank=True) # Field name made lowercase.
+    property = models.TextField(db_column='PROPERTY', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_conf_table'
+
 class TblConfTt(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
@@ -563,9 +561,10 @@ class TblConfVols(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     proizv = models.CharField(max_length=765, db_column='PROIZV', blank=True) # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    kn = models.IntegerField(null=True, db_column='KN', blank=True) # Field name made lowercase.
+    kn = models.FloatField(null=True, db_column='KN', blank=True) # Field name made lowercase.
     port = models.IntegerField(null=True, db_column='PORT', blank=True) # Field name made lowercase.
     portcolor = models.TextField(db_column='PORTCOLOR', blank=True) # Field name made lowercase.
+    opis = models.CharField(max_length=765, db_column='OPIS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_conf_vols'
 
@@ -625,6 +624,7 @@ class TblDoppaid(models.Model):
     paidcode = models.IntegerField(null=True, db_column='PAIDCODE', blank=True) # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     summa = models.FloatField(null=True, db_column='SUMMA', blank=True) # Field name made lowercase.
+    opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_doppaid'
 
@@ -642,17 +642,18 @@ class TblGlobalPort(models.Model):
     x1 = models.IntegerField(null=True, db_column='X1', blank=True) # Field name made lowercase.
     y1 = models.IntegerField(null=True, db_column='Y1', blank=True) # Field name made lowercase.
     coord = models.CharField(max_length=765, db_column='COORD', blank=True) # Field name made lowercase.
+    color = models.CharField(max_length=18, db_column='COLOR', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_global_port'
 
 class TblGroup(models.Model):
     code = models.CharField(max_length=114, primary_key=True, db_column='CODE', blank=True) # Field name made lowercase.
-    groupname = models.CharField(max_length=150, db_column='GROUPNAME',default=0, blank=True) # Field name made lowercase.
-    price = models.FloatField(null=True, db_column='PRICE',default=0, blank=True) # Field name made lowercase.
-    trafex = models.IntegerField(null=True, db_column='TRAFEX', default=0, blank=True) # Field name made lowercase.
-    users = models.IntegerField(null=True, db_column='USERS', default=0, blank=True) # Field name made lowercase.
-    trafbuh = models.IntegerField(null=True, db_column='TRAFBUH', default=0, blank=True) # Field name made lowercase.
-    abon = models.FloatField(null=True, db_column='ABON', default=0, blank=True) # Field name made lowercase.
+    groupname = models.CharField(max_length=765, db_column='GROUPNAME', blank=True) # Field name made lowercase.
+    price = models.FloatField(null=True, db_column='PRICE', blank=True) # Field name made lowercase.
+    trafex = models.IntegerField(null=True, db_column='TRAFEX', blank=True) # Field name made lowercase.
+    users = models.IntegerField(null=True, db_column='USERS', blank=True) # Field name made lowercase.
+    trafbuh = models.IntegerField(null=True, db_column='TRAFBUH', blank=True) # Field name made lowercase.
+    abon = models.FloatField(null=True, db_column='ABON', blank=True) # Field name made lowercase.
     abonday = models.IntegerField(null=True, db_column='ABONDAY', blank=True) # Field name made lowercase.
     trafrx1 = models.CharField(max_length=150, db_column='TRAFRX1', blank=True) # Field name made lowercase.
     traftx1 = models.CharField(max_length=150, db_column='TRAFTX1', blank=True) # Field name made lowercase.
@@ -660,32 +661,23 @@ class TblGroup(models.Model):
     traftx2 = models.CharField(max_length=150, db_column='TRAFTX2', blank=True) # Field name made lowercase.
     rxkbps = models.CharField(max_length=150, db_column='RXKBPS', blank=True) # Field name made lowercase.
     txkbps = models.CharField(max_length=150, db_column='TXKBPS', blank=True) # Field name made lowercase.
-    foruser = models.IntegerField(null=True, db_column='FORUSER', blank=True) # Field name made lowercase.
     rulewhite = models.CharField(max_length=765, db_column='RULEWHITE', blank=True) # Field name made lowercase.
     rulegray = models.CharField(max_length=765, db_column='RULEGRAY', blank=True) # Field name made lowercase.
     hidename = models.CharField(max_length=765, db_column='HIDENAME', blank=True) # Field name made lowercase.
-    priznak = models.IntegerField(null=True, db_column='PRIZNAK', default=0, blank=True) # Field name made lowercase.
-    akciya_day = models.IntegerField(null=True, db_column='AKCIYA_DAY', default=0, blank=True) # Field name made lowercase.
-    akciya_many = models.IntegerField(null=True, db_column='AKCIYA_MANY', default=0, blank=True) # Field name made lowercase.
-    notsms = models.IntegerField(null=True, db_column='NOTSMS', default=1, blank=True) # Field name made lowercase.
-    isturbo = models.IntegerField(null=True, db_column='ISTURBO', default=0, blank=True) # Field name made lowercase.
-    speedtx = models.IntegerField(null=True, db_column='SPEEDTX', default=0, blank=True) # Field name made lowercase.
-    speedrx = models.IntegerField(null=True, db_column='SPEEDRX', default=0, blank=True) # Field name made lowercase.
+    priznak = models.IntegerField(null=True, db_column='PRIZNAK', blank=True) # Field name made lowercase.
+    akciya_day = models.IntegerField(null=True, db_column='AKCIYA_DAY', blank=True) # Field name made lowercase.
+    akciya_many = models.IntegerField(null=True, db_column='AKCIYA_MANY', blank=True) # Field name made lowercase.
+    notsms = models.IntegerField(null=True, db_column='NOTSMS', blank=True) # Field name made lowercase.
+    isturbo = models.IntegerField(null=True, db_column='ISTURBO', blank=True) # Field name made lowercase.
+    speedtx = models.IntegerField(null=True, db_column='SPEEDTX', blank=True) # Field name made lowercase.
+    speedrx = models.IntegerField(null=True, db_column='SPEEDRX', blank=True) # Field name made lowercase.
     dogroup = models.IntegerField(null=True, db_column='DOGROUP', blank=True) # Field name made lowercase.
-    billcode = models.IntegerField(null=True, db_column='BILLCODE', default=1, blank=True) # Field name made lowercase.
+    billcode = models.IntegerField(null=True, db_column='BILLCODE', blank=True) # Field name made lowercase.
     notinbilling = models.IntegerField(null=True, db_column='NOTINBILLING', blank=True) # Field name made lowercase.
+    akciya_day_out = models.TextField(db_column='AKCIYA_DAY_OUT', blank=True) # Field name made lowercase.
+    akciya_day_out_tarif = models.TextField(db_column='AKCIYA_DAY_OUT_TARIF', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_group'
-
-
-
-class TblGroza(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    switchcode = models.IntegerField(null=True, db_column='SWITCHCODE', blank=True) # Field name made lowercase.
-    port = models.IntegerField(null=True, db_column='PORT', blank=True) # Field name made lowercase.
-    dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_groza'
 
 class TblHouse(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -699,13 +691,21 @@ class TblHouse(models.Model):
     vihod = models.CharField(max_length=150, db_column='VIHOD', blank=True) # Field name made lowercase.
     kluch = models.CharField(max_length=750, db_column='KLUCH', blank=True) # Field name made lowercase.
     workdop = models.CharField(max_length=765, db_column='WORKDOP', blank=True) # Field name made lowercase.
-    workdop_date = models.DateTimeField(null=True, db_column='WORKDOP_DATE', blank=True) # Field name made lowercase.
     ismark = models.IntegerField(null=True, db_column='ISMARK', blank=True) # Field name made lowercase.
     ishide = models.IntegerField(null=True, db_column='ISHIDE', blank=True) # Field name made lowercase.
     apartc = models.IntegerField(null=True, db_column='APARTC', blank=True) # Field name made lowercase.
     notused = models.IntegerField(null=True, db_column='NOTUSED', blank=True) # Field name made lowercase.
     isdel = models.IntegerField(null=True, db_column='ISDEL', blank=True) # Field name made lowercase.
     customnazv = models.CharField(max_length=765, db_column='CUSTOMNAZV', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    scheme = models.TextField(db_column='SCHEME', blank=True) # Field name made lowercase.
+    typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
+    citycode = models.IntegerField(null=True, db_column='CITYCODE', blank=True) # Field name made lowercase.
+    adr = models.CharField(max_length=765, db_column='ADR', blank=True) # Field name made lowercase.
+    house_block = models.CharField(max_length=150, db_column='HOUSE_BLOCK', blank=True) # Field name made lowercase.
+    streetcode2 = models.IntegerField(null=True, db_column='STREETCODE2', blank=True) # Field name made lowercase.
+    house2 = models.IntegerField(null=True, db_column='HOUSE2', blank=True) # Field name made lowercase.
+    house_b2 = models.CharField(max_length=765, db_column='HOUSE_B2', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_house'
 
@@ -715,6 +715,8 @@ class TblIp(models.Model):
     userip = models.FloatField(primary_key=True, db_column='USERIP', blank=True) # Field name made lowercase.
     mac = models.CharField(max_length=51, db_column='MAC', blank=True) # Field name made lowercase.
     isupd = models.IntegerField(null=True, db_column='ISUPD', blank=True) # Field name made lowercase.
+    modifer = models.IntegerField(null=True, db_column='MODIFER', blank=True) # Field name made lowercase.
+    ismain = models.IntegerField(null=True, db_column='ISMAIN', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_ip'
 
@@ -724,6 +726,17 @@ class TblIpReserv(models.Model):
     opis = models.CharField(max_length=765, db_column='OPIS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_ip_reserv'
+
+class TblIpUsernet(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    usercode = models.IntegerField(null=True, db_column='USERCODE', blank=True) # Field name made lowercase.
+    userip1 = models.IntegerField(null=True, db_column='USERIP1', blank=True) # Field name made lowercase.
+    userip2 = models.IntegerField(null=True, db_column='USERIP2', blank=True) # Field name made lowercase.
+    subnet = models.IntegerField(null=True, db_column='SUBNET', blank=True) # Field name made lowercase.
+    opis = models.CharField(max_length=765, db_column='OPIS', blank=True) # Field name made lowercase.
+    color = models.CharField(max_length=18, db_column='COLOR', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_ip_usernet'
 
 class TblIpnet(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -782,6 +795,13 @@ class TblJournal(models.Model):
     priority = models.IntegerField(null=True, db_column='PRIORITY', blank=True) # Field name made lowercase.
     apart = models.IntegerField(null=True, db_column='APART', blank=True) # Field name made lowercase.
     parentcode = models.IntegerField(null=True, db_column='PARENTCODE', blank=True) # Field name made lowercase.
+    deadline = models.IntegerField(null=True, db_column='DEADLINE', blank=True) # Field name made lowercase.
+    opercode = models.IntegerField(null=True, db_column='OPERCODE', blank=True) # Field name made lowercase.
+    citycode = models.IntegerField(null=True, db_column='CITYCODE', blank=True) # Field name made lowercase.
+    onmain = models.IntegerField(null=True, db_column='ONMAIN', blank=True) # Field name made lowercase.
+    dateupd = models.DateTimeField(null=True, db_column='DATEUPD', blank=True) # Field name made lowercase.
+    datemust = models.DateTimeField(null=True, db_column='DATEMUST', blank=True) # Field name made lowercase.
+    apart_b = models.CharField(max_length=96, db_column='APART_B', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_journal'
 
@@ -802,6 +822,14 @@ class TblJournalDoing(models.Model):
     typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_journal_doing'
+
+class TblJournalRepeat(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    param = models.TextField(db_column='PARAM', blank=True) # Field name made lowercase.
+    lastdate = models.DateTimeField(null=True, db_column='LASTDATE', blank=True) # Field name made lowercase.
+    iswork = models.IntegerField(null=True, db_column='ISWORK', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_journal_repeat'
 
 class TblJournalStaff(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -852,9 +880,17 @@ class TblLinks(models.Model):
     nazv = models.CharField(max_length=600, db_column='NAZV', blank=True) # Field name made lowercase.
     links = models.TextField(db_column='LINKS', blank=True) # Field name made lowercase.
     opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
-    popular = models.IntegerField(null=True, db_column='POPULAR', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_links'
+
+class TblLogEquip(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
+    equipcode = models.IntegerField(null=True, db_column='EQUIPCODE', blank=True) # Field name made lowercase.
+    status = models.IntegerField(null=True, db_column='STATUS', blank=True) # Field name made lowercase.
+    datedo = models.DateTimeField(null=True, db_column='DATEDO', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_log_equip'
 
 class TblMacHistory(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -868,16 +904,13 @@ class TblMacHistory(models.Model):
 class TblMap(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     codenumber = models.IntegerField(null=True, db_column='CODENUMBER', blank=True) # Field name made lowercase.
-    filepath = models.CharField(max_length=600, db_column='FILEPATH', blank=True) # Field name made lowercase.
     opis = models.CharField(max_length=600, db_column='OPIS', blank=True) # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     typemap = models.IntegerField(null=True, db_column='TYPEMAP', blank=True) # Field name made lowercase.
     geo_x = models.FloatField(null=True, db_column='GEO_X', blank=True) # Field name made lowercase.
     geo_y = models.FloatField(null=True, db_column='GEO_Y', blank=True) # Field name made lowercase.
     geo_scale = models.IntegerField(null=True, db_column='GEO_SCALE', blank=True) # Field name made lowercase.
-    regioncode = models.IntegerField(null=True, db_column='REGIONCODE', blank=True) # Field name made lowercase.
     maptypeshow = models.IntegerField(null=True, db_column='MAPTYPESHOW', blank=True) # Field name made lowercase.
-    city = models.CharField(max_length=765, db_column='CITY', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_map'
 
@@ -888,6 +921,7 @@ class TblMed(models.Model):
     opis = models.CharField(max_length=765, db_column='OPIS', blank=True) # Field name made lowercase.
     medlen = models.IntegerField(null=True, db_column='MEDLEN', blank=True) # Field name made lowercase.
     dateadd = models.DateField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_med'
 
@@ -909,6 +943,7 @@ class TblMedic(models.Model):
     dateadd = models.DateField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     x1 = models.IntegerField(null=True, db_column='X1', blank=True) # Field name made lowercase.
     y1 = models.IntegerField(null=True, db_column='Y1', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_medic'
 
@@ -920,6 +955,9 @@ class TblMemo(models.Model):
     info3 = models.TextField(db_column='INFO3', blank=True) # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     whoadd = models.IntegerField(null=True, db_column='WHOADD', blank=True) # Field name made lowercase.
+    info4 = models.TextField(db_column='INFO4', blank=True) # Field name made lowercase.
+    info5 = models.TextField(db_column='INFO5', blank=True) # Field name made lowercase.
+    info6 = models.TextField(db_column='INFO6', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_memo'
 
@@ -929,8 +967,23 @@ class TblMemotype(models.Model):
     pole1 = models.CharField(max_length=150, db_column='POLE1', blank=True) # Field name made lowercase.
     pole2 = models.CharField(max_length=150, db_column='POLE2', blank=True) # Field name made lowercase.
     pole3 = models.CharField(max_length=150, db_column='POLE3', blank=True) # Field name made lowercase.
+    pole4 = models.CharField(max_length=765, db_column='POLE4', blank=True) # Field name made lowercase.
+    pole5 = models.CharField(max_length=765, db_column='POLE5', blank=True) # Field name made lowercase.
+    pole6 = models.CharField(max_length=765, db_column='POLE6', blank=True) # Field name made lowercase.
+    oper_acc = models.TextField(db_column='OPER_ACC', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_memotype'
+
+class TblObjInt(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    obj1 = models.IntegerField(null=True, db_column='OBJ1', blank=True) # Field name made lowercase.
+    usercode1 = models.IntegerField(null=True, db_column='USERCODE1', blank=True) # Field name made lowercase.
+    obj2 = models.IntegerField(null=True, db_column='OBJ2', blank=True) # Field name made lowercase.
+    usercode2 = models.IntegerField(null=True, db_column='USERCODE2', blank=True) # Field name made lowercase.
+    pos = models.IntegerField(null=True, db_column='POS', blank=True) # Field name made lowercase.
+    dop1 = models.IntegerField(null=True, db_column='DOP1', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_obj_int'
 
 class TblOper(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -943,13 +996,24 @@ class TblOper(models.Model):
     profilecode = models.IntegerField(null=True, db_column='PROFILECODE', blank=True) # Field name made lowercase.
     lastact = models.DateTimeField(null=True, db_column='LASTACT', blank=True) # Field name made lowercase.
     email = models.CharField(max_length=765, db_column='EMAIL', blank=True) # Field name made lowercase.
-    issign = models.IntegerField(null=True, db_column='ISSIGN', blank=True) # Field name made lowercase.
     perscode = models.IntegerField(null=True, db_column='PERSCODE', blank=True) # Field name made lowercase.
-    lastip = models.TextField(db_column='LASTIP', blank=True) # Field name made lowercase.
-    regioncur = models.IntegerField(null=True, db_column='REGIONCUR', blank=True) # Field name made lowercase.
     cashe = models.TextField(db_column='CASHE', blank=True) # Field name made lowercase.
+    geo_acc = models.TextField(db_column='GEO_ACC', blank=True) # Field name made lowercase.
+    cur_geo_acc = models.TextField(db_column='CUR_GEO_ACC', blank=True) # Field name made lowercase.
+    admin_widget = models.TextField(db_column='ADMIN_WIDGET', blank=True) # Field name made lowercase.
+    lang = models.CharField(max_length=9, db_column='LANG', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_oper'
+
+class TblOperCashe(models.Model):
+    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
+    opercode = models.IntegerField(null=True, db_column='OPERCODE', blank=True) # Field name made lowercase.
+    datedo = models.DateTimeField(null=True, db_column='DATEDO', blank=True) # Field name made lowercase.
+    param1 = models.IntegerField(null=True, db_column='PARAM1', blank=True) # Field name made lowercase.
+    param2 = models.IntegerField(null=True, db_column='PARAM2', blank=True) # Field name made lowercase.
+    value = models.TextField(db_column='VALUE', blank=True) # Field name made lowercase.
+    class Meta:
+        db_table = u'tbl_oper_cashe'
 
 class TblOperDo(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -966,6 +1030,7 @@ class TblOperIp(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     opercode = models.IntegerField(null=True, db_column='OPERCODE', blank=True) # Field name made lowercase.
     userip = models.CharField(max_length=45, db_column='USERIP', blank=True) # Field name made lowercase.
+    userip2 = models.CharField(max_length=45, db_column='USERIP2', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_oper_ip'
 
@@ -983,13 +1048,6 @@ class TblOperMsg(models.Model):
     class Meta:
         db_table = u'tbl_oper_msg'
 
-class TblOperRegion(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    opercode = models.IntegerField(null=True, db_column='OPERCODE', blank=True) # Field name made lowercase.
-    regioncode = models.IntegerField(null=True, db_column='REGIONCODE', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_oper_region'
-
 class TblOperhist(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     opercode = models.IntegerField(null=True, db_column='OPERCODE', blank=True) # Field name made lowercase.
@@ -999,12 +1057,17 @@ class TblOperhist(models.Model):
     par2 = models.CharField(max_length=150, db_column='PAR2', blank=True) # Field name made lowercase.
     val_new = models.CharField(max_length=600, db_column='VAL_NEW', blank=True) # Field name made lowercase.
     val_old = models.CharField(max_length=600, db_column='VAL_OLD', blank=True) # Field name made lowercase.
+    userip = models.IntegerField(null=True, db_column='USERIP', blank=True) # Field name made lowercase.
+    objtyper = models.IntegerField(null=True, db_column='OBJTYPER', blank=True) # Field name made lowercase.
+    objcode = models.IntegerField(null=True, db_column='OBJCODE', blank=True) # Field name made lowercase.
+    objnazv = models.CharField(max_length=765, db_column='OBJNAZV', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_operhist'
 
 class TblOperhisttype(models.Model):
     typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
     opis = models.CharField(max_length=765, db_column='OPIS', blank=True) # Field name made lowercase.
+    langcode = models.IntegerField(null=True, db_column='LANGCODE', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_operhisttype'
 
@@ -1026,6 +1089,11 @@ class TblOptica(models.Model):
     cabletype = models.CharField(max_length=765, db_column='CABLETYPE', blank=True) # Field name made lowercase.
     ishide = models.IntegerField(null=True, db_column='ISHIDE', blank=True) # Field name made lowercase.
     cablecode = models.IntegerField(null=True, db_column='CABLECODE', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    coord = models.TextField(db_column='COORD', blank=True) # Field name made lowercase.
+    obj1_typer = models.IntegerField(null=True, db_column='OBJ1_TYPER', blank=True) # Field name made lowercase.
+    obj2_typer = models.IntegerField(null=True, db_column='OBJ2_TYPER', blank=True) # Field name made lowercase.
+    colcol = models.CharField(max_length=18, db_column='COLCOL', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_optica'
 
@@ -1037,6 +1105,10 @@ class TblOpticaBon(models.Model):
     x1 = models.IntegerField(null=True, db_column='X1', blank=True) # Field name made lowercase.
     y1 = models.IntegerField(null=True, db_column='Y1', blank=True) # Field name made lowercase.
     pg = models.TextField(db_column='PG', blank=True) # Field name made lowercase.
+    portsize = models.CharField(max_length=765, db_column='PORTSIZE', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
+    pg_caption = models.TextField(db_column='PG_CAPTION', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_optica_bon'
 
@@ -1083,6 +1155,11 @@ class TblOpticaSplit(models.Model):
     x1 = models.IntegerField(null=True, db_column='X1', blank=True) # Field name made lowercase.
     y1 = models.IntegerField(null=True, db_column='Y1', blank=True) # Field name made lowercase.
     pg = models.TextField(db_column='PG', blank=True) # Field name made lowercase.
+    pg_caption = models.TextField(db_column='PG_CAPTION', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
+    skladcode = models.IntegerField(null=True, db_column='SKLADCODE', blank=True) # Field name made lowercase.
+    dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_optica_split'
 
@@ -1100,35 +1177,6 @@ class TblOpticaVol(models.Model):
     class Meta:
         db_table = u'tbl_optica_vol'
 
-class TblOsmpPaid(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    datedo = models.DateTimeField(null=True, db_column='DATEDO', blank=True) # Field name made lowercase.
-    usercode = models.IntegerField(null=True, db_column='USERCODE', blank=True) # Field name made lowercase.
-    provcode = models.IntegerField(null=True, db_column='PROVCODE', blank=True) # Field name made lowercase.
-    summa = models.IntegerField(null=True, db_column='SUMMA', blank=True) # Field name made lowercase.
-    numberstr = models.CharField(max_length=765, db_column='NUMBERSTR', blank=True) # Field name made lowercase.
-    status = models.IntegerField(null=True, db_column='STATUS', blank=True) # Field name made lowercase.
-    paidnumber = models.IntegerField(null=True, db_column='PAIDNUMBER', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_osmp_paid'
-
-class TblOsmpProv(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    katnazv = models.CharField(max_length=765, db_column='KATNAZV', blank=True) # Field name made lowercase.
-    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    pict = models.CharField(max_length=765, db_column='PICT', blank=True) # Field name made lowercase.
-    osmpcode = models.IntegerField(null=True, db_column='OSMPCODE', blank=True) # Field name made lowercase.
-    valuelen = models.IntegerField(null=True, db_column='VALUELEN', blank=True) # Field name made lowercase.
-    valueopis = models.CharField(max_length=765, db_column='VALUEOPIS', blank=True) # Field name made lowercase.
-    opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
-    minpay = models.IntegerField(null=True, db_column='MINPAY', blank=True) # Field name made lowercase.
-    maxpay = models.IntegerField(null=True, db_column='MAXPAY', blank=True) # Field name made lowercase.
-    kommin = models.IntegerField(null=True, db_column='KOMMIN', blank=True) # Field name made lowercase.
-    komproc = models.IntegerField(null=True, db_column='KOMPROC', blank=True) # Field name made lowercase.
-    isactive = models.IntegerField(null=True, db_column='ISACTIVE', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_osmp_prov'
-
 class TblOtkl(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
@@ -1141,7 +1189,6 @@ class TblOtkl(models.Model):
 
 class TblPelengLog(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    pelengcode = models.IntegerField(null=True, db_column='PELENGCODE', blank=True) # Field name made lowercase.
     datestart = models.DateTimeField(null=True, db_column='DATESTART', blank=True) # Field name made lowercase.
     devcode = models.IntegerField(null=True, db_column='DEVCODE', blank=True) # Field name made lowercase.
     isdo = models.IntegerField(null=True, db_column='ISDO', blank=True) # Field name made lowercase.
@@ -1167,7 +1214,7 @@ class TblPelengMac(models.Model):
 class TblPers(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     fio = models.CharField(max_length=600, db_column='FIO', blank=True) # Field name made lowercase.
-    dolg = models.CharField(max_length=150, db_column='DOLG', blank=True) # Field name made lowercase.
+    dolg = models.CharField(max_length=765, db_column='DOLG', blank=True) # Field name made lowercase.
     datein = models.DateField(null=True, db_column='DATEIN', blank=True) # Field name made lowercase.
     dateout = models.DateField(null=True, db_column='DATEOUT', blank=True) # Field name made lowercase.
     opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
@@ -1179,6 +1226,8 @@ class TblPers(models.Model):
     mailuvedom = models.IntegerField(null=True, db_column='MAILUVEDOM', blank=True) # Field name made lowercase.
     mailuvedom2 = models.IntegerField(null=True, db_column='MAILUVEDOM2', blank=True) # Field name made lowercase.
     fioshort = models.CharField(max_length=765, db_column='FIOSHORT', blank=True) # Field name made lowercase.
+    geo_acc = models.TextField(db_column='GEO_ACC', blank=True) # Field name made lowercase.
+    pictcode = models.IntegerField(null=True, db_column='PICTCODE', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_pers'
 
@@ -1252,22 +1301,10 @@ class TblPostav(models.Model):
     class Meta:
         db_table = u'tbl_postav'
 
-class TblPunkt(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    nazv = models.CharField(max_length=600, db_column='NAZV', blank=True) # Field name made lowercase.
-    adr = models.CharField(max_length=600, db_column='ADR', blank=True) # Field name made lowercase.
-    grafik = models.CharField(max_length=600, db_column='GRAFIK', blank=True) # Field name made lowercase.
-    opis = models.CharField(max_length=600, db_column='OPIS', blank=True) # Field name made lowercase.
-    photo = models.CharField(max_length=600, db_column='PHOTO', blank=True) # Field name made lowercase.
-    active = models.IntegerField(null=True, db_column='ACTIVE', blank=True) # Field name made lowercase.
-    dateadd = models.DateField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_punkt'
-
 class TblRegion(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
-    maincode = models.IntegerField(null=True, db_column='MAINCODE', blank=True) # Field name made lowercase.
+    geo_acc = models.TextField(db_column='GEO_ACC', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_region'
 
@@ -1275,9 +1312,9 @@ class TblRekl(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
     nazv = models.CharField(max_length=600, db_column='NAZV', blank=True) # Field name made lowercase.
-    opis = models.CharField(max_length=600, db_column='OPIS', blank=True) # Field name made lowercase.
-    param = models.CharField(max_length=600, db_column='PARAM', blank=True) # Field name made lowercase.
-    param2 = models.CharField(max_length=600, db_column='PARAM2', blank=True) # Field name made lowercase.
+    opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
+    param = models.TextField(db_column='PARAM', blank=True) # Field name made lowercase.
+    param2 = models.TextField(db_column='PARAM2', blank=True) # Field name made lowercase.
     datestart = models.DateField(null=True, db_column='DATESTART', blank=True) # Field name made lowercase.
     datestop = models.DateField(null=True, db_column='DATESTOP', blank=True) # Field name made lowercase.
     result_0 = models.IntegerField(null=True, db_column='RESULT_0', blank=True) # Field name made lowercase.
@@ -1296,17 +1333,6 @@ class TblShtraf(models.Model):
     dop = models.CharField(max_length=765, db_column='DOP', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_shtraf'
-
-class TblSign(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
-    usercode = models.IntegerField(null=True, db_column='USERCODE', blank=True) # Field name made lowercase.
-    code1 = models.IntegerField(null=True, db_column='CODE1', blank=True) # Field name made lowercase.
-    code2 = models.IntegerField(null=True, db_column='CODE2', blank=True) # Field name made lowercase.
-    opis = models.CharField(max_length=765, db_column='OPIS', blank=True) # Field name made lowercase.
-    stoped = models.IntegerField(null=True, db_column='STOPED', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_sign'
 
 class TblSms(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -1358,6 +1384,7 @@ class TblStreet(models.Model):
     street = models.CharField(max_length=765, db_column='STREET', blank=True) # Field name made lowercase.
     isdel = models.IntegerField(null=True, db_column='ISDEL', blank=True) # Field name made lowercase.
     citycode = models.IntegerField(null=True, db_column='CITYCODE', blank=True) # Field name made lowercase.
+    areacode = models.IntegerField(null=True, db_column='AREACODE', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_street'
 
@@ -1382,13 +1409,23 @@ class TblSwitch(models.Model):
     upport = models.CharField(max_length=120, db_column='UPPORT', blank=True) # Field name made lowercase.
     onsms = models.IntegerField(null=True, db_column='ONSMS', blank=True) # Field name made lowercase.
     issmssend = models.IntegerField(null=True, db_column='ISSMSSEND', blank=True) # Field name made lowercase.
-    hash_port1 = models.CharField(max_length=765, db_column='HASH_PORT1', blank=True) # Field name made lowercase.
     hash_port2 = models.TextField(db_column='HASH_PORT2', blank=True) # Field name made lowercase.
     onmail = models.IntegerField(null=True, db_column='ONMAIL', blank=True) # Field name made lowercase.
     ismailsend = models.IntegerField(null=True, db_column='ISMAILSEND', blank=True) # Field name made lowercase.
     proshivka = models.CharField(max_length=765, db_column='PROSHIVKA', blank=True) # Field name made lowercase.
     proshivka_date = models.DateTimeField(null=True, db_column='PROSHIVKA_DATE', blank=True) # Field name made lowercase.
     cablelen = models.TextField(db_column='CABLELEN', blank=True) # Field name made lowercase.
+    hostname = models.CharField(max_length=765, db_column='HOSTNAME', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    basecode = models.IntegerField(null=True, db_column='BASECODE', blank=True) # Field name made lowercase.
+    citycode = models.IntegerField(null=True, db_column='CITYCODE', blank=True) # Field name made lowercase.
+    location = models.CharField(max_length=765, db_column='LOCATION', blank=True) # Field name made lowercase.
+    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    param = models.TextField(db_column='PARAM', blank=True) # Field name made lowercase.
+    rotation = models.IntegerField(null=True, db_column='ROTATION', blank=True) # Field name made lowercase.
+    ipabon = models.IntegerField(null=True, db_column='IPABON', blank=True) # Field name made lowercase.
+    snmp_dontask = models.IntegerField(null=True, db_column='SNMP_DONTASK', blank=True) # Field name made lowercase.
+    log_status = models.IntegerField(null=True, db_column='LOG_STATUS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_switch'
 
@@ -1436,39 +1473,22 @@ class TblTovar(models.Model):
     count = models.IntegerField(null=True, db_column='COUNT', blank=True) # Field name made lowercase.
     summa = models.FloatField(null=True, db_column='SUMMA', blank=True) # Field name made lowercase.
     prodav = models.IntegerField(null=True, db_column='PRODAV', blank=True) # Field name made lowercase.
-    dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
-    datelast = models.DateTimeField(null=True, db_column='DATELAST', blank=True) # Field name made lowercase.
-    status = models.IntegerField(null=True, db_column='STATUS', blank=True) # Field name made lowercase.
     sn = models.CharField(max_length=150, db_column='SN', blank=True) # Field name made lowercase.
-    code1 = models.IntegerField(null=True, db_column='CODE1', blank=True) # Field name made lowercase.
-    code2 = models.IntegerField(null=True, db_column='CODE2', blank=True) # Field name made lowercase.
     dop = models.TextField(db_column='DOP', blank=True) # Field name made lowercase.
-    skladcode = models.IntegerField(null=True, db_column='SKLADCODE', blank=True) # Field name made lowercase.
     operation = models.TextField(db_column='OPERATION', blank=True) # Field name made lowercase.
     scet = models.BigIntegerField(null=True, db_column='SCET', blank=True) # Field name made lowercase.
     inv = models.CharField(max_length=765, db_column='INV', blank=True) # Field name made lowercase.
     shtrih = models.CharField(max_length=765, db_column='SHTRIH', blank=True) # Field name made lowercase.
+    param = models.TextField(db_column='PARAM', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_tovar'
-
-class TblTovarjournal(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    tovarcode = models.IntegerField(null=True, db_column='TOVARCODE', blank=True) # Field name made lowercase.
-    datedo = models.DateTimeField(null=True, db_column='DATEDO', blank=True) # Field name made lowercase.
-    typer = models.IntegerField(null=True, db_column='TYPER', blank=True) # Field name made lowercase.
-    opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
-    count = models.IntegerField(null=True, db_column='COUNT', blank=True) # Field name made lowercase.
-    code1 = models.IntegerField(null=True, db_column='CODE1', blank=True) # Field name made lowercase.
-    code2 = models.IntegerField(null=True, db_column='CODE2', blank=True) # Field name made lowercase.
-    code3 = models.IntegerField(null=True, db_column='CODE3', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_tovarjournal'
 
 class TblTovarsklad(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
     nazv = models.CharField(max_length=600, db_column='NAZV', blank=True) # Field name made lowercase.
     opis = models.CharField(max_length=750, db_column='OPIS', blank=True) # Field name made lowercase.
     regioncode = models.IntegerField(null=True, db_column='REGIONCODE', blank=True) # Field name made lowercase.
+    oper_acc = models.TextField(db_column='OPER_ACC', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_tovarsklad'
 
@@ -1480,6 +1500,7 @@ class TblTovartype(models.Model):
     elcount = models.FloatField(null=True, db_column='ELCOUNT', blank=True) # Field name made lowercase.
     typecode = models.IntegerField(null=True, db_column='TYPECODE', blank=True) # Field name made lowercase.
     reserv = models.TextField(db_column='RESERV', blank=True) # Field name made lowercase.
+    param = models.TextField(db_column='PARAM', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_tovartype'
 
@@ -1503,7 +1524,6 @@ class TblTrouble(models.Model):
     opisanswer = models.TextField(db_column='OPISANSWER', blank=True) # Field name made lowercase.
     dateview = models.DateTimeField(null=True, db_column='DATEVIEW', blank=True) # Field name made lowercase.
     isarc = models.IntegerField(null=True, db_column='ISARC', blank=True) # Field name made lowercase.
-    isall = models.IntegerField(null=True, db_column='ISALL', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_trouble'
 
@@ -1513,7 +1533,6 @@ class TblTroubleAll(models.Model):
     dateadd = models.DateTimeField(null=True, db_column='DATEADD', blank=True) # Field name made lowercase.
     theme = models.CharField(max_length=750, db_column='THEME', blank=True) # Field name made lowercase.
     opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
-    isall = models.IntegerField(null=True, db_column='ISALL', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_trouble_all'
 
@@ -1558,6 +1577,17 @@ class TblUzel(models.Model):
     opis = models.TextField(db_column='OPIS', blank=True) # Field name made lowercase.
     isupd = models.IntegerField(null=True, db_column='ISUPD', blank=True) # Field name made lowercase.
     ismufta = models.IntegerField(null=True, db_column='ISMUFTA', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    citycode = models.IntegerField(null=True, db_column='CITYCODE', blank=True) # Field name made lowercase.
+    adr = models.CharField(max_length=765, db_column='ADR', blank=True) # Field name made lowercase.
+    nazv = models.CharField(max_length=765, db_column='NAZV', blank=True) # Field name made lowercase.
+    keeper = models.CharField(max_length=765, db_column='KEEPER', blank=True) # Field name made lowercase.
+    invno = models.CharField(max_length=765, db_column='INVNO', blank=True) # Field name made lowercase.
+    mapmarkcode = models.IntegerField(null=True, db_column='MAPMARKCODE', blank=True) # Field name made lowercase.
+    jekcode = models.IntegerField(null=True, db_column='JEKCODE', blank=True) # Field name made lowercase.
+    parentuzel = models.IntegerField(null=True, db_column='PARENTUZEL', blank=True) # Field name made lowercase.
+    size_x = models.IntegerField(null=True, db_column='SIZE_X', blank=True) # Field name made lowercase.
+    size_y = models.IntegerField(null=True, db_column='SIZE_Y', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_uzel'
 
@@ -1570,16 +1600,6 @@ class TblVlan(models.Model):
     vlantag2 = models.CharField(max_length=765, db_column='VLANTAG2', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_vlan'
-
-class TblWebmoney(models.Model):
-    code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
-    usercode = models.IntegerField(null=True, db_column='USERCODE', blank=True) # Field name made lowercase.
-    summa = models.FloatField(null=True, db_column='SUMMA', blank=True) # Field name made lowercase.
-    datedo = models.DateTimeField(null=True, db_column='DATEDO', blank=True) # Field name made lowercase.
-    paymentno = models.IntegerField(null=True, db_column='PAYMENTNO', blank=True) # Field name made lowercase.
-    dopdata = models.TextField(db_column='DOPDATA', blank=True) # Field name made lowercase.
-    class Meta:
-        db_table = u'tbl_webmoney'
 
 class TblWifi(models.Model):
     code = models.IntegerField(primary_key=True, db_column='CODE') # Field name made lowercase.
@@ -1601,6 +1621,17 @@ class TblWifi(models.Model):
     hash_port2 = models.TextField(db_column='HASH_PORT2', blank=True) # Field name made lowercase.
     azimut = models.IntegerField(null=True, db_column='AZIMUT', blank=True) # Field name made lowercase.
     sectcoord = models.CharField(max_length=765, db_column='SECTCOORD', blank=True) # Field name made lowercase.
+    layers = models.CharField(max_length=765, db_column='LAYERS', blank=True) # Field name made lowercase.
+    hostname = models.CharField(max_length=765, db_column='HOSTNAME', blank=True) # Field name made lowercase.
+    valuememo = models.TextField(db_column='VALUEMEMO', blank=True) # Field name made lowercase.
+    x1 = models.IntegerField(null=True, db_column='X1', blank=True) # Field name made lowercase.
+    y1 = models.IntegerField(null=True, db_column='Y1', blank=True) # Field name made lowercase.
+    colcol = models.CharField(max_length=18, db_column='COLCOL', blank=True) # Field name made lowercase.
+    onmail = models.IntegerField(null=True, db_column='ONMAIL', blank=True) # Field name made lowercase.
+    ismailsend = models.IntegerField(null=True, db_column='ISMAILSEND', blank=True) # Field name made lowercase.
+    onsms = models.IntegerField(null=True, db_column='ONSMS', blank=True) # Field name made lowercase.
+    issmssend = models.IntegerField(null=True, db_column='ISSMSSEND', blank=True) # Field name made lowercase.
+    log_status = models.IntegerField(null=True, db_column='LOG_STATUS', blank=True) # Field name made lowercase.
     class Meta:
         db_table = u'tbl_wifi'
 

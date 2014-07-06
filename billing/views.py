@@ -425,7 +425,7 @@ def visa_gpb_no_auth(request, command=None):
                 'shortDesc': 'Pay for {}'.format(visa_trx.subscriber.login),
                 'longDesc': 'Pay for {}'.format(visa_trx.subscriber.login),
                 'account-amount': {
-                    'amount': int(visa_trx.amount),
+                    'amount': int(visa_trx.amount) * 100,
                     'currency': 643,
                     'exponent': 2,
                 }
