@@ -264,3 +264,9 @@ class Firewall(models.Model):
     class Meta():
         verbose_name_plural = u'фаэрволы'
         verbose_name = u'фаэрвол'
+
+
+class BlackListByIP():
+    add_time = models.DateTimeField(auto_now_add=True)
+    ip = models.IPAddressField()
+    description = models.TextField()

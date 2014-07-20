@@ -196,8 +196,6 @@ if config.has_section('http_redirect'):
 else:
     REDIRECT_TO = ''
 
-
-
 if config.has_section('visa_gpb'):
     VISA_ENABLE = True
     VISA_MERCHANT_ID = config.get('visa_gpb', 'VISA_MERCH_ID')
@@ -206,3 +204,24 @@ else:
     VISA_ENABLE = False
     VISA_MERCHANT_ID = ''
     VISA_PAY_URL = ''
+
+if config.has_section('rib'):
+    RIB_ENABLE = True
+    RIB_URL = config.get('rib', 'RIB_URL')
+    RIB_INN = config.get('rib', 'RIB_INN')
+    RIB_OGRN = config.get('rib', 'RIB_OGRN')
+    RIB_ORG_NAME = config.get('rib', 'RIB_ORG_NAME')
+    RIB_EMAIL = config.get('rib', 'RIB_EMAIL')
+    RIB_CERT_PATH = config.get('rib', 'RIB_CERT_PATH')
+    TMP_PATH = config.get('rib', 'TMP_PATH')
+    OPENSSL_COMMAND = config.get('rib', 'OPENSSL_COMMAND')
+else:
+    RIB_ENABLE = True
+    RIB_URL = ''
+    RIB_INN = ''
+    RIB_OGRN = ''
+    RIB_ORG_NAME = ''
+    RIB_EMAIL = ''
+    RIB_CERT_PATH = ''
+    TMP_PATH = ''
+    OPENSSL_COMMAND = ''
