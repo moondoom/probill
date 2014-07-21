@@ -3,7 +3,6 @@ from base64 import b64encode
 from django.core.management.base import BaseCommand
 from nas.models import *
 from billing.models import PeriodicLog
-from billing.views import serialize
 from settings import *
 from datetime import datetime
 import time

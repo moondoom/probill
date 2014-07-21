@@ -4,6 +4,8 @@ from settings import *
 from nas.models import *
 import re
 from rosapi import Core
+from billing.models import PeriodicLog
+
 
 class Firewall:
     address_list_name = "PROBILL_USERS"
@@ -75,7 +77,7 @@ class Firewall:
         self.sync_table(blacklist, self.address_blacklist_name)
 
     def sync_table(self, accounts, list_name):
-        query = self.api.talk(['/ip/firewall/address-list/print','?list={}'.format(list_name)])
+        query = self.api.talk(['/ip/firewall/address-list/print', '?list={}'.format(list_name)])
         mik_response = self.api.response_handler(query)
         mik_table = {}
         for row in mik_response:
@@ -85,7 +87,10 @@ class Firewall:
                 mik_table[row['address']] = [row['.id']]
         for account in accounts:
             if str(account.ip) in mik_table:
-                mik_table[str(account.ip)].pop()
+                if mik_table[str(account.ip)]:
+                    mik_table[str(account.ip)].pop()
+                else:
+                    PeriodicLog.log('Script PROCESS_FIREWALL_MIKROTIK, posible ip double {}'.format(account.ip))
             else:
                 query = self.api.talk(['/ip/firewall/address-list/add',
                                        '=list={}'.format(list_name),
