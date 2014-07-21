@@ -369,7 +369,7 @@ def check_visa_get(param_list, request_get):
     return not_found
 
 
-def serialize(root):
+def serialize(root, encoding='UTF-8'):
     def recursive(root):
         xml = ''
         for key in root.keys():
@@ -385,7 +385,7 @@ def serialize(root):
                 xml = '%s<%s>%s</%s>\n' % (xml, key, value, key)
         return xml
     xml = recursive(root)
-    return '<?xml version="1.0" encoding="UTF-8"?>\n%s' % xml
+    return '<?xml version="1.0" encoding="%s"?>\n%s' % (encoding, xml)
 
 
 

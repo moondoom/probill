@@ -6,22 +6,23 @@ from lib.networks import IPAddressField, IPNetworkField
 
 class AstraServer(models.Model):
     nas = models.ForeignKey(NasServer)
-    bind_http = IPAddressField(null=True, blank=True, verbose_name="Адресс сервера для HTTP")
+    http_address = IPAddressField(null=True, blank=True, verbose_name="Адресс сервера для HTTP")
     multi_cast_network = IPNetworkField(null=True, blank=True, verbose_name="Сеть для мультикаста")
     multi_cast_port = models.IntegerField(null=True, blank=True, verbose_name="Порт мультикаста")
 
     def __unicode__(self):
-            return  "{}".format(self.nas)
+            return  "{} ({})".format(self.nas, self.http_address)
 
 
 class AstraConfig(models.Model):
     name = models.CharField("Имя адаптера", max_length=100)
+    astra_server = models.ForeignKey(AstraServer,verbose_name="Сервер Астры")
     file_path = models.CharField("Путь к конфигурации", max_length=200)
     config_head = models.TextField("Заголовок конфигурации")
-    http_listen = models.IntegerField("Адрес HTTP-сервера")
+    http_port = models.IntegerField("Порт HTTP-сервера")
 
     def __unicode__(self):
-            return  "{}".format(self.name)
+            return  "{} на {}".format(self.name)
 
 class SimpleChannel(models.Model):
 
@@ -34,14 +35,15 @@ class AstraChannel (SimpleChannel):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=100)
     astra_input = models.CharField(max_length=200)
-    multicast = models.CharField(max_length=100)
     chanel_id = models.CharField(max_length=100)
 
     def __unicode__(self):
         return  "{}".format(self.description)
 
     def get_url(self):
-        return 'http://{}/{}'.format(self.astra_config.http_listen, self.chanel_id)
+        return 'http://{}:{}/{}'.format(self.astra_config.astra_server.http_address,
+                                        self.astra_config.http_port,
+                                        self.chanel_id)
 
 
 class LocalChannel (SimpleChannel):

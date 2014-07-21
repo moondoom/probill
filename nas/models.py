@@ -134,7 +134,7 @@ class NetworkInterface(models.Model):
 
 
 class IPInterface(models.Model):
-    iface = models.ForeignKey(NetworkInterface,verbose_name=u'Интерфейс')
+    iface = models.ForeignKey(NetworkInterface, verbose_name=u'Интерфейс')
     network = IPNetworkField(u'Сеть')
 
     class Meta():
@@ -264,3 +264,9 @@ class Firewall(models.Model):
     class Meta():
         verbose_name_plural = u'фаэрволы'
         verbose_name = u'фаэрвол'
+
+
+class BlackListByIP(models.Model):
+    add_datetime = models.DateTimeField(auto_now_add=True, verbose_name='Дата добавления')
+    ip = models.IPAddressField(verbose_name='IP Адрес')
+    description = models.TextField(verbose_name='Описание')
