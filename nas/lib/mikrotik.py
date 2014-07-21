@@ -5,7 +5,7 @@ from nas.models import *
 import re
 from rosapi import Core
 from billing.models import PeriodicLog
-
+from ipaddr import IPAddress
 
 class Firewall:
     address_list_name = "PROBILL_USERS"
@@ -29,7 +29,7 @@ class Firewall:
     def find_interface(self, ip):
         for interface in self.interface:
             for net in self.interface[interface]:
-                if ip in net:
+                if IPAddress(ip) in net:
                     return interface
         return 'all'
 
@@ -161,13 +161,17 @@ class Firewall:
     def sync_dhcp(self):
         print "DHCP"
         query = self.api.talk(['/ip/dhcp-server/lease/print',
+                               '=.proplist=address,mac-address,server,.id',
                                '?=dynamic=no'])
 
         mik_response = self.api.response_handler(query)
 
         mik_dhcp_dict = {}
         for row in mik_response:
-            mik_dhcp_dict[row['address']] = [row['mac-address'].lower(),  row['.id'], row['server']]
+            if 'server' in row:
+                mik_dhcp_dict[row['address']] = [row['mac-address'].lower(),  row['.id'], row['server']]
+            else:
+                mik_dhcp_dict[row['address']] = [row['mac-address'].lower(),  row['.id'], 'all']
         for account in self.nas.get_accounts_query():
             if account.ip and account.mac:
                 ip, mac = str(account.ip), str(account.mac).lower()
@@ -189,7 +193,7 @@ class Firewall:
                     mik_response = self.api.response_handler(query)
                     print 'Add', account, mik_response
         for ip in mik_dhcp_dict:
-            query = self.api.talk(['/ip/dhcp-server/lease/remove','=.id={}'.format(mik_dhcp_dict[ip][1])])
+            query = self.api.talk(['/ip/dhcp-server/lease/remove', '=.id={}'.format(mik_dhcp_dict[ip][1])])
             mik_response = self.api.response_handler(query)
             print 'Remove', ip, mik_dhcp_dict[ip], mik_response
 
@@ -202,4 +206,5 @@ class Firewall:
         #self.sync_arp()
         self.sync_dhcp()
         self.sync_nat()
+        self.sync_blacklist()
         return True
