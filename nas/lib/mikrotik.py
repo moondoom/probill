@@ -7,15 +7,29 @@ from rosapi import Core
 
 class Firewall:
     address_list_name = "PROBILL_USERS"
+    address_blacklist_name = "PROBILL_BLACKLIST"
     address_list_name_nat = "PROBILL_USERS_NAT_{}"
     qos_re = re.compile(r'(?ms).*?(\d+)\s*;;;.*?name="([^"]*)"\s*target=(\S*).*?max-limit=([^/]*)/(\S*).*?')
     access_re = re.compile(r'(\d+)\s+(\S*)\s+([\.\da-f:]+)\s+')
     dhcp_re = re.compile(r'(\d+)\s+([\.\da-f:]+)\s+([\dA-Fa-f:]+)\s+')
 
+
     def __init__(self, nas):
         self.nas = nas
         self.api = Core(str(self.nas.mng_ip),DEBUG=False)
         self.api.login(self.nas.username, self.nas.password)
+        self.interface = {}
+        for interface in NetworkInterface.objects.filter(nas=self.nas):
+            self.interface[interface.name] = []
+            for net in IPInterface.objects.filter(iface=interface):
+                self.interface[interface.name].append(net.network)
+
+    def find_interface(self, ip):
+        for interface in self.interface:
+            for net in self.interface[interface]:
+                if ip in net:
+                    return interface
+        return 'all'
 
     def sync_access(self):
         print "ACCESS"
@@ -48,11 +62,17 @@ class Firewall:
         good_list = [list_template.format(f) for f in good_id]
         for row in mik_response:
             if row['list'].startswith(list_prefix) and row['list'] not in good_list:
-                query = self.api.talk(['/ip/firewall/address-list/remove','=.id={}'.format(row['.id'])])
+                query = self.api.talk(['/ip/firewall/address-list/remove', '=.id={}'.format(row['.id'])])
                 mik_response = self.api.response_handler(query)
                 print 'Remove', row['list'], row['address'], mik_response
 
 
+    def sync_blacklist(self):
+        print "BLACKLIST"
+        blacklist = []
+        for ip in BlackListByIP.objects.all():
+            blacklist.append(ip)
+        self.sync_table(blacklist, self.address_blacklist_name)
 
     def sync_table(self, accounts, list_name):
         query = self.api.talk(['/ip/firewall/address-list/print','?list={}'.format(list_name)])
@@ -85,9 +105,9 @@ class Firewall:
             if x.endswith('k'):
                 return int(x[:-1])
             elif x.endswith('M'):
-                return int(x[:-1])*1024
+                return int(x[:-1]) * 1024
             else:
-                return int(x)/1024
+                return int(x) / 1024
 
         query = self.api.talk(['/queue/simple/print',
                                '?=comment={}'.format(self.address_list_name)])
@@ -133,7 +153,6 @@ class Firewall:
             mik_response = self.api.response_handler(query)
             print 'Remove', ip, mik_qos_dict[ip], mik_response
 
-
     def sync_dhcp(self):
         print "DHCP"
         query = self.api.talk(['/ip/dhcp-server/lease/print',
@@ -143,23 +162,25 @@ class Firewall:
 
         mik_dhcp_dict = {}
         for row in mik_response:
-            mik_dhcp_dict[row['address']] = [row['mac-address'].lower(),  row['.id']]
+            mik_dhcp_dict[row['address']] = [row['mac-address'].lower(),  row['.id'], row['server']]
         for account in self.nas.get_accounts_query():
             if account.ip and account.mac:
                 ip, mac = str(account.ip), str(account.mac).lower()
+                interface = self.find_interface(ip)
                 if ip in mik_dhcp_dict:
-                    if mac != mik_dhcp_dict[ip][0]:
+                    if mac != mik_dhcp_dict[ip][0] or interface != mik_dhcp_dict[ip][2]:
                         query = self.api.talk(['/ip/dhcp-server/lease/set',
                                                '=.id={}'.format(mik_dhcp_dict[ip][1]),
-                                               '=mac-address={}'.format(mac)])
+                                               '=mac-address={}'.format(mac),
+                                               '=server={}'.format(interface)])
                         mik_response = self.api.response_handler(query)
                         print 'Update', account, mik_response
                     del mik_dhcp_dict[ip]
                 else:
-
                     query = self.api.talk(['/ip/dhcp-server/lease/add',
                                            '=address={}'.format(ip),
-                                           '=mac-address={}'.format(mac)])
+                                           '=mac-address={}'.format(mac),
+                                           '=server={}'.format(interface)])
                     mik_response = self.api.response_handler(query)
                     print 'Add', account, mik_response
         for ip in mik_dhcp_dict:

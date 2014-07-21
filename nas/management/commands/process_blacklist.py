@@ -15,7 +15,7 @@ try:
 except:
   from StringIO import StringIO
 import zipfile
-
+import xml.etree.ElementTree as etree
 
 class ZapretInfo:
     def getLastDumpDate(self):
@@ -95,8 +95,29 @@ class Command(BaseCommand):
 
                         zf = StringIO(request['registerZipArchive'].decode('base64'))
                         zip_file = zipfile.ZipFile(zf, 'r')
-                        print zip_file.read('dump.xml')
+                        xml =zip_file.read('dump.xml')
                         zip_file.close()
+                        xml_tree = etree.XML(xml)
+                        ip_black_dict = {}
+                        for content in xml_tree.iter('content'):
+                            for ip in content.iter('ip'):
+                                if ip.text in ip_black_dict:
+                                    ip_black_dict[ip.text] += etree.tostring(content)
+                                else:
+                                    ip_black_dict[ip.text] = etree.tostring(content)
+                        for acl in BlackListByIP.objects.all():
+                            if acl.ip in ip_black_dict:
+                                if acl.description != ip_black_dict[acl.ip]:
+                                    print 'Update', acl.ip
+                                    acl.description = ip_black_dict[acl.ip]
+                                    acl.save()
+                                del ip_black_dict[acl.ip]
+                            else:
+                                print 'Delete', acl.ip
+                                acl.delete()
+                        for ip in ip_black_dict:
+                            print 'Add', ip
+                            BlackListByIP(ip=ip, description=ip_black_dict[ip]).save()
                         break
                     else:
                         if request['resultComment'] == 'запрос обрабатывается':
@@ -104,10 +125,10 @@ class Command(BaseCommand):
                             time.sleep(60)
                         else:
                             #Если это любая другая ошибка, выводим ее и прекращаем работу
-                            print 'Error: %s' % request['resultComment']
+                            PeriodicLog.log('Script PROCESS_BLACKLIST Error: %s' % request['resultComment'], code=10)
                             break
         else:
-            print 'Error: %s' % request['resultComment']
+            PeriodicLog.log('Script PROCESS_BLACKLIST Error: %s' % request['resultComment'], code=10)
         if os.path.exists(req_path):
             os.remove(req_path)
         if os.path.exists(req_sig_path):
