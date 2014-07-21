@@ -26,6 +26,11 @@ class MyIPInterface(admin.ModelAdmin):
 class MyUpLink(admin.ModelAdmin):
     list_display = ('nas',  'local_address', 'remote_address', 'priority', 'enabled', 'active')
 
+
+class BlackListAdmin(admin.ModelAdmin):
+    list_display = ('ip',)
+    search_fields = ('ip', 'description')
+
 admin.site.register(NasServer, MyNasServer)
 admin.site.register(IPInterface, MyIPInterface)
 admin.site.register(NetworkInterface, MyNetworkInterface)
@@ -37,4 +42,5 @@ admin.site.register(UpLinkPolice, UpLinkPoliceAdmin)
 admin.site.register(NetFlowProcessor)
 admin.site.register(NetFlowSource, NetFlowAdmin)
 admin.site.register(Firewall)
+admin.site.register(BlackListByIP, BlackListAdmin)
 
