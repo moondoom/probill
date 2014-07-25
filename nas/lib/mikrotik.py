@@ -90,7 +90,8 @@ class Firewall:
                 if mik_table[str(account.ip)]:
                     mik_table[str(account.ip)].pop()
                 else:
-                    PeriodicLog.log('Script PROCESS_FIREWALL_MIKROTIK, posible ip double {}'.format(account.ip))
+                    PeriodicLog.log('Script PROCESS_FIREWALL_MIKROTIK, posible ip double {}'.format(account.ip),
+                                    code=10)
             else:
                 query = self.api.talk(['/ip/firewall/address-list/add',
                                        '=list={}'.format(list_name),

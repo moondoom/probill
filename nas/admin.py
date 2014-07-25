@@ -28,7 +28,7 @@ class MyUpLink(admin.ModelAdmin):
 
 
 class BlackListAdmin(admin.ModelAdmin):
-    list_display = ('ip',)
+    list_display = ('add_datetime', 'ip',)
     search_fields = ('ip', 'description')
 
 admin.site.register(NasServer, MyNasServer)
