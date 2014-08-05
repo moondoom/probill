@@ -225,3 +225,20 @@ else:
     RIB_CERT_PATH = ''
     TMP_PATH = ''
     OPENSSL_COMMAND = ''
+
+
+if config.has_section('lanbilling'):
+    INSTALLED_APPS = INSTALLED_APPS + ('lb',)
+    LB_ENABLE = True
+    LB_NAS_ID = config.get('lanbilling', 'LB_NAS_ID')
+    LB_SOAP_URL = config.get('lanbilling', 'LB_SOAP_URL')
+    LB_USERNAME = config.get('lanbilling', 'LB_USERNAME')
+    LB_PASSWORD = config.get('lanbilling', 'LB_PASSWORD')
+    LB_AGENT_TYPE = config.get('lanbilling', 'LB_AGENT_TYPE')
+else:
+    LB_ENABLE = False
+    LB_NAS_ID = ''
+    LB_SOAP_URL = ''
+    LB_USERNAME = ''
+    LB_PASSWORD = ''
+    LB_AGENT_TYPE = ''

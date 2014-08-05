@@ -2,7 +2,6 @@
 
 from settings import *
 from nas.models import *
-import re
 from rosapi import Core
 from billing.models import PeriodicLog
 from ipaddr import IPAddress
@@ -11,9 +10,6 @@ class Firewall:
     address_list_name = "PROBILL_USERS"
     address_blacklist_name = "PROBILL_BLACKLIST"
     address_list_name_nat = "PROBILL_USERS_NAT_{}"
-    qos_re = re.compile(r'(?ms).*?(\d+)\s*;;;.*?name="([^"]*)"\s*target=(\S*).*?max-limit=([^/]*)/(\S*).*?')
-    access_re = re.compile(r'(\d+)\s+(\S*)\s+([\.\da-f:]+)\s+')
-    dhcp_re = re.compile(r'(\d+)\s+([\.\da-f:]+)\s+([\dA-Fa-f:]+)\s+')
 
 
     def __init__(self, nas):
@@ -163,7 +159,8 @@ class Firewall:
         print "DHCP"
         query = self.api.talk(['/ip/dhcp-server/lease/print',
                                '=.proplist=address,mac-address,server,.id',
-                               '?=dynamic=no'])
+                               '?=dynamic=no',
+                               '?=comment={}'.format(self.address_list_name)])
 
         mik_response = self.api.response_handler(query)
 
@@ -190,7 +187,8 @@ class Firewall:
                     query = self.api.talk(['/ip/dhcp-server/lease/add',
                                            '=address={}'.format(ip),
                                            '=mac-address={}'.format(mac),
-                                           '=server={}'.format(interface)])
+                                           '=server={}'.format(interface),
+                                           '=comment={}'.format(self.address_list_name)])
                     mik_response = self.api.response_handler(query)
                     print 'Add', account, mik_response
         for ip in mik_dhcp_dict:
