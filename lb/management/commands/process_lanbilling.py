@@ -30,7 +30,7 @@ class Command(BaseCommand):
                         PeriodicLog('Possible IP double (LOGIN: {} IP: {})'.format(ac_f.login, ip))
                         continue
                     account_dicts[ip] = [
-                        ac_f.mac_staff[0].mac,
+                        ac_f.macstaff[0].mac,
                         interface,
                         ac_f.blocked,
                         ac_f.currentshape
