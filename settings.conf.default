@@ -74,8 +74,10 @@ LOCAL_NAS_ID = 1
 
 #[lanbilling]
 #LB_NAS_ID = 0
+#LB_PREF_SRC = 10.0.0.1
 #LB_SOAP_URL = http://127.0.0.1/admin/soap/api3.wsdl (Default for localserver)
 #LB_USERNAME = admin
 #LB_PASSWORD =
 #LB_AGENT_TYPE = 4 (Default for NetFlow)
+
 

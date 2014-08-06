@@ -3,7 +3,7 @@ __author__ = 'animage'
 from nas.lib.mikrotik import Firewall as Old
 from nas.models import NasServer
 from nas.lib.rosapi import Core
-
+from settings import LB_PREF_SRC
 
 class Tariff():
 
@@ -59,6 +59,17 @@ class Firewall(Old):
 
     def find_interface(self, ip):
         return self.vg_dict[ip][1]
+
+    def sync_route(self):
+        print "ROUTE"
+        for account in self.nas.get_accounts_query():
+            query = self.api.talk(['/ip/route/add',
+                                   '=dst-address={}/32'.format(account.ip),
+                                   '=gateway={}'.format(account.mac),
+                                   '=pref-src={}'.format(LB_PREF_SRC),
+                                   '=comment={}'.format(self.address_list_name)])
+            mik_response = self.api.response_handler(query)
+            print 'Add', account, mik_response
 
 
     def sync_all(self):

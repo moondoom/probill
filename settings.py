@@ -231,6 +231,7 @@ if config.has_section('lanbilling'):
     INSTALLED_APPS = INSTALLED_APPS + ('lb',)
     LB_ENABLE = True
     LB_NAS_ID = config.get('lanbilling', 'LB_NAS_ID')
+    LB_PREF_SRC = config.get('lanbilling', 'LB_PREF_SRC')
     LB_SOAP_URL = config.get('lanbilling', 'LB_SOAP_URL')
     LB_USERNAME = config.get('lanbilling', 'LB_USERNAME')
     LB_PASSWORD = config.get('lanbilling', 'LB_PASSWORD')
@@ -238,6 +239,7 @@ if config.has_section('lanbilling'):
 else:
     LB_ENABLE = False
     LB_NAS_ID = ''
+    LB_PREF_SRC = ''
     LB_SOAP_URL = ''
     LB_USERNAME = ''
     LB_PASSWORD = ''
