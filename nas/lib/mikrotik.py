@@ -82,7 +82,6 @@ class Firewall:
             else:
                 mik_table[row['address']] = [row['.id']]
         for account in accounts:
-            print account
             if str(account.ip) in mik_table:
                 if mik_table[str(account.ip)]:
                     mik_table[str(account.ip)].pop()

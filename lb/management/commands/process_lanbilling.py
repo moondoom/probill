@@ -35,12 +35,12 @@ class Command(BaseCommand):
                  ]
                 print account_dicts[ip]
             except WebFault as e:
-                #PeriodicLog(str(e))
-                print e
+                PeriodicLog(str(e))
+                #print e
                 continue
             except IndexError as e:
-                #PeriodicLog(str(e))
-                print e
+                PeriodicLog(str(e))
+                #print e
                 continue
         return account_dicts
 
