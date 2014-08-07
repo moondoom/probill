@@ -20,7 +20,7 @@ class Command(BaseCommand):
         account_dicts = {}
         for ac_d in ac_brief:
             try:
-                ac_f = cl.service.getVgroup(id=ac_d.id)[0]
+                ac_f = cl.service.getVgroup(id=ac_d.vgid)[0]
                 ip = ac_f.macstaff[0].segment
                 interface = [f.strvalue for f in ac_f.addons if f.name == 'interface'][0]
                 if ip in account_dicts:
@@ -29,9 +29,10 @@ class Command(BaseCommand):
                 account_dicts[ip] = [
                     ac_f.macstaff[0].mac,
                     interface,
+                    ac_f.vgroup.currentshape,
                     ac_f.vgroup.blocked,
-                    ac_f.vgroup.currentshape
-                ]
+                    ac_d.vgid
+                 ]
                 print account_dicts[ip]
             except WebFault as e:
                 #PeriodicLog(str(e))
@@ -48,7 +49,7 @@ class Command(BaseCommand):
             cl = Client(LB_SOAP_URL)
             cl.service.Login(LB_USERNAME, LB_PASSWORD)
             fw = Firewall(LB_NAS_ID, self.get_account(cl))
-
+            fw.sync_all()
 
 
 

@@ -82,6 +82,7 @@ class Firewall:
             else:
                 mik_table[row['address']] = [row['.id']]
         for account in accounts:
+            print account
             if str(account.ip) in mik_table:
                 if mik_table[str(account.ip)]:
                     mik_table[str(account.ip)].pop()
@@ -163,7 +164,7 @@ class Firewall:
                                '?=comment={}'.format(self.address_list_name)])
 
         mik_response = self.api.response_handler(query)
-
+        
         mik_dhcp_dict = {}
         for row in mik_response:
             if 'server' in row:
@@ -189,6 +190,11 @@ class Firewall:
                                            '=mac-address={}'.format(mac),
                                            '=server={}'.format(interface),
                                            '=comment={}'.format(self.address_list_name)])
+                    print ['/ip/dhcp-server/lease/add',
+                                           '=address={}'.format(ip),
+                                           '=mac-address={}'.format(mac),
+                                           '=server={}'.format(interface),
+                                           '=comment={}'.format(self.address_list_name)]
                     mik_response = self.api.response_handler(query)
                     print 'Add', account, mik_response
         for ip in mik_dhcp_dict:
