@@ -88,7 +88,7 @@ class Firewall(Old):
                 if mik_rt[account.ip][0] != account.interface or mik_rt[account.ip][1] != LB_PREF_SRC:
                     query = self.api.talk(['/ip/route/set',
                                            '=.id={}'.format(mik_rt[account.ip][2]),
-                                           '=gateway={}'.format(self.interface),
+                                           '=gateway={}'.format(account.interface),
                                            '=pref-src={}'.format(LB_PREF_SRC)])
                     mik_response = self.api.response_handler(query)
                     print 'UPDATE', account, mik_response
