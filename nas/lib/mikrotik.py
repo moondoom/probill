@@ -241,6 +241,7 @@ class Firewall:
         self.sync_access()
         self.sync_qos()
         #self.sync_arp()
+        self.sync_route()
         self.sync_dhcp()
         self.sync_nat()
         self.sync_blacklist()
