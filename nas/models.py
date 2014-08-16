@@ -67,7 +67,7 @@ class NasServer(models.Model):
         else:
             return {}
 
-        for account in self.get_accounts_query(active=True, tariff__isnull=False):
+        for account in self.get_accounts_query(active=True, tariff__isnull=False, interface__isnull=True):
             if account not in account_up_link:
                 account_up_link[account] = top_up_link.next()
         return account_up_link
