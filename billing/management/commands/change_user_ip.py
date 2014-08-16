@@ -42,14 +42,17 @@ class Command(BaseCommand):
                                                                                        new_account,
                                                                                        new_account.mac))
             elif args[0] == 'clean':
-                subscriber_names = args[1].split(',')
-                subscribers = Subscriber.objects.filter(login__in=subscriber_names)
+                filter_net = IPNetwork(args[1])
+                subscribers = Subscriber.objects.filter(account__ip__in=filter_net)
                 for sub in subscribers:
                     old_account = None
                     new_account = None
                     accounts = sub.account_set.all()
+                    print accounts
                     if len(accounts) == 2:
+
                         for account in accounts:
+                            print account
                             if account.login.startswith('auto__copy__'):
                                 new_account = account
                             else:
@@ -58,6 +61,7 @@ class Command(BaseCommand):
 
                             old_account.ip = new_account.ip
                             old_account.mac = new_account.mac
+                            old_account.interface = new_account.interface
                             new_account.ip = "0.0.0.0"
                             new_account.mac = None
                             PeriodicLog.log("Clean account {} MAC: {} IP: {}".format(new_account,
@@ -77,33 +81,44 @@ class Command(BaseCommand):
                     self.interface[interface.name] = []
                     for net in IPInterface.objects.filter(iface=interface):
                         self.interface[interface.name].append(net.network)
-                filter_net = IPNetwork(args[1])
+                tar = Tariff.objects.get(id=args[1])
+                filter_net = IPNetwork(args[2])
                 free_ip = []
-                for net in args[2:]:
+                for net in args[3:]:
                     white_net = IPNetwork(net)
                     query = Account.objects.filter(ip__in=white_net)
                     used_ip = [f.ip for f in query] + [white_net.broadcast, white_net.network]
                     free_ip += [f for f in white_net if f not in used_ip]
                 free_ip.reverse()
-                query = Account.objects.filter(ip__in=filter_net)
-                for account in query:
-                    for name in self.interface:
-                        for net in self.interface[name]:
-                            if account.ip in net:
-                                account.interface = name
+                query = Subscriber.objects.filter(account__ip__in=filter_net)
+                for sub in query:
+                    for account in sub.account_set.all():
+                        print account.ip
+                        interface = None
+                        for name in self.interface:
+                            for net in self.interface[name]:
+                                if account.ip in net:
+                                    interface = name
+                                    break
+                        if interface:
+                            try:
+                                new_account = Account(subscriber=sub,
+                                                      login='auto__copy__{}'.format(account.login),
+                                                      tariff=tar,
+                                                      owner=account.owner,
+                                                      ip=free_ip.pop(),
+                                                      mac=account.mac,
+                                                      status=200,
+                                                      interface=interface)
+                            except IndexError as e:
+                                print "No more free IP"
                                 break
-                    if not account.interface:
-                        continue
-                    try:
-                        old_ip = account.ip
-                        account.ip = free_ip.pop()
-                    except IndexError as e:
-                        print "No more free IP"
-                        break
-                    PeriodicLog.log("Change account {} MAC: {} IP: {} to {} unnumbered".format(account,
-                                    account.mac,
-                                    account.ip,
-                                    old_ip))
-                    account.save()
+                            account.mac = None
+                            account.save()
+                            new_account.save()
+                            PeriodicLog.log("Change account {} MAC: {} IP: {} to {} unnumbered".format(account,
+                                                                                                new_account.mac,
+                                                                                                account.ip,
+                                                                                                new_account.ip))
 
 
