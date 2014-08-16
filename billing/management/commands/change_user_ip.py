@@ -109,6 +109,7 @@ class Command(BaseCommand):
                                                       ip=free_ip.pop(),
                                                       mac=account.mac,
                                                       status=200,
+                                                      active=account.active,
                                                       interface=interface)
                             except IndexError as e:
                                 print "No more free IP"
