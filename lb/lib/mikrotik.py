@@ -68,8 +68,8 @@ class Firewall(Old):
         self.vg_dict  = vg_dict
         self.nas.set_accounts_query(LBAccount.query(self.vg_dict))
 
-    def find_interface(self, ip):
-        return self.vg_dict[ip][1]
+    def find_interface(self, account):
+        return self.vg_dict[account.ip][1]
 
     def sync_route(self):
         print "ROUTE"

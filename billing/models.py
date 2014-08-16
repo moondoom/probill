@@ -410,6 +410,7 @@ class AccountLog(models.Model):
     def __unicode__(self):
         return unicode(self.account)
 
+
 class Account(models.Model):
     """
     Учётные записи пользователей
@@ -428,6 +429,7 @@ class Account(models.Model):
     active = models.BooleanField('Активна',default=True)
     status = models.IntegerField('Статус', default=301, choices=STATE_CHOICES)
     deleted = models.BooleanField('Удалена', default=False, editable=False)
+    interface = models.CharField('Интерфейс', max_length=20, blank=True, null=True)
     #alt_route = models.BooleanField('Альтернативный маршрут',default=False)
 
     class Meta:

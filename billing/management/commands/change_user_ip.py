@@ -1,6 +1,9 @@
 from probill.billing.models import *
 
 from django.core.management.base import BaseCommand
+from ipaddr import IPNetwork
+
+from nas.models import IPInterface, NetworkInterface
 
 import random
 
@@ -67,3 +70,40 @@ class Command(BaseCommand):
                             print "Subscriber {} have >2 account".format(sub)
                     else:
                         print "Subscriber {} have >2 account".format(sub)
+
+            elif args[0] == '2unnumbered':
+                self.interface = {}
+                for interface in NetworkInterface.objects.all():
+                    self.interface[interface.name] = []
+                    for net in IPInterface.objects.filter(iface=interface):
+                        self.interface[interface.name].append(net.network)
+                filter_net = IPNetwork(args[1])
+                free_ip = []
+                for net in args[2:]:
+                    white_net = IPNetwork(net)
+                    query = Account.objects.filter(ip__in=white_net)
+                    used_ip = [f.ip for f in query] + [white_net.broadcast, white_net.network]
+                    free_ip += [f for f in white_net if f not in used_ip]
+                free_ip.reverse()
+                query = Account.objects.filter(ip__in=filter_net)
+                for account in query:
+                    for name in self.interface:
+                        for net in self.interface[name]:
+                            if account.ip in net:
+                                account.interface = name
+                                break
+                    if not account.interface:
+                        continue
+                    try:
+                        old_ip = account.ip
+                        account.ip = free_ip.pop()
+                    except IndexError as e:
+                        print "No more free IP"
+                        break
+                    PeriodicLog.log("Change account {} MAC: {} IP: {} to {} unnumbered".format(account,
+                                    account.mac,
+                                    account.ip,
+                                    old_ip))
+                    account.save()
+
+

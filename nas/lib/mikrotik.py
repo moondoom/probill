@@ -22,10 +22,12 @@ class Firewall:
             for net in IPInterface.objects.filter(iface=interface):
                 self.interface[interface.name].append(net.network)
 
-    def find_interface(self, ip):
+    def find_interface(self, account):
+        if account.interface:
+            return account.interface
         for interface in self.interface:
             for net in self.interface[interface]:
-                if IPAddress(ip) in net:
+                if account.ip in net:
                     return interface
         return 'all'
 
@@ -173,7 +175,7 @@ class Firewall:
         for account in self.nas.get_accounts_query():
             if account.ip and account.mac:
                 ip, mac = str(account.ip), str(account.mac).lower()
-                interface = self.find_interface(ip)
+                interface = self.find_interface(account)
                 if ip in mik_dhcp_dict:
                     if mac != mik_dhcp_dict[ip][0] or interface != mik_dhcp_dict[ip][2]:
                         query = self.api.talk(['/ip/dhcp-server/lease/set',
@@ -195,6 +197,42 @@ class Firewall:
             query = self.api.talk(['/ip/dhcp-server/lease/remove', '=.id={}'.format(mik_dhcp_dict[ip][1])])
             mik_response = self.api.response_handler(query)
             print 'Remove', ip, mik_dhcp_dict[ip], mik_response
+
+    def sync_route(self):
+        print "ROUTE"
+        query = self.api.talk(['/ip/route/print',
+                               '?=comment={}'.format(self.address_list_name)])
+        mik_response = self.api.response_handler(query)
+        mik_rt = {}
+        for row in mik_response:
+            mik_rt[row['dst-address'].split('/')[0]] = [
+                row['gateway'],
+                row['pref-src'],
+                row['.id']
+            ]
+        for account in self.nas.get_accounts_query(interface__isnull=False):
+            ip = str(account.ip)
+            if ip in mik_rt:
+                if mik_rt[ip][0] != account.interface or mik_rt[ip][1] != LB_PREF_SRC:
+                    query = self.api.talk(['/ip/route/set',
+                                           '=.id={}'.format(mik_rt[account.ip][2]),
+                                           '=gateway={}'.format(account.interface),
+                                           '=pref-src={}'.format(LB_PREF_SRC)])
+                    mik_response = self.api.response_handler(query)
+                    print 'UPDATE', account, mik_response
+                del mik_rt[account.ip]
+            else:
+                query = self.api.talk(['/ip/route/add',
+                                       '=dst-address={}'.format(account.ip),
+                                       '=gateway={}'.format(account.interface),
+                                       '=pref-src={}'.format(LB_PREF_SRC),
+                                       '=comment={}'.format(self.address_list_name)])
+                mik_response = self.api.response_handler(query)
+                print 'Add', account, mik_response
+        for ip in mik_rt:
+            query = self.api.talk(['/ip/route/remove','=.id={}'.format(mik_rt[ip][2])])
+            mik_response = self.api.response_handler(query)
+            print 'Remove', ip, mik_rt[ip], mik_response
 
     def sync_arp(self):
         pass
