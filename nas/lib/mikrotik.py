@@ -220,7 +220,7 @@ class Firewall:
                                            '=pref-src={}'.format(LB_PREF_SRC)])
                     mik_response = self.api.response_handler(query)
                     print 'UPDATE', account, mik_response
-                del mik_rt[account.ip]
+                del mik_rt[ip]
             else:
                 query = self.api.talk(['/ip/route/add',
                                        '=dst-address={}'.format(account.ip),
