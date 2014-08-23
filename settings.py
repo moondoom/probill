@@ -215,6 +215,11 @@ if config.has_section('rib'):
     RIB_CERT_PATH = config.get('rib', 'RIB_CERT_PATH')
     TMP_PATH = config.get('rib', 'TMP_PATH')
     OPENSSL_COMMAND = config.get('rib', 'OPENSSL_COMMAND')
+    if config.has_option('rib', 'RIB_VERSION'):
+        RIB_VERSION = config.get('rib', 'RIB_VERSION')
+    else:
+        RIB_VERSION = ''
+    OPENSSL_COMMAND = config.get('rib', 'OPENSSL_COMMAND')
 else:
     RIB_ENABLE = True
     RIB_URL = ''
@@ -225,6 +230,7 @@ else:
     RIB_CERT_PATH = ''
     TMP_PATH = ''
     OPENSSL_COMMAND = ''
+    RIB_VERSION = ''
 
 
 if config.has_section('lanbilling'):

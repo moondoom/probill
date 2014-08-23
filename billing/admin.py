@@ -85,6 +85,12 @@ class MyAccountLogAdmin(admin.ModelAdmin):
     search_fields = ('account__login', 'account__subscriber__first_name','account__subscriber__last_name')
     ordering = ['datetime']
 
+class MyDateTimeVarAdmin(admin.ModelAdmin):
+    list_display = ('name', 'value')
+    search_fields = ('name', 'value')
+    ordering = ['name']
+
+
 
 admin.site.register(Region)
 admin.site.register(Subscriber,MySubscriberAdmin)
@@ -99,6 +105,7 @@ admin.site.register(VisaPay, MyVisaPayAdmin)
 admin.site.register(Manager)
 admin.site.register(Subnets)
 admin.site.register(QosAndCost)
+admin.site.register(DateTimeVariable, MyDateTimeVarAdmin)
 admin.site.register(Tariff, MyTariffAdmin)
 
 

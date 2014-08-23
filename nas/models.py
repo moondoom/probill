@@ -4,7 +4,6 @@ from django.db import models
 from django.db.models import Q
 from probill.lib.networks import IPAddressField,IPNetworkField
 from probill.billing.models import Account
-
 import os
 import operator
 from itertools import cycle
@@ -268,5 +267,6 @@ class Firewall(models.Model):
 
 class BlackListByIP(models.Model):
     add_datetime = models.DateTimeField(auto_now_add=True, verbose_name='Дата добавления')
-    ip = models.IPAddressField(verbose_name='IP Адрес')
+    ip = IPNetworkField(verbose_name='IP Адрес')
     description = models.TextField(verbose_name='Описание')
+

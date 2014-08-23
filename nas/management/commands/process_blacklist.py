@@ -9,12 +9,14 @@ import time
 import pytz
 import suds
 import subprocess
+
 try:
   from cStringIO import StringIO
 except:
   from StringIO import StringIO
 import zipfile
 import xml.etree.ElementTree as etree
+from billing.models import DateTimeVariable
 
 class ZapretInfo:
     def getLastDumpDate(self):
@@ -39,9 +41,15 @@ class ZapretInfo:
             sert = b64encode(''.join(data))
 
         client = suds.client.Client(RIB_URL)
-        result = client.service.sendRequest(xml, sert)
+        if RIB_VERSION:
+            result = client.service.sendRequest(xml, sert, RIB_VERSION)
+        else:
+            result = client.service.sendRequest(xml, sert)
 
         return dict(((k, v.encode('utf-8')) if isinstance(v, suds.sax.text.Text) else (k, v)) for (k, v) in result)
+
+    def getLastDumpDateEx(self):
+        pass
 
     def getResult(self,code):
         client = suds.client.Client(RIB_URL)
@@ -56,6 +64,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not RIB_ENABLE:
+            exit()
+        if len(args) >= 1:
+            if args[0] == 'last_load':
+                now = time.time()
+                last_load = DateTimeVariable.get('LastBlackListLoad')
+                if last_load:
+                    last_load = time.mktime(last_load.timetuple())
+                    print int(now - last_load)
+                else:
+                    print int(now)
             exit()
         tz = pytz.timezone(TIME_ZONE)
         xml = '''<?xml version="1.0" encoding="windows-1251"?>
@@ -91,7 +109,7 @@ class Command(BaseCommand):
                     request = opener.getResult(code)
                     if request['result']:
                         print 'Got it!'
-
+                        print request['dumpFormatVersion']
                         zf = StringIO(request['registerZipArchive'].decode('base64'))
                         zip_file = zipfile.ZipFile(zf, 'r')
                         xml =zip_file.read('dump.xml')
@@ -99,24 +117,31 @@ class Command(BaseCommand):
                         xml_tree = etree.XML(xml)
                         ip_black_dict = {}
                         for content in xml_tree.iter('content'):
-                            for ip in content.iter('ip'):
-                                if ip.text in ip_black_dict:
-                                    ip_black_dict[ip.text] += etree.tostring(content)
-                                else:
-                                    ip_black_dict[ip.text] = etree.tostring(content)
+                            for element in ['ip', 'ipSubnet']:
+                                for ip in content.iter(element):
+                                    if ip.text.count('/'):
+                                       address = ip.text
+                                    else:
+                                       address = ip.text + '/32'
+                                    if address in ip_black_dict:
+                                        ip_black_dict[address] += etree.tostring(content)
+                                    else:
+                                        ip_black_dict[address] = etree.tostring(content)
                         for acl in BlackListByIP.objects.all():
-                            if acl.ip in ip_black_dict:
-                                if acl.description != ip_black_dict[acl.ip]:
+                            str_ip = str(acl.ip)
+                            if str_ip in ip_black_dict:
+                                if acl.description != ip_black_dict[str_ip]:
                                     print 'Update', acl.ip
-                                    acl.description = ip_black_dict[acl.ip]
+                                    acl.description = ip_black_dict[str_ip]
                                     acl.save()
-                                del ip_black_dict[acl.ip]
+                                del ip_black_dict[str_ip]
                             else:
                                 print 'Delete', acl.ip
                                 acl.delete()
                         for ip in ip_black_dict:
                             print 'Add', ip
                             BlackListByIP(ip=ip, description=ip_black_dict[ip]).save()
+                        DateTimeVariable.set('LastBlackListLoad',datetime.now())
                         break
                     else:
                         if request['resultComment'] == 'запрос обрабатывается':

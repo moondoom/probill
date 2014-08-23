@@ -2,6 +2,7 @@
 
 from django.db import models, connection, transaction
 from django.db.models import Q, Sum
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.admin.models import User
 from django.db.utils import DatabaseError
 from probill.lib.networks import IPNetworkField,IPAddressField,MACAddressField
@@ -797,6 +798,27 @@ class VisaPay(models.Model):
 
 
 
+class DateTimeVariable(models.Model):
+    name = models.CharField('Имя',max_length=200, unique=True, db_index=True)
+    value = models.DateTimeField('Дата')
+
+    @classmethod
+    def get(cls, name):
+        try:
+            obj = cls.objects.get(name=name)
+            return obj.value
+        except ObjectDoesNotExist as error:
+            return None
+
+    @classmethod
+    def set(cls, name, value):
+        try:
+            obj = cls.objects.get(name=name)
+        except ObjectDoesNotExist as error:
+            obj = cls(name=name)
+        obj.value = value
+        obj.save()
+        return obj.value
 
 
 from south.modelsinspector import add_introspection_rules
