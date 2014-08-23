@@ -84,16 +84,19 @@ class Firewall:
             else:
                 mik_table[row['address']] = [row['.id']]
         for account in accounts:
-            if str(account.ip) in mik_table:
-                if mik_table[str(account.ip)]:
-                    mik_table[str(account.ip)].pop()
+            ip = str(account.ip)
+            if ip.endswith('/32'):
+                ip = ip[:-3]
+            if ip in mik_table:
+                if mik_table[ip]:
+                    mik_table[ip].pop()
                 else:
                     PeriodicLog.log('Script PROCESS_FIREWALL_MIKROTIK, posible ip double {}'.format(account.ip),
                                     code=10)
             else:
                 query = self.api.talk(['/ip/firewall/address-list/add',
                                        '=list={}'.format(list_name),
-                                       '=address={}'.format(account.ip),])
+                                       '=address={}'.format(ip),])
                 mik_response = self.api.response_handler(query)
                 print 'Add', account, mik_response
         for ip in mik_table:
