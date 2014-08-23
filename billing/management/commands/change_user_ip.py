@@ -92,6 +92,8 @@ class Command(BaseCommand):
                 free_ip.reverse()
                 query = Subscriber.objects.filter(account__ip__in=filter_net)
                 for sub in query:
+                    if len(sub.account_set.all()) > 1:
+                        continue
                     for account in sub.account_set.all():
                         print account.ip
                         interface = None
@@ -109,6 +111,7 @@ class Command(BaseCommand):
                                                       ip=free_ip.pop(),
                                                       mac=account.mac,
                                                       status=200,
+                                                      active=account.active,
                                                       interface=interface)
                             except IndexError as e:
                                 print "No more free IP"
