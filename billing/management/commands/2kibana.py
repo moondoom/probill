@@ -56,8 +56,8 @@ class Command(BaseCommand):
                         qac_name = "External"
                     es.index(index='traffic_by_period', doc_type='TrafficByPeriod', id=x.id, body={
                         "@timestamp": x.datetime,
-                        "login": unicode(x.account.login),
-                        "tariff": unicode(x.tariff.name),
+                        "login": unicode(x.account),
+                        "tariff": unicode(x.tariff),
                         "qac": qac_name,
                         "count": x.count
                     })
