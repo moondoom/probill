@@ -20,10 +20,10 @@ class Command(BaseCommand):
                 es_c = client.IndicesClient(es)
                 es_c.delete(index='traffic_detail')
                 query = TrafficDetail.objects.filter(datetime__gt=(datetime.now() - timedelta(days=1)),
-                                                    datetime__lt=datetime.now())
+                                                     datetime__lt=datetime.now())
 
                 for x in query:
-                    es.index(index='traffic_detail',doc_type='TrafficDetail',id = x.id, body={
+                    es.index(index='traffic_detail', doc_type='TrafficDetail', id=x.id, body={
                         "@timestamp": x.datetime,
                         "src_ip": str(x.src_ip),
                         "dst_ip": str(x.dst_ip),
@@ -41,12 +41,13 @@ class Command(BaseCommand):
                     }
                 })
                 query = TrafficByPeriod.objects.filter(datetime__gt=(datetime.now() - timedelta(days=1)),
-                                                    datetime__lt=datetime.now()).prefetch_related("account","tariff")
+                                                       datetime__lt=datetime.now())
+                query = query.prefetch_related("account", "tariff")
 
                 for x in query:
-                    es.index(index='traffic_by_period',doc_type='TrafficByPeriod', id=x.id, body={
+                    es.index(index='traffic_by_period', doc_type='TrafficByPeriod', id=x.id, body={
                         "@timestamp": x.datetime,
-                        "login": str(x.account.login ),
+                        "login": str(x.account.login),
                         "tariff": str(x.tariff.name),
                         "count": x.count
                     })
