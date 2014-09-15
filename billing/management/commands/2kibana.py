@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = 'Handler for billing status'
 
     def handle(self, *args, **options):
-        from elasticsearch import Elasticsearch, client
+        from elasticsearch import Elasticsearch, client, exceptions
         if len(args) == 1:
             command = args[0]
             if command == 'export_detail':
@@ -32,7 +32,11 @@ class Command(BaseCommand):
             if command == 'export_period':
                 es = Elasticsearch()
                 es_c = client.IndicesClient(es)
-                es_c.delete(index='traffic_by_period')
+                try:
+                    es_c.delete(index='traffic_by_period')
+                except exceptions.NotFoundError as e:
+                    print "Not found :)"
+                    pass
                 es_c.create(index='traffic_by_period')
                 es_c.put_mapping(index='traffic_by_period', doc_type='TrafficByPeriod', body={
                     "properties": {
