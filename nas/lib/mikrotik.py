@@ -129,7 +129,6 @@ class Firewall:
                 row['.id']
             ]
 
-
         for account in self.nas.get_accounts_query(active=True, tariff__qos_speed__gt=0):
             ip = str(account.ip)
             if ip in mik_qos_dict:
@@ -213,12 +212,14 @@ class Firewall:
                 row['pref-src'],
                 row['.id']
             ]
-        for account in self.nas.get_accounts_query(interface__isnull=False):
+        query = self.nas.get_accounts_query()
+        query = query.exclude(Q(interface__isnull=True) | Q(interface=''))
+        for account in query:
             ip = str(account.ip)
             if ip in mik_rt:
                 if mik_rt[ip][0] != account.interface or mik_rt[ip][1] != LB_PREF_SRC:
                     query = self.api.talk(['/ip/route/set',
-                                           '=.id={}'.format(mik_rt[account.ip][2]),
+                                           '=.id={}'.format(mik_rt[ip][2]),
                                            '=gateway={}'.format(account.interface),
                                            '=pref-src={}'.format(LB_PREF_SRC)])
                     mik_response = self.api.response_handler(query)
