@@ -41,18 +41,20 @@ class Command(BaseCommand):
                 es_c.put_mapping(index='traffic_by_period', doc_type='TrafficByPeriod', body={
                     "properties": {
                         "login": {"type": "string", "index": "not_analyzed"},
-                        "tariff": {"type": "string", "index": "not_analyzed"}
+                        "tariff": {"type": "string", "index": "not_analyzed"},
+                        "qac": {"type": "string", "index": "not_analyzed"}
                     }
                 })
                 query = TrafficByPeriod.objects.filter(datetime__gt=(datetime.now() - timedelta(days=1)),
                                                        datetime__lt=datetime.now())
-                query = query.prefetch_related("account", "tariff")
+                query = query.prefetch_related("account", "tariff", "qac_class")
 
                 for x in query:
                     es.index(index='traffic_by_period', doc_type='TrafficByPeriod', id=x.id, body={
                         "@timestamp": x.datetime,
-                        "login": str(x.account.login),
-                        "tariff": str(x.tariff.name),
+                        "login": unicode(x.account.login),
+                        "tariff": unicode(x.tariff.name),
+                        "qac": unicode(x.qac_class.name),
                         "count": x.count
                     })
 
