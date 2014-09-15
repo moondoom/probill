@@ -50,11 +50,15 @@ class Command(BaseCommand):
                 query = query.prefetch_related("account", "tariff", "qac_class")
 
                 for x in query:
+                    if x.qac_class:
+                        qac_name = unicode(x.qac_class.name)
+                    else:
+                        qac_name = "External"
                     es.index(index='traffic_by_period', doc_type='TrafficByPeriod', id=x.id, body={
                         "@timestamp": x.datetime,
                         "login": unicode(x.account.login),
                         "tariff": unicode(x.tariff.name),
-                        "qac": unicode(x.qac_class.name),
+                        "qac": qac_name,
                         "count": x.count
                     })
 
