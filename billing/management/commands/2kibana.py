@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 
 from django.core.management.base import BaseCommand, CommandError
-
+from settings import *
 from probill.billing.models import TrafficDetail, TrafficByPeriod
 
-
+import pytz
 
 
 class Command(BaseCommand):
@@ -48,14 +48,14 @@ class Command(BaseCommand):
                 query = TrafficByPeriod.objects.filter(datetime__gt=(datetime.now() - timedelta(days=1)),
                                                        datetime__lt=datetime.now())
                 query = query.prefetch_related("account", "tariff", "qac_class")
-
+                tz = pytz.timezone(TIME_ZONE)
                 for x in query:
                     if x.qac_class:
                         qac_name = unicode(x.qac_class.name)
                     else:
                         qac_name = "External"
                     es.index(index='traffic_by_period', doc_type='TrafficByPeriod', id=x.id, body={
-                        "@timestamp": x.datetime,
+                        "@timestamp": x.datetime + tz.utcoffset(x.datetime),
                         "login": unicode(x.account),
                         "tariff": unicode(x.tariff),
                         "qac": qac_name,
