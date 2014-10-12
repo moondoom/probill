@@ -159,6 +159,18 @@ class Firewall:
             mik_response = self.api.response_handler(query)
             print 'Remove', ip, mik_qos_dict[ip], mik_response
 
+    def sync_qos_new(self):
+        qos = {}
+        for account in self.nas.get_accounts_query(active=True, tariff__qos_speed__gt=0):
+            speed = account.tariff.get_speed()
+            if speed in qos:
+                qos[account.tariff.get_speed()].append(account.ip)
+            else:
+                qos[account.tariff.get_speed()] = [account.ip]
+        for speed in qos:
+            self.sync_table('{}_QOS_{}'.format(self.address_list_name,speed),qos[speed])
+
+
     def sync_dhcp(self):
         print "DHCP"
         query = self.api.talk(['/ip/dhcp-server/lease/print',
