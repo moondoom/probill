@@ -168,7 +168,7 @@ class Firewall:
             else:
                 qos[account.tariff.get_speed()] = [account]
         for speed in qos:
-            self.sync_table('{}_QOS_{}'.format(self.address_list_name,speed),qos[speed])
+            self.sync_table(qos[speed],'{}_QOS_{}'.format(self.address_list_name,speed))
 
 
     def sync_dhcp(self):
