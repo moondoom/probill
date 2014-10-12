@@ -164,9 +164,9 @@ class Firewall:
         for account in self.nas.get_accounts_query(active=True, tariff__qos_speed__gt=0):
             speed = account.tariff.get_speed()
             if speed in qos:
-                qos[account.tariff.get_speed()].append(account.ip)
+                qos[account.tariff.get_speed()].append(account)
             else:
-                qos[account.tariff.get_speed()] = [account.ip]
+                qos[account.tariff.get_speed()] = [account]
         for speed in qos:
             self.sync_table('{}_QOS_{}'.format(self.address_list_name,speed),qos[speed])
 
