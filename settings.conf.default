@@ -81,3 +81,5 @@ LOCAL_NAS_ID = 1
 #LB_AGENT_TYPE = 4 (Default for NetFlow)
 
 
+[qos]
+NEW_QOS = False

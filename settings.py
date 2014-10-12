@@ -250,3 +250,8 @@ else:
     LB_USERNAME = ''
     LB_PASSWORD = ''
     LB_AGENT_TYPE = ''
+
+if config.has_section('qos'):
+    NEW_QOS = config.get('qos', 'NEW_QOS')
+else:
+    NEW_QOS = False

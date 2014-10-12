@@ -255,8 +255,11 @@ class Firewall:
 
     def sync_all(self):
         self.sync_access()
-        self.sync_qos()
+        if not NEW_QOS:
+            self.sync_qos()
         #self.sync_arp()
+        self.sync_qos_new()
+
         self.sync_route()
         self.sync_dhcp()
         self.sync_nat()
