@@ -122,26 +122,32 @@ class Firewall:
         mik_response = self.api.response_handler(query)
         mik_qos_dict = {}
         for row in mik_response:
-            mik_qos_dict[row['target'].split('/')[0]] = [
-                row['name'],
+            account_id = int(row['name'].split('_')[2])
+            mik_qos_dict[account_id] = [
+                row['target'].split('/')[0],
                 resolve_mk(row['max-limit'].split('/')[0]),
                 resolve_mk(row['max-limit'].split('/')[1]),
-                row['.id']
+                row['.id'],
+                row['packet-marks']
             ]
 
         for account in self.nas.get_accounts_query(active=True, tariff__qos_speed__gt=0):
             ip = str(account.ip)
-            if ip in mik_qos_dict:
-                if mik_qos_dict[ip][1] != mik_qos_dict[ip][2] or \
-                    mik_qos_dict[ip][2] != account.tariff.get_speed() or \
-                        mik_qos_dict[ip][0] != '{}_{}'.format(self.address_list_name, account.id):
+            packet_marks_push = ",".join(['"{}"'.format(f) for f in SQ_PACKET_MARKS])
+            packet_marks_pull = ",".join(SQ_PACKET_MARKS)
+
+            if account.id in mik_qos_dict:
+                if mik_qos_dict[account.id][1] != mik_qos_dict[account.id][2] or \
+                    mik_qos_dict[account.id][2] != account.tariff.get_speed() or \
+                        mik_qos_dict[ip][0] != ip or mik_qos_dict[account.id][4] != packet_marks_pull:
                     query = self.api.talk(['/queue/simple/set',
                                            '=.id={}'.format(mik_qos_dict[ip][3]),
-                                           '=name={}_{}'.format(self.address_list_name, account.id),
-                                           '=max-limit={0}k/{0}k'.format(account.tariff.get_speed())])
+                                           '=target={}'.format(ip),
+                                           '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
+                                           '=packet-marks={}'.format(packet_marks_push)])
                     mik_response = self.api.response_handler(query)
-                    print 'Update', account, mik_qos_dict[ip], account.tariff.get_speed()
-                del mik_qos_dict[ip]
+                    print 'Update', account, mik_qos_dict[account.id], account.tariff.get_speed()
+                del mik_qos_dict[account.id]
             else:
 
                 query = self.api.talk(['/queue/simple/add',
@@ -150,26 +156,26 @@ class Firewall:
                                        '=name={}_{}'.format(self.address_list_name, account.id),
                                        '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
                                        '=queue=hotspot-default/hotspot-default',
-                                       '=packet-marks="no-mark"'])
+                                       '=packet-marks={}'.format(packet_marks_push)])
                 mik_response = self.api.response_handler(query)
                 print 'Add', account, mik_response
 
         for ip in mik_qos_dict:
-            query = self.api.talk(['/queue/simple/remove','=.id={}'.format(mik_qos_dict[ip][3])])
+            query = self.api.talk(['/queue/simple/remove', '=.id={}'.format(mik_qos_dict[ip][3])])
             mik_response = self.api.response_handler(query)
             print 'Remove', ip, mik_qos_dict[ip], mik_response
 
     def sync_qos_new(self):
         qos = {}
-        for account in self.nas.get_accounts_query(active=True, tariff__qos_speed__gt=0):
+        for account in self.nas.get_accounts_query(tariff__qos_speed__gt=0):
             speed = account.tariff.get_speed()
             if speed in qos:
                 qos[account.tariff.get_speed()].append(account)
             else:
                 qos[account.tariff.get_speed()] = [account]
         for speed in qos:
-            self.sync_table(qos[speed],'{}_QOS_{}'.format(self.address_list_name,speed))
-
+            self.sync_table(qos[speed], '{}_QOS_{}'.format(self.address_list_name, speed))
+        self.remove_bad_table('{}_QOS_{}'.format(self.address_list_name, '{}'), qos.keys())
 
     def sync_dhcp(self):
         print "DHCP"
@@ -255,10 +261,12 @@ class Firewall:
 
     def sync_all(self):
         self.sync_access()
-        if not NEW_QOS:
+        if NEW_QOS:
+            self.sync_qos_new()
+        else:
             self.sync_qos()
         #self.sync_arp()
-        self.sync_qos_new()
+
 
         self.sync_route()
         self.sync_dhcp()
