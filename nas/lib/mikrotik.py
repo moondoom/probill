@@ -139,7 +139,7 @@ class Firewall:
             if account.id in mik_qos_dict:
                 if mik_qos_dict[account.id][1] != mik_qos_dict[account.id][2] or \
                     mik_qos_dict[account.id][2] != account.tariff.get_speed() or \
-                        mik_qos_dict[ip][0] != ip or mik_qos_dict[account.id][4] != packet_marks_pull:
+                        mik_qos_dict[account.id][0] != ip or mik_qos_dict[account.id][4] != packet_marks_pull:
                     query = self.api.talk(['/queue/simple/set',
                                            '=.id={}'.format(mik_qos_dict[ip][3]),
                                            '=target={}'.format(ip),
