@@ -253,7 +253,7 @@ else:
 
 
 if config.has_section('qos'):
-    NEW_QOS = config.get('qos', 'NEW_QOS')
+    NEW_QOS = config.getboolean('qos', 'NEW_QOS')
     if config.has_option('qos', 'PACKET_MARKS'):
         SQ_PACKET_MARKS = config.get('qos', 'PACKET_MARKS').split(',')
     else:
