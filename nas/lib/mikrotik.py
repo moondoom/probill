@@ -141,7 +141,7 @@ class Firewall:
                     mik_qos_dict[account.id][2] != account.tariff.get_speed() or \
                         mik_qos_dict[account.id][0] != ip or mik_qos_dict[account.id][4] != packet_marks_pull:
                     query = self.api.talk(['/queue/simple/set',
-                                           '=.id={}'.format(mik_qos_dict[ip][3]),
+                                           '=.id={}'.format(mik_qos_dict[account.id][3]),
                                            '=target={}'.format(ip),
                                            '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
                                            '=packet-marks={}'.format(packet_marks_push)])
@@ -160,10 +160,10 @@ class Firewall:
                 mik_response = self.api.response_handler(query)
                 print 'Add', account, mik_response
 
-        for ip in mik_qos_dict:
-            query = self.api.talk(['/queue/simple/remove', '=.id={}'.format(mik_qos_dict[ip][3])])
+        for account_id in mik_qos_dict:
+            query = self.api.talk(['/queue/simple/remove', '=.id={}'.format(mik_qos_dict[account_id][3])])
             mik_response = self.api.response_handler(query)
-            print 'Remove', ip, mik_qos_dict[ip], mik_response
+            print 'Remove', mik_qos_dict[account_id], mik_response
 
     def sync_qos_new(self):
         qos = {}
