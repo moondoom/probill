@@ -114,7 +114,7 @@ class Firewall:
             elif x.endswith('M'):
                 return int(x[:-1]) * 1024
             else:
-                return int(x) / 1024
+                return int(x) / 1000
 
         query = self.api.talk(['/queue/simple/print',
                                '?=comment={}'.format(self.address_list_name)])
