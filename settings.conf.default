@@ -84,3 +84,6 @@ LOCAL_NAS_ID = 1
 [qos]
 NEW_QOS = False
 PACKET_MARKS = no-mark
+BURST_MULTI = 0
+BURST_TIMEOUT = 0
+QUEUE_TYPE = hotspot-default

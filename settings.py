@@ -251,13 +251,20 @@ else:
     LB_PASSWORD = ''
     LB_AGENT_TYPE = ''
 
+NEW_QOS = False
+SQ_PACKET_MARKS = ['no-mark']
+SQ_BURST_TIMEOUT = 0
+SQ_BURST_MULTI = 0
+SQ_QUEUE_TYPE = 'hotspot-default'
 
 if config.has_section('qos'):
     NEW_QOS = config.getboolean('qos', 'NEW_QOS')
     if config.has_option('qos', 'PACKET_MARKS'):
         SQ_PACKET_MARKS = config.get('qos', 'PACKET_MARKS').split(',')
-    else:
-        SQ_PACKET_MARKS = ['no-mark']
-else:
-    NEW_QOS = False
-    SQ_PACKET_MARKS = ['no-mark']
+    if config.has_option('qos', 'BURST_TIMEOUT'):
+        SQ_BURST_TIMEOUT = config.get('qos', 'BURST_TIMEOUT')
+    if config.has_option('qos', 'BURST_MULTI'):
+        SQ_BURST_MULTI = config.get('qos', 'BURST_MULTI')
+    if config.has_option('qos', 'QUEUE_TYPE'):
+        SQ_QUEUE_TYPE = config.get('qos', 'QUEUE_TYPE')
+

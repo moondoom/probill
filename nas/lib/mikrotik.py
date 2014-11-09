@@ -140,23 +140,33 @@ class Firewall:
                 if mik_qos_dict[account.id][1] != mik_qos_dict[account.id][2] or \
                     mik_qos_dict[account.id][2] != account.tariff.get_speed() or \
                         mik_qos_dict[account.id][0] != ip or mik_qos_dict[account.id][4] != packet_marks_pull:
-                    query = self.api.talk(['/queue/simple/set',
-                                           '=.id={}'.format(mik_qos_dict[account.id][3]),
-                                           '=target={}'.format(ip),
-                                           '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
-                                           '=packet-marks={}'.format(packet_marks_push)])
+                    query_params = ['/queue/simple/set',
+                                    '=.id={}'.format(mik_qos_dict[account.id][3]),
+                                    '=target={}'.format(ip),
+                                    '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
+                                    '=packet-marks={}'.format(packet_marks_push)]
+                    if SQ_BURST_TIMEOUT:
+                        query_params += ['=burst-limit={0}k/{0}k'.format(account.tariff.get_speed()*SQ_BURST_MULTI),
+                                         '=burst-threshold={0}k/{0}k'.format(account.tariff.get_speed()),
+                                         '=burst-time={0}s/{0}s'.format(SQ_BURST_TIMEOUT)]
+                    query = self.api.talk(query_params)
                     mik_response = self.api.response_handler(query)
                     print 'Update', account, mik_qos_dict[account.id], account.tariff.get_speed()
                 del mik_qos_dict[account.id]
             else:
 
-                query = self.api.talk(['/queue/simple/add',
-                                       '=target={}'.format(ip),
-                                       '=comment={}'.format(self.address_list_name),
-                                       '=name={}_{}'.format(self.address_list_name, account.id),
-                                       '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
-                                       '=queue=hotspot-default/hotspot-default',
-                                       '=packet-marks={}'.format(packet_marks_push)])
+                query_params = ['/queue/simple/add',
+                                '=target={}'.format(ip),
+                                '=comment={}'.format(self.address_list_name),
+                                '=name={}_{}'.format(self.address_list_name, account.id),
+                                '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
+                                '=queue={0}/{0}'.format(SQ_QUEUE_TYPE),
+                                '=packet-marks={}'.format(packet_marks_push)]
+                if SQ_BURST_TIMEOUT:
+                    query_params += ['=burst-limit={0}k/{0}k'.format(account.tariff.get_speed()*SQ_BURST_MULTI),
+                                     '=burst-threshold={0}k/{0}k'.format(account.tariff.get_speed()),
+                                     '=burst-time={0}s/{0}s'.format(SQ_BURST_TIMEOUT)]
+                query = self.api.talk(query_params)
                 mik_response = self.api.response_handler(query)
                 print 'Add', account, mik_response
 
