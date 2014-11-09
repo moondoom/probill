@@ -262,9 +262,9 @@ if config.has_section('qos'):
     if config.has_option('qos', 'PACKET_MARKS'):
         SQ_PACKET_MARKS = config.get('qos', 'PACKET_MARKS').split(',')
     if config.has_option('qos', 'BURST_TIMEOUT'):
-        SQ_BURST_TIMEOUT = config.get('qos', 'BURST_TIMEOUT')
+        SQ_BURST_TIMEOUT = int(config.get('qos', 'BURST_TIMEOUT'))
     if config.has_option('qos', 'BURST_MULTI'):
-        SQ_BURST_MULTI = config.get('qos', 'BURST_MULTI')
+        SQ_BURST_MULTI = int(config.get('qos', 'BURST_MULTI'))
     if config.has_option('qos', 'QUEUE_TYPE'):
         SQ_QUEUE_TYPE = config.get('qos', 'QUEUE_TYPE')
 
