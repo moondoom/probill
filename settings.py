@@ -242,6 +242,9 @@ if config.has_section('lanbilling'):
     LB_USERNAME = config.get('lanbilling', 'LB_USERNAME')
     LB_PASSWORD = config.get('lanbilling', 'LB_PASSWORD')
     LB_AGENT_TYPE = config.get('lanbilling', 'LB_AGENT_TYPE')
+    LB_US_DOPDATA = config.get('lanbilling', 'LB_US_DOPDATA')
+    LB_US_DOPDATA = [f.split(':') for f in LB_US_DOPDATA.split(',')]
+
 else:
     LB_ENABLE = False
     LB_NAS_ID = ''
@@ -250,6 +253,7 @@ else:
     LB_USERNAME = ''
     LB_PASSWORD = ''
     LB_AGENT_TYPE = ''
+    LB_US_DOPDATA = []
 
 NEW_QOS = False
 SQ_PACKET_MARKS = ['no-mark']
