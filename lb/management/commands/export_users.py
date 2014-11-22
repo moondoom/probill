@@ -115,7 +115,7 @@ class Command(BaseCommand):
         if us_base:
             us_base = us_base[0]
             us_attrs = TblBaseDopdata.objects.filter(usercode=us_base.code).using('userside')
-        
+
             for us_attr in us_attrs:
                 if us_attr.datacode in self.us_ext_attr:
                     new_acc.account[self.us_ext_attr[us_attr.datacode]] = us_attr.valuestr
@@ -140,12 +140,14 @@ class Command(BaseCommand):
             cl.service.Login(LB_USERNAME, LB_PASSWORD)
         else:
             return
-        if len(args) >= 2:
-            if args[0] == 'login':
+        if len(args) >= 1:
+            if args[0] == 'login' and len(args) == 2:
                 sub = Subscriber.objects.get(login=args[1])
                 self.create_accounts(cl, sub)
-
-
+            elif args[0] == 'all':
+                sub = Subscriber.objects.all()
+                for x in sub:
+                    self.create_accounts(cl, x)
 
 
 
