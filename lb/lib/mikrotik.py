@@ -28,11 +28,14 @@ class LBAccount():
     def query(cls, dictionary,):
         qu = []
         for ip in dictionary:
-            qu.append(LBAccount(ip, dictionary[ip][0], dictionary[ip][1], dictionary[ip][2], dictionary[ip][3], dictionary[ip][4]))
+            qu.append(LBAccount(ip, dictionary[ip][0],
+                                dictionary[ip][1], dictionary[ip][2],
+                                dictionary[ip][3], dictionary[ip][4]))
         return qu
 
     def __str__(self):
         return self.ip + ' ' + self.interface
+
 
 class FakeNas(NasServer):
 

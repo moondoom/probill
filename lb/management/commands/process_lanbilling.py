@@ -42,6 +42,9 @@ class Command(BaseCommand):
                 PeriodicLog(str(e))
                 #print e
                 continue
+            except AttributeError as e:
+                PeriodicLog(str(e))
+                continue
         return account_dicts
 
     def handle(self, *args, **options):
