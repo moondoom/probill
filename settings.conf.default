@@ -80,6 +80,7 @@ LOCAL_NAS_ID = 1
 #LB_PASSWORD =
 #LB_AGENT_TYPE = 4 (Default for NetFlow)
 #LB_US_EXTRA_ATR = 8,password
+#LB_AGENT_ID = 1
 
 [qos]
 NEW_QOS = False
