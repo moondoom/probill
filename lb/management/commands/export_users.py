@@ -9,6 +9,7 @@ from suds import WebFault
 from billing.models import PeriodicLog, Subscriber, Account
 from lb.models import *
 from userside.models_v3 import TblBaseDopdata, TblBase
+from datetime import date
 
 class Command(BaseCommand):
     args = ''
@@ -16,37 +17,77 @@ class Command(BaseCommand):
     us_ext_attr = dict(LB_US_DOPDATA)
     us_tar_list = {}
 
+    def copy_obj(self,cl, src, dst_temp):
+        dst = cl.factory.create(dst_temp)
+        for k in src:
+            dst[k[0]] = src[k[0]]
+        return dst
+
+
     def create_vgroups(self, cl, exp_sub):
+        flt = cl.factory.create('flt')
+        flt.userid =  exp_sub.lb_id
+        vgroups = cl.service.getVgroups(flt)
+        for x in vgroups:
+            cl.service.delVgroup(x.vgid)
+
         if not self.us_tar_list:
             for x in cl.service.getTarifs():
                 self.us_tar_list[x.name.encode('utf-8')] = x.id
         accounts = exp_sub.subscriber.account_set.all()
-        print accounts
+
+        lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
+
+        pay = cl.factory.create('soapPayment')
+        pay.agrmid = lb_acc['agreements'][0].agrmid
+        pay.receipt = "{}_init".format(exp_sub.subscriber.login)
+        pay.amount = exp_sub.subscriber.balance
+        cl.service.Payment(val=pay)
+
         for account in accounts:
             vg = cl.factory.create('soapVgroupFull')
-            vg.vgroup.login = exp_sub.subscriber.login
+            vg.vgroup.login = "{}-{}".format(exp_sub.subscriber.login, account.id)
             vg.vgroup['pass'] = exp_sub.subscriber.password
             vg.vgroup.amount = exp_sub.subscriber.balance
-            if account.tariff.name in self.us_tar_list:
-                vg.vgroup.tarid = self.us_tar_list[account.tariff.name]
+            vg.vgroup.id = int(LB_AGENT_ID)
+            vg.vgroup.uid = exp_sub.lb_id
+            vg.vgroup.agrmid = lb_acc['agreements'][0].agrmid
+
+            #vg.vgroup.recordid = 0
+            vg.vgroup.tarid = 0
             staff = cl.factory.create('soapStaff')
             staff.type = long(0)
             staff.ipmask.ip = str(account.ip)
             staff.ipmask.mask = long(32)
             vg.staff.append(staff)
-            mac = cl.factory.create('soapMacStaff')
-            mac.segment = staff.ipmask.ip
-            mac.mac = account.mac
-            vg.macstaff.append(mac)
-            if account.tariff.name in self.us_tar_list:
+            if account.interface:
+                add = cl.factory.create('soapVgroupAddon')
+                add.name = 'interface'
+                add.strvalue = account.interface
+                vg.addons.append(add)
+            if account.mac:
+                add = cl.factory.create('soapVgroupAddon')
+                add.name = 'mac'
+                add.strvalue = account.mac
+                vg.addons.append(add)
+            if account.tariff.name.encode('utf-8') in self.us_tar_list:
                 tar = cl.factory.create('soapTarifsRasp')
-                tar.taridnew = self.us_tar_list[account.tariff.name]
+                tar.taridnew = self.us_tar_list[account.tariff.name.encode('utf-8')]
                 tar.taridold = long(0)
+                tar.agenttype = 4
+                tar.changetime = str(date.today())
                 vg.tarrasp.append(tar)
-            vg.vgroup.id = LB_AGENT_ID
-            vg.vgroup.uid = exp_sub.lb_id
-            print vg
-            print cl.service.insupdVgroup(val=vg, isInsert=long(1))
+            else:
+                print "Tariff {} not found".format(account.tariff)
+
+            vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))
+
+            #vg = cl.service.getVgroup(vg_id)[0]
+            #print vg
+            #vg = self.copy_obj(cl, vg, 'soapVgroupFull')
+
+            #print vg
+            #vg_id = cl.service.insupdVgroup( val=vg , isInsert=long(0))
 
     def get_address(self, cl, sub):
         flt = cl.factory.create('soapAddressFilter')
@@ -129,7 +170,16 @@ class Command(BaseCommand):
             address.code = ','.join(map(str,self.get_address(cl, sub)))
             address.type = 0
             new_acc.addresses.append(address)
-            new_acc.account.login = sub.login
+            agrm = cl.factory.create('soapAgreement')
+            print sub.balance
+            agrm.balance = long(sub.balance)
+            agrm.balanceacc = long(sub.balance)
+            agrm.number = sub.login
+            agrm.date = sub.create_date.strftime('%Y-%m-%d')
+            agrm.operid = 1
+            agrm.balancestatus = 4
+            agrm.curid = 1
+            new_acc.agreements.append(agrm)
             new_acc.account.type = 2
             new_acc.account['pass'] = sub.password
             new_acc.account.abonentname = sub.last_name
@@ -137,19 +187,18 @@ class Command(BaseCommand):
             new_acc.account.abonentpatronymic = sub.father_name,
             new_acc.account.email = sub.email,
             new_acc.account.mobile = sub.phone.replace('+', ''),
-
-            us_base = TblBase.objects.filter(logname=sub.login).using('userside')
-            if us_base:
-                us_base = us_base[0]
-                us_attrs = TblBaseDopdata.objects.filter(usercode=us_base.code).using('userside')
-
-                for us_attr in us_attrs:
-                    if us_attr.datacode in self.us_ext_attr:
-                        new_acc.account[self.us_ext_attr[us_attr.datacode]] = us_attr.valuestr
+            print new_acc
+            # us_base = TblBase.objects.filter(logname=sub.login).using('userside')
+            # if us_base:
+            #     us_base = us_base[0]
+            #     us_attrs = TblBaseDopdata.objects.filter(usercode=us_base.code).using('userside')
+            #
+            #     for us_attr in us_attrs:
+            #         if us_attr.datacode in self.us_ext_attr:
+            #             new_acc.account[self.us_ext_attr[us_attr.datacode]] = us_attr.valuestr
             try:
                 new_acc.account.uid = cl.service.insupdAccount(val=new_acc, isInsert=long(1))
-                flt = cl.factory.create('flt')
-                flt.login = sub.login
+
                 exp_sub = ExportedSub(
                     subscriber=sub,
                     lb_id=new_acc.account.uid
@@ -159,6 +208,7 @@ class Command(BaseCommand):
                 print e
                 pass
         if exp_sub:
+
             self.create_vgroups(cl, exp_sub)
 
 
