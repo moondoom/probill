@@ -79,8 +79,10 @@ class Command(BaseCommand):
                 vg.tarrasp.append(tar)
             else:
                 print "Tariff {} not found".format(account.tariff)
-
-            vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))
+            try:
+                vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))
+            except WebFault as e:
+                print exp_sub.subscriber, e
 
             #vg = cl.service.getVgroup(vg_id)[0]
             #print vg
@@ -196,7 +198,6 @@ class Command(BaseCommand):
             new_acc.account.abonentpatronymic = sub.father_name,
             new_acc.account.email = sub.email,
             new_acc.account.mobile = sub.phone.replace('+', ''),
-            print new_acc
             # us_base = TblBase.objects.filter(logname=sub.login).using('userside')
             # if us_base:
             #     us_base = us_base[0]
