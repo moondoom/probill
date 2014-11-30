@@ -182,7 +182,6 @@ class Command(BaseCommand):
                 print "Address {} not fount".format(sub)
 
             agrm = cl.factory.create('soapAgreement')
-            print sub.balance
             agrm.balance = long(sub.balance)
             agrm.balanceacc = long(sub.balance)
             agrm.number = sub.login
