@@ -172,9 +172,13 @@ class Command(BaseCommand):
 
             new_acc = cl.factory.create('soapAccountFull')
             address = cl.factory.create('soapAddressBrief')
-            address.code = ','.join(map(str,self.get_address(cl, sub)))
-            address.type = 0
-            new_acc.addresses.append(address)
+            try:
+                address.code = ','.join(map(str,self.get_address(cl, sub)))
+                address.type = 0
+                new_acc.addresses.append(address)
+            except WebFault as e:
+                print "Address {} not fount".format(sub)
+
             agrm = cl.factory.create('soapAgreement')
             print sub.balance
             agrm.balance = long(sub.balance)
