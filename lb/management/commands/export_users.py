@@ -164,6 +164,11 @@ class Command(BaseCommand):
         try:
             exp_sub = ExportedSub.objects.get(subscriber=sub)
         except Exception as e:
+            flt = cl.factory.create('flt')
+            flt.login = sub.login()
+            if cl.service.getAccounts(flt=flt):
+                print sub, 'уже существует'
+                return
 
             new_acc = cl.factory.create('soapAccountFull')
             address = cl.factory.create('soapAddressBrief')
@@ -207,9 +212,9 @@ class Command(BaseCommand):
             except WebFault as e:
                 print e
                 pass
-        if exp_sub:
+            if exp_sub:
 
-            self.create_vgroups(cl, exp_sub)
+                self.create_vgroups(cl, exp_sub)
 
 
 
