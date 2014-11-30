@@ -165,7 +165,7 @@ class Command(BaseCommand):
             exp_sub = ExportedSub.objects.get(subscriber=sub)
         except Exception as e:
             flt = cl.factory.create('flt')
-            flt.login = sub.login()
+            flt.login = sub.login
             if cl.service.getAccounts(flt=flt):
                 print sub, 'уже существует'
                 return
