@@ -70,13 +70,14 @@ class Command(BaseCommand):
                 add.name = 'mac'
                 add.strvalue = account.mac
                 vg.addons.append(add)
-            if account.tariff.name.encode('utf-8') in self.us_tar_list:
-                tar = cl.factory.create('soapTarifsRasp')
-                tar.taridnew = self.us_tar_list[account.tariff.name.encode('utf-8')]
-                tar.taridold = long(0)
-                tar.agenttype = 4
-                tar.changetime = str(date.today())
-                vg.tarrasp.append(tar)
+            if account.tariff:
+                if account.tariff.name.encode('utf-8') in self.us_tar_list:
+                    tar = cl.factory.create('soapTarifsRasp')
+                    tar.taridnew = self.us_tar_list[account.tariff.name.encode('utf-8')]
+                    tar.taridold = long(0)
+                    tar.agenttype = 4
+                    tar.changetime = str(date.today())
+                    vg.tarrasp.append(tar)
             else:
                 print "Tariff {} not found".format(account.tariff)
             try:
