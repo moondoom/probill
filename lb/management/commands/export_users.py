@@ -8,7 +8,8 @@ from suds.client import Client
 from suds import WebFault
 from billing.models import PeriodicLog, Subscriber, Account
 from lb.models import *
-from userside.models_v3 import TblBaseDopdata, TblBase
+#from userside.models_v3 import TblBaseDopdata, TblBase
+import random
 from datetime import date
 
 class Command(BaseCommand):
@@ -40,7 +41,7 @@ class Command(BaseCommand):
 
         pay = cl.factory.create('soapPayment')
         pay.agrmid = lb_acc['agreements'][0].agrmid
-        pay.receipt = "{}_init".format(exp_sub.subscriber.login)
+        pay.receipt = "{}_init_{}".format(exp_sub.subscriber.login, random.randint(1000, 1999))
         pay.amount = exp_sub.subscriber.balance
         cl.service.Payment(val=pay)
 
@@ -74,13 +75,21 @@ class Command(BaseCommand):
                 if account.tariff.name.encode('utf-8') in self.us_tar_list:
                     tar = cl.factory.create('soapTarifsRasp')
                     tar.taridnew = self.us_tar_list[account.tariff.name.encode('utf-8')]
-                    tar.taridold = long(0)
+                    #tar.taridold = long(0)
                     tar.agenttype = 4
                     tar.changetime = str(date.today())
                     vg.tarrasp.append(tar)
+            if account.active:
+                vg.vgroup.blocked = 0
+                block = cl.factory.create('soapBlockRasp')
+                block.blkreq = 0
+                block.requestby = 7
+                block.changetime = str(date.today())
+                vg.blockrasp.append(block)
             else:
                 print "Tariff {} not found".format(account.tariff)
             try:
+                print vg
                 vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))
             except WebFault as e:
                 print exp_sub.subscriber, e
@@ -118,6 +127,7 @@ class Command(BaseCommand):
             street.name = unicode(sub.address_street)
             street.shortname = u"ул"
             street.city = flt.city
+            street.region = 1
             street.idx = 0
             street.region = flt.region
 
@@ -132,6 +142,7 @@ class Command(BaseCommand):
             building.name = unicode(sub.address_house)
             building.shortname = u"д"
             building.street = flt.street
+            building.city = flt.city
             building.region = flt.region
             flt.building = cl.service.insupdAddressBuilding(val=building, isInsert=long(1))
 
@@ -189,8 +200,9 @@ class Command(BaseCommand):
         agrm.number = sub.login
         agrm.date = sub.create_date.strftime('%Y-%m-%d')
         agrm.operid = 1
-        agrm.balancestatus = 4
+        agrm.balancestatus = 1
         agrm.curid = 1
+        agrm.paymentmethod = 2
         new_acc.agreements.append(agrm)
         new_acc.account.type = 2
         new_acc.account['pass'] = sub.password
