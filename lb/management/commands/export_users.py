@@ -12,8 +12,8 @@ from userside.models_v3 import TblBaseDopdata, TblBase
 from datetime import date
 
 class Command(BaseCommand):
-    args = ''
-    help = 'Firewall setup'
+    args = '[login] [regions]'
+    help = 'export users '
     us_ext_attr = dict(LB_US_DOPDATA)
     us_tar_list = {}
 
@@ -230,12 +230,15 @@ class Command(BaseCommand):
             cl.service.Login(LB_USERNAME, LB_PASSWORD)
         else:
             return
-        if len(args) >= 1:
+        if len(args) >= 2:
             if args[0] == 'login' and len(args) == 2:
                 sub = Subscriber.objects.get(login=args[1])
                 self.create_accounts(cl, sub)
             elif args[0] == 'all':
                 sub = Subscriber.objects.all()
+                if args[1] != 'all':
+                    regions = args[1].split(',')
+                    sub = sub.filter(region__id__in=map(int,regions))
                 for x in sub:
                     self.create_accounts(cl, x)
 
