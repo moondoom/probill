@@ -240,6 +240,7 @@ class Command(BaseCommand):
                     regions = args[1].split(',')
                     sub = sub.filter(region__id__in=map(int,regions))
                 for x in sub:
+                    print x
                     self.create_accounts(cl, x)
 
 
