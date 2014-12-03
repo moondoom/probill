@@ -213,7 +213,7 @@ class Command(BaseCommand):
                     subscriber=sub,
                     lb_id=new_acc.account.uid
                 )
-                exp_sub.save()
+                #exp_sub.save()
             except WebFault as e:
                 print e
                 pass
