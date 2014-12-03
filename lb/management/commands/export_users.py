@@ -37,13 +37,7 @@ class Command(BaseCommand):
                 self.us_tar_list[x.name.encode('utf-8')] = x.id
         accounts = exp_sub.subscriber.account_set.all()
 
-        lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
 
-        pay = cl.factory.create('soapPayment')
-        pay.agrmid = lb_acc['agreements'][0].agrmid
-        pay.receipt = "{}_init_{}".format(exp_sub.subscriber.login, random.randint(1000, 1999))
-        pay.amount = exp_sub.subscriber.balance
-        cl.service.Payment(val=pay)
 
         for account in accounts:
             vg = cl.factory.create('soapVgroupFull')
@@ -92,6 +86,14 @@ class Command(BaseCommand):
                 vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))
             except WebFault as e:
                 print exp_sub.subscriber, e
+
+        lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
+
+        pay = cl.factory.create('soapPayment')
+        pay.agrmid = lb_acc['agreements'][0].agrmid
+        pay.receipt = "{}_init_{}".format(exp_sub.subscriber.login, random.randint(1000, 1999))
+        pay.amount = exp_sub.subscriber.balance - lb_acc.balance
+        cl.service.Payment(val=pay)
 
             #vg = cl.service.getVgroup(vg_id)[0]
             #print vg
@@ -205,6 +207,7 @@ class Command(BaseCommand):
         new_acc.agreements.append(agrm)
         new_acc.account.type = 2
         new_acc.account['pass'] = sub.password
+        new_acc.account.login = sub.login
         new_acc.account.abonentname = sub.last_name
         new_acc.account.abonentsurname = sub.first_name,
         new_acc.account.abonentpatronymic = sub.father_name,
