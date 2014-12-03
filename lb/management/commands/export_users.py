@@ -24,7 +24,6 @@ class Command(BaseCommand):
             dst[k[0]] = src[k[0]]
         return dst
 
-
     def create_vgroups(self, cl, exp_sub):
         flt = cl.factory.create('flt')
         flt.userid =  exp_sub.lb_id
@@ -38,7 +37,6 @@ class Command(BaseCommand):
         accounts = exp_sub.subscriber.account_set.all()
 
         lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
-
 
         for account in accounts:
             vg = cl.factory.create('soapVgroupFull')
@@ -88,6 +86,7 @@ class Command(BaseCommand):
             except WebFault as e:
                 print exp_sub.subscriber, e
 
+        lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
 
 
         pay = cl.factory.create('soapPayment')
@@ -231,7 +230,7 @@ class Command(BaseCommand):
             )
             #exp_sub.save()
         except WebFault as e:
-            print e
+            print sub, e
             pass
         if exp_sub:
 
