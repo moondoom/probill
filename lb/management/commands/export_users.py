@@ -164,62 +164,62 @@ class Command(BaseCommand):
     def create_accounts(self, cl, sub):
 #        sub = Subscriber.objects.get()
         exp_sub = None
+        # try:
+        #     exp_sub = ExportedSub.objects.get(subscriber=sub)
+        #except Exception as e:
+        #     flt = cl.factory.create('flt')
+        #     flt.login = sub.login
+        #     if cl.service.getAccounts(flt=flt):
+        #         print sub, 'уже существует'
+        #         return
+
+        new_acc = cl.factory.create('soapAccountFull')
+        address = cl.factory.create('soapAddressBrief')
         try:
-            exp_sub = ExportedSub.objects.get(subscriber=sub)
-        except Exception as e:
-            flt = cl.factory.create('flt')
-            flt.login = sub.login
-            if cl.service.getAccounts(flt=flt):
-                print sub, 'уже существует'
-                return
+            address.code = ','.join(map(str,self.get_address(cl, sub)))
+            address.type = 0
+            new_acc.addresses.append(address)
+        except WebFault as e:
+            print "Address {} not fount".format(sub)
 
-            new_acc = cl.factory.create('soapAccountFull')
-            address = cl.factory.create('soapAddressBrief')
-            try:
-                address.code = ','.join(map(str,self.get_address(cl, sub)))
-                address.type = 0
-                new_acc.addresses.append(address)
-            except WebFault as e:
-                print "Address {} not fount".format(sub)
+        agrm = cl.factory.create('soapAgreement')
+        agrm.balance = long(sub.balance)
+        agrm.balanceacc = long(sub.balance)
+        agrm.number = sub.login
+        agrm.date = sub.create_date.strftime('%Y-%m-%d')
+        agrm.operid = 1
+        agrm.balancestatus = 4
+        agrm.curid = 1
+        new_acc.agreements.append(agrm)
+        new_acc.account.type = 2
+        new_acc.account['pass'] = sub.password
+        new_acc.account.abonentname = sub.last_name
+        new_acc.account.abonentsurname = sub.first_name,
+        new_acc.account.abonentpatronymic = sub.father_name,
+        new_acc.account.email = sub.email,
+        new_acc.account.mobile = sub.phone.replace('+', ''),
+        # us_base = TblBase.objects.filter(logname=sub.login).using('userside')
+        # if us_base:
+        #     us_base = us_base[0]
+        #     us_attrs = TblBaseDopdata.objects.filter(usercode=us_base.code).using('userside')
+        #
+        #     for us_attr in us_attrs:
+        #         if us_attr.datacode in self.us_ext_attr:
+        #             new_acc.account[self.us_ext_attr[us_attr.datacode]] = us_attr.valuestr
+        try:
+            new_acc.account.uid = cl.service.insupdAccount(val=new_acc, isInsert=long(1))
 
-            agrm = cl.factory.create('soapAgreement')
-            agrm.balance = long(sub.balance)
-            agrm.balanceacc = long(sub.balance)
-            agrm.number = sub.login
-            agrm.date = sub.create_date.strftime('%Y-%m-%d')
-            agrm.operid = 1
-            agrm.balancestatus = 4
-            agrm.curid = 1
-            new_acc.agreements.append(agrm)
-            new_acc.account.type = 2
-            new_acc.account['pass'] = sub.password
-            new_acc.account.abonentname = sub.last_name
-            new_acc.account.abonentsurname = sub.first_name,
-            new_acc.account.abonentpatronymic = sub.father_name,
-            new_acc.account.email = sub.email,
-            new_acc.account.mobile = sub.phone.replace('+', ''),
-            # us_base = TblBase.objects.filter(logname=sub.login).using('userside')
-            # if us_base:
-            #     us_base = us_base[0]
-            #     us_attrs = TblBaseDopdata.objects.filter(usercode=us_base.code).using('userside')
-            #
-            #     for us_attr in us_attrs:
-            #         if us_attr.datacode in self.us_ext_attr:
-            #             new_acc.account[self.us_ext_attr[us_attr.datacode]] = us_attr.valuestr
-            try:
-                new_acc.account.uid = cl.service.insupdAccount(val=new_acc, isInsert=long(1))
+            exp_sub = ExportedSub(
+                subscriber=sub,
+                lb_id=new_acc.account.uid
+            )
+            #exp_sub.save()
+        except WebFault as e:
+            print e
+            pass
+        if exp_sub:
 
-                exp_sub = ExportedSub(
-                    subscriber=sub,
-                    lb_id=new_acc.account.uid
-                )
-                #exp_sub.save()
-            except WebFault as e:
-                print e
-                pass
-            if exp_sub:
-
-                self.create_vgroups(cl, exp_sub)
+            self.create_vgroups(cl, exp_sub)
 
 
 
