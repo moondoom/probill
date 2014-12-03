@@ -155,7 +155,7 @@ class Command(BaseCommand):
             0,
             flt.street,
             flt.building,
-            flt.flat,
+            flat,
             0,
             0
         ]
@@ -180,6 +180,7 @@ class Command(BaseCommand):
             address.type = 0
             new_acc.addresses.append(address)
         except WebFault as e:
+            print e
             print "Address {} not fount".format(sub)
 
         agrm = cl.factory.create('soapAgreement')
