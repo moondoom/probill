@@ -36,7 +36,8 @@ class Command(BaseCommand):
             for x in cl.service.getTarifs():
                 self.us_tar_list[x.name.encode('utf-8')] = x.id
         accounts = exp_sub.subscriber.account_set.all()
-
+        
+        lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
 
 
         for account in accounts:
@@ -87,7 +88,7 @@ class Command(BaseCommand):
             except WebFault as e:
                 print exp_sub.subscriber, e
 
-        lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
+
 
         pay = cl.factory.create('soapPayment')
         pay.agrmid = lb_acc['agreements'][0].agrmid
