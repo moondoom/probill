@@ -89,7 +89,6 @@ class Command(BaseCommand):
             else:
                 print "Tariff {} not found".format(account.tariff)
             try:
-                print vg
                 vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))
             except WebFault as e:
                 print exp_sub.subscriber, e
@@ -253,7 +252,6 @@ class Command(BaseCommand):
                     regions = args[1].split(',')
                     sub = sub.filter(region__id__in=map(int,regions))
                 for x in sub:
-                    print x
                     self.create_accounts(cl, x)
 
 
