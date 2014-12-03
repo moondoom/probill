@@ -36,7 +36,7 @@ class Command(BaseCommand):
             for x in cl.service.getTarifs():
                 self.us_tar_list[x.name.encode('utf-8')] = x.id
         accounts = exp_sub.subscriber.account_set.all()
-        
+
         lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
 
 
@@ -93,7 +93,7 @@ class Command(BaseCommand):
         pay = cl.factory.create('soapPayment')
         pay.agrmid = lb_acc['agreements'][0].agrmid
         pay.receipt = "{}_init_{}".format(exp_sub.subscriber.login, random.randint(1000, 1999))
-        pay.amount = exp_sub.subscriber.balance - lb_acc.balance
+        pay.amount = exp_sub.subscriber.balance - lb_acc.agreements[0].balance
         cl.service.Payment(val=pay)
 
             #vg = cl.service.getVgroup(vg_id)[0]
