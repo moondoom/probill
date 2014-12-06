@@ -73,6 +73,9 @@ class Command(BaseCommand):
                     tar.agenttype = 4
                     tar.changetime = str(date.today())
                     vg.tarrasp.append(tar)
+            else:
+                print "Tariff {} not found".format(account.tariff)
+
             if account.active:
                 vg.vgroup.blocked = 0
                 block = cl.factory.create('soapBlockRasp')
@@ -80,8 +83,7 @@ class Command(BaseCommand):
                 block.requestby = 7
                 block.changetime = str(date.today())
                 vg.blockrasp.append(block)
-            else:
-                print "Tariff {} not found".format(account.tariff)
+
             try:
                 vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))
             except WebFault as e:
