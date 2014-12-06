@@ -24,7 +24,6 @@ class Command(BaseCommand):
             dst[k[0]] = src[k[0]]
         return dst
 
-
     def create_vgroups(self, cl, exp_sub):
         flt = cl.factory.create('flt')
         flt.userid =  exp_sub.lb_id
@@ -37,7 +36,7 @@ class Command(BaseCommand):
                 self.us_tar_list[x.name.encode('utf-8')] = x.id
         accounts = exp_sub.subscriber.account_set.all()
 
-
+        lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
 
         for account in accounts:
             vg = cl.factory.create('soapVgroupFull')
@@ -91,10 +90,11 @@ class Command(BaseCommand):
 
         lb_acc = cl.service.getAccount(id=exp_sub.lb_id)[0]
 
+
         pay = cl.factory.create('soapPayment')
         pay.agrmid = lb_acc['agreements'][0].agrmid
         pay.receipt = "{}_init_{}".format(exp_sub.subscriber.login, random.randint(1000, 1999))
-        pay.amount = exp_sub.subscriber.balance - lb_acc.balance
+        pay.amount = exp_sub.subscriber.balance - lb_acc.agreements[0].balance
         cl.service.Payment(val=pay)
 
             #vg = cl.service.getVgroup(vg_id)[0]
@@ -232,7 +232,7 @@ class Command(BaseCommand):
             )
             #exp_sub.save()
         except WebFault as e:
-            print e
+            print sub, e
             pass
         if exp_sub:
 
