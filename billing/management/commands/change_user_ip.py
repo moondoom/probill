@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
         if len(args) > 1:
             if args[0] == 'change':
-                if len(args) == 4:
+                if len(args) > 4:
                     tar = Tariff.objects.get(id=args[1])
                     net = IPNetwork(args[2])
                     query = Account.objects.filter(ip__in=net)
@@ -37,7 +37,6 @@ class Command(BaseCommand):
 
                     for sub in subscribers:
                         for account in sub.account_set.all():
-                            print account
                             if account.mac:
                                 new_account = Account(subscriber=sub,
                                                       login='auto__copy__{}'.format(account.login),
@@ -45,6 +44,7 @@ class Command(BaseCommand):
                                                       owner=account.owner,
                                                       ip=free_ip.pop(),
                                                       mac=account.mac,
+                                                      active=account.active,
                                                       status=200,
                                                       interface=None)
                                 account.mac = None
@@ -55,16 +55,16 @@ class Command(BaseCommand):
                                                                                        new_account.mac))
             elif args[0] == 'clean':
                 filter_net = IPNetwork(args[1])
-                subscribers = Subscriber.objects.filter(account__ip__in=filter_net)
+                subscribers = Subscriber.objects.filter(account__ip__in=filter_net).exclude(account__deleted=True)
                 for sub in subscribers:
                     old_account = None
                     new_account = None
                     accounts = sub.account_set.all()
-                    print accounts
+
                     if len(accounts) == 2:
 
                         for account in accounts:
-                            print account
+
                             if account.login.startswith('auto__copy__'):
                                 new_account = account
                             else:
