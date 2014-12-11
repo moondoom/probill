@@ -17,13 +17,24 @@ class Command(BaseCommand):
             if args[0] == 'change':
                 if len(args) == 4:
                     tar = Tariff.objects.get(id=args[1])
-                    network = args[2]
-                    subscriber_names = args[3].split(',')
-                    print subscriber_names
-                    subscribers = Subscriber.objects.filter(login__in=subscriber_names).\
-                        exclude(account__login__startswith='auto__copy')
-                    ip_range = [network + '.' + str(f) for f in range(10, 200)]
-                    ip_range.reverse()
+                    net = IPNetwork(args[2])
+                    query = Account.objects.filter(ip__in=net)
+                    used_ip = [f.ip for f in query] + [net.broadcast, net.network]
+                    free_ip = [f for f in net if f not in used_ip]
+                    free_ip.reverse()
+                    subscribers = Subscriber.objects.exclude(account__login__startswith='auto__copy')
+                    n = 3
+                    while len(args) > n:
+                        if args[n] == "region":
+                             subscribers = subscribers.filter(region__in=args[n + 1].split(','))
+                        elif args[n] == "name":
+                            subscribers = subscribers.filter(login__in=args[n + 1].split(','))
+                        elif args[n] == "-name":
+                            subscribers = subscribers.exclude(login__in=args[n + 1].split(','))
+                        elif args[n] == "iface":
+                            subscribers = subscribers.filter(account__interface=args[n + 1])
+                        n += 2
+
                     for sub in subscribers:
                         for account in sub.account_set.all():
                             print account
@@ -32,9 +43,10 @@ class Command(BaseCommand):
                                                       login='auto__copy__{}'.format(account.login),
                                                       tariff=tar,
                                                       owner=account.owner,
-                                                      ip=ip_range.pop(),
+                                                      ip=free_ip.pop(),
                                                       mac=account.mac,
-                                                      status=200)
+                                                      status=200,
+                                                      interface=None)
                                 account.mac = None
                                 account.save()
                                 new_account.save()
@@ -71,7 +83,7 @@ class Command(BaseCommand):
                             new_account.delete()
                             old_account.save()
                         else:
-                            print "Subscriber {} have >2 account".format(sub)
+                            print "Subscriber {} have <2 account".format(sub)
                     else:
                         print "Subscriber {} have >2 account".format(sub)
 

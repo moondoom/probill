@@ -17,6 +17,7 @@ class Command(BaseCommand):
     help = 'export users '
     us_ext_attr = dict(LB_US_DOPDATA)
     us_tar_list = {}
+    region_map = {}
 
     def copy_obj(self,cl, src, dst_temp):
         dst = cl.factory.create(dst_temp)
@@ -108,17 +109,17 @@ class Command(BaseCommand):
         flt = cl.factory.create('soapAddressFilter')
         flt.country = 1
         flt.region = 1
-        flt.name = sub.region.name
-        cities = cl.service.getAddressCities(flt)
+        region_id = sub.region.id
+        if self.region_map[region_id][0]:
+            flt.city = self.region_map[region_id][0]
+            flt.area = 0
+            flt.entrance = 0
 
-        if cities:
-            flt.city = cities[0].recordid
         else:
-            city = cl.factory.create('soapAddressCity')
-            city.name = unicode(sub.region.name)
-            city.shortname = u"г"
-            city.region = 1
-            flt.city = cl.service.insupdAddressCity(val=city, isInsert=long(1))
+            flt.area = self.region_map[region_id][1]
+            flt.entrance = self.region_map[region_id][2]
+            flt.city = 0
+
 
         flt.name = unicode(sub.address_street)
         streets = cl.service.getAddressStreets(flt)
@@ -164,9 +165,9 @@ class Command(BaseCommand):
         address_code = [
             flt.country,
             flt.region,
-            0,
+            flt.area,
             flt.city,
-            0,
+            flt.entrance,
             flt.street,
             flt.building,
             flat,
@@ -239,6 +240,10 @@ class Command(BaseCommand):
             self.create_vgroups(cl, exp_sub)
 
 
+    def parse_regions(self,reg_list):
+        for reg in reg_list:
+            reg = map(int, reg.split(':'))
+            self.region_map[reg[0]] = reg[1:]
 
 
     def handle(self, *args, **options):
@@ -255,6 +260,7 @@ class Command(BaseCommand):
                 sub = Subscriber.objects.all()
                 if args[1] != 'all':
                     regions = args[1].split(',')
+
                     sub = sub.filter(region__id__in=map(int,regions))
                 for x in sub:
                     self.create_accounts(cl, x)
