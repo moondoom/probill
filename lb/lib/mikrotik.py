@@ -96,7 +96,7 @@ class Firewall(Old):
                 if ip_address in net:
                     is_unnunberred = True
                     break
-            if not is_unnunberred:
+            if not is_unnunberred or not account.interface:
                 continue
             if account.ip in mik_rt:
                 if mik_rt[account.ip][0] != account.interface or mik_rt[account.ip][1] != LB_PREF_SRC:
