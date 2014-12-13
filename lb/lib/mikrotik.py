@@ -35,7 +35,7 @@ class LBAccount():
         return qu
 
     def __str__(self):
-        return self.ip + ' ' + self.interface
+        return self.ip + ' ' + str(self.interface)
 
 
 class FakeNas(NasServer):
@@ -76,10 +76,8 @@ class Firewall(Old):
     def find_interface(self, account):
         return self.vg_dict[account.ip][1]
 
-
     def sync_route(self):
         print "ROUTE"
-
 
         query = self.api.talk(['/ip/route/print',
                                '?=comment={}'.format(self.address_list_name)])
