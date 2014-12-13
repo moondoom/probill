@@ -28,13 +28,17 @@ class Command(BaseCommand):
                 if ip in account_dicts:
                     PeriodicLog('Possible IP double (LOGIN: {} IP: {})'.format(ac_f.vgroup.login, ip))
                     continue
+                if ac_f.vgroup.currentshape == 0:
+                    blocked = True
+                else:
+                    blocked = ac_f.vgroup.blocked
                 account_dicts[ip] = [
                     mac,
                     interface,
                     ac_f.vgroup.currentshape,
-                    ac_f.vgroup.blocked,
+                    blocked,
                     ac_d.vgid
-                 ]
+                ]
                 print account_dicts[ip]
             except WebFault as e:
                 PeriodicLog(str(e))

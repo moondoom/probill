@@ -81,8 +81,8 @@ class Command(BaseCommand):
                     tar.agenttype = 4
                     tar.changetime = str(date.today())
                     vg.tarrasp.append(tar)
-            else:
-                print "Tariff {} not found".format(account.tariff)
+                else:
+                    print "Tariff {} not found".format(account.tariff)
 
             if account.active:
                 vg.vgroup.blocked = 0

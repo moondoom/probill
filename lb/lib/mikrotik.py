@@ -17,7 +17,6 @@ class Tariff():
 
 class LBAccount():
 
-
     def __init__(self, ip, mac, interface, shape, blocked, id):
         self.ip = ip
         self.mac = mac
