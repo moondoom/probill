@@ -25,6 +25,15 @@ class Command(BaseCommand):
             dst[k[0]] = src[k[0]]
         return dst
 
+    def find_interface(self, account):
+        if account.interface:
+            return account.interface
+        for interface in self.interface:
+            for net in self.interface[interface]:
+                if account.ip in net:
+                    return interface
+        return 'all'
+
     def create_vgroups(self, cl, exp_sub):
         flt = cl.factory.create('flt')
         flt.userid = exp_sub.lb_id
@@ -55,11 +64,10 @@ class Command(BaseCommand):
             staff.ipmask.ip = str(account.ip)
             staff.ipmask.mask = long(32)
             vg.staff.append(staff)
-            if account.interface:
-                add = cl.factory.create('soapVgroupAddon')
-                add.name = 'interface'
-                add.strvalue = self.find_interface(account)
-                vg.addons.append(add)
+            add = cl.factory.create('soapVgroupAddon')
+            add.name = 'interface'
+            add.strvalue = self.find_interface(account)
+            vg.addons.append(add)
             if account.mac:
                 add = cl.factory.create('soapVgroupAddon')
                 add.name = 'mac'
@@ -105,14 +113,7 @@ class Command(BaseCommand):
             #print vg
             #vg_id = cl.service.insupdVgroup( val=vg , isInsert=long(0))
 
-    def find_interface(self, account):
-        if account.interface:
-            return account.interface
-        for interface in self.interface:
-            for net in self.interface[interface]:
-                if account.ip in net:
-                    return interface
-        return 'all'
+
 
     def get_address(self, cl, sub):
         flt = cl.factory.create('soapAddressFilter')
