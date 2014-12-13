@@ -8,6 +8,7 @@ from suds.client import Client
 from suds import WebFault
 from billing.models import PeriodicLog
 
+
 class Command(BaseCommand):
     args = ''
     help = 'Firewall setup'

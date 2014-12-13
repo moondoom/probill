@@ -3,21 +3,21 @@ __author__ = 'animage'
 
 from django.core.management.base import BaseCommand
 from settings import *
-from lb.lib.mikrotik import Firewall
 from suds.client import Client
 from suds import WebFault
-from billing.models import PeriodicLog, Subscriber, Account
+from billing.models import Subscriber
 from lb.models import *
-#from userside.models_v3 import TblBaseDopdata, TblBase
 import random
 from datetime import date
+from nas.models import NetworkInterface, IPInterface
 
 class Command(BaseCommand):
     args = '[login] [regions]'
-    help = 'export users '
+#help = 'export users '
     us_ext_attr = dict(LB_US_DOPDATA)
     us_tar_list = {}
     region_map = {}
+    interface = {}
 
     def copy_obj(self,cl, src, dst_temp):
         dst = cl.factory.create(dst_temp)
@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
     def create_vgroups(self, cl, exp_sub):
         flt = cl.factory.create('flt')
-        flt.userid =  exp_sub.lb_id
+        flt.userid = exp_sub.lb_id
         vgroups = cl.service.getVgroups(flt)
         for x in vgroups:
             cl.service.delVgroup(x.vgid)
@@ -58,7 +58,7 @@ class Command(BaseCommand):
             if account.interface:
                 add = cl.factory.create('soapVgroupAddon')
                 add.name = 'interface'
-                add.strvalue = account.interface
+                add.strvalue = self.find_interface(account.interface)
                 vg.addons.append(add)
             if account.mac:
                 add = cl.factory.create('soapVgroupAddon')
@@ -104,6 +104,14 @@ class Command(BaseCommand):
 
             #print vg
             #vg_id = cl.service.insupdVgroup( val=vg , isInsert=long(0))
+    def find_interface(self, account):
+        if account.interface:
+            return account.interface
+        for interface in self.interface:
+            for net in self.interface[interface]:
+                if account.ip in net:
+                    return interface
+        return 'all'
 
     def get_address(self, cl, sub):
         flt = cl.factory.create('soapAddressFilter')
@@ -113,11 +121,11 @@ class Command(BaseCommand):
         if self.region_map[region_id][0]:
             flt.city = self.region_map[region_id][0]
             flt.area = 0
-            flt.entrance = 0
+            flt.settl = 0
 
         else:
             flt.area = self.region_map[region_id][1]
-            flt.entrance = self.region_map[region_id][2]
+            flt.settl = self.region_map[region_id][2]
             flt.city = 0
 
 
@@ -167,7 +175,7 @@ class Command(BaseCommand):
             flt.region,
             flt.area,
             flt.city,
-            flt.entrance,
+            flt.settl,
             flt.street,
             flt.building,
             flat,
@@ -191,7 +199,7 @@ class Command(BaseCommand):
         new_acc = cl.factory.create('soapAccountFull')
         address = cl.factory.create('soapAddressBrief')
         try:
-            address.code = ','.join(map(str,self.get_address(cl, sub)))
+            address.code = ','.join(map(str, self.get_address(cl, sub)))
             address.type = 0
             new_acc.addresses.append(address)
         except WebFault as e:
@@ -239,14 +247,16 @@ class Command(BaseCommand):
 
             self.create_vgroups(cl, exp_sub)
 
-
     def parse_regions(self,reg_list):
         for reg in reg_list:
             reg = map(int, reg.split(':'))
             self.region_map[reg[0]] = reg[1:]
 
-
     def handle(self, *args, **options):
+        for interface in NetworkInterface.objects.filter(nas__id=LB_NAS_ID):
+            self.interface[interface.name] = []
+            for net in IPInterface.objects.filter(iface=interface):
+                self.interface[interface.name].append(net.network)
         if LB_ENABLE:
             cl = Client(LB_SOAP_URL)
             cl.service.Login(LB_USERNAME, LB_PASSWORD)
@@ -259,9 +269,9 @@ class Command(BaseCommand):
             elif args[0] == 'all':
                 sub = Subscriber.objects.all()
                 if args[1] != 'all':
-                    regions = args[1].split(',')
+                    self.parse_regions(args[1].split(','))
 
-                    sub = sub.filter(region__id__in=map(int,regions))
+                    sub = sub.filter(region__id__in=self.region_map.keys())
                 for x in sub:
                     self.create_accounts(cl, x)
 

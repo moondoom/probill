@@ -4,6 +4,8 @@ from nas.lib.mikrotik import Firewall as Old
 from nas.models import NasServer
 from nas.lib.rosapi import Core
 from settings import LB_PREF_SRC
+from ipaddr import IPNetwork, IPAddress
+from settings import LB_IP_UN_NETS
 
 class Tariff():
 
@@ -68,14 +70,18 @@ class Firewall(Old):
         self.nas = FakeNas.objects.get(id=nas_id)
         self.api = Core(str(self.nas.mng_ip), DEBUG=False)
         self.api.login(self.nas.username, self.nas.password)
-        self.vg_dict  = vg_dict
+        self.vg_dict = vg_dict
         self.nas.set_accounts_query(LBAccount.query(self.vg_dict))
+        self.un_net = [IPNetwork(f) for f in LB_IP_UN_NETS]
 
     def find_interface(self, account):
         return self.vg_dict[account.ip][1]
 
+
     def sync_route(self):
         print "ROUTE"
+
+
         query = self.api.talk(['/ip/route/print',
                                '?=comment={}'.format(self.address_list_name)])
         mik_response = self.api.response_handler(query)
@@ -87,6 +93,14 @@ class Firewall(Old):
                 row['.id']
             ]
         for account in self.nas.get_accounts_query():
+            ip_address = IPAddress(account.ip)
+            is_unnunberred = False
+            for net in self.un_net:
+                if ip_address in net:
+                    is_unnunberred = True
+                    break
+            if not is_unnunberred:
+                continue
             if account.ip in mik_rt:
                 if mik_rt[account.ip][0] != account.interface or mik_rt[account.ip][1] != LB_PREF_SRC:
                     query = self.api.talk(['/ip/route/set',

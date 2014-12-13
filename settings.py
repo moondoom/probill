@@ -245,6 +245,8 @@ if config.has_section('lanbilling'):
     LB_US_DOPDATA = config.get('lanbilling', 'LB_US_DOPDATA')
     LB_US_DOPDATA = [f.split(':') for f in LB_US_DOPDATA.split(',')]
     LB_AGENT_ID = config.get('lanbilling', 'LB_AGENT_ID')
+    LB_IP_UN_NETS = config.get('lanbilling', 'LB_IP_UN_NETS')
+    LB_IP_UN_NETS =[f for f in LB_IP_UN_NETS.split(',')]
 
 else:
     LB_ENABLE = False
@@ -256,6 +258,7 @@ else:
     LB_AGENT_TYPE = ''
     LB_US_DOPDATA = []
     LB_AGENT_ID = ''
+    LB_IP_UN_NETS = []
 
 NEW_QOS = False
 SQ_PACKET_MARKS = ['no-mark']
