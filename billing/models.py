@@ -50,6 +50,7 @@ class Manager(models.Model):
 
 class Region(models.Model):
     name = models.CharField('Регион', max_length=100)
+    disabled = models.BooleanField('Выключен', default=False)
 
     class Meta:
         verbose_name_plural = u'регионы'

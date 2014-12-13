@@ -188,13 +188,17 @@ if config.has_section('userside'):
     else:
         EXTRA_FIELDS = []
 
+BAD_REGION_REDIRECT = ''
 if config.has_section('client_side'):
     TEMPLATE_DIRS = TEMPLATE_DIRS + (config.get('client_side', 'TEMPLATE_DIR'),)
 
 if config.has_section('http_redirect'):
     REDIRECT_TO = config.get('http_redirect', 'REDIRECT_TO')
+    if config.has_option('http_redirect', 'BAD_REGION_REDIRECT'):
+        BAD_REGION_REDIRECT = config.get('http_redirect', 'BAD_REGION_REDIRECT')
 else:
     REDIRECT_TO = ''
+
 
 if config.has_section('visa_gpb'):
     VISA_ENABLE = True
