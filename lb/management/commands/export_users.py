@@ -88,8 +88,8 @@ class Command(BaseCommand):
             if account.active:
                 block.blkreq = 0
             else:
-                if exp_sub.balance >= 0:
-                    block.blkreq = 10
+                if exp_sub.subscriber.balance >= 0:
+                    block.blkreq = 3
                 else:
                     block.blkreq = 1
 
