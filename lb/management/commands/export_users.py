@@ -58,7 +58,7 @@ class Command(BaseCommand):
             if account.interface:
                 add = cl.factory.create('soapVgroupAddon')
                 add.name = 'interface'
-                add.strvalue = self.find_interface(account.interface)
+                add.strvalue = self.find_interface(account)
                 vg.addons.append(add)
             if account.mac:
                 add = cl.factory.create('soapVgroupAddon')
@@ -104,6 +104,7 @@ class Command(BaseCommand):
 
             #print vg
             #vg_id = cl.service.insupdVgroup( val=vg , isInsert=long(0))
+
     def find_interface(self, account):
         if account.interface:
             return account.interface
