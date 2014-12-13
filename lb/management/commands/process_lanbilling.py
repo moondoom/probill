@@ -39,7 +39,7 @@ class Command(BaseCommand):
                     blocked,
                     ac_d.vgid
                 ]
-                print account_dicts[ip]
+                #print account_dicts[ip]
             except WebFault as e:
                 PeriodicLog(str(e))
                 #print e
