@@ -89,7 +89,7 @@ class Command(BaseCommand):
                 block.blkreq = 0
             else:
                 if exp_sub.balance >= 0:
-                    block.blkreq = 3
+                    block.blkreq = 10
                 else:
                     block.blkreq = 1
 
