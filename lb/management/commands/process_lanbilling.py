@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from nas.lib.rosapi import Core
 from settings import *
 from lb.lib.mikrotik import Firewall
@@ -47,6 +47,9 @@ class Command(BaseCommand):
             except AttributeError as e:
                 PeriodicLog(str(e))
                 continue
+        if len(account_dicts) < 10:
+            print self, "Account count < 10"
+            raise CommandError
         return account_dicts
 
     def handle(self, *args, **options):
