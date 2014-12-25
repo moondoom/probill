@@ -17,7 +17,6 @@ class Tariff():
 
 class LBAccount():
 
-
     def __init__(self, ip, mac, interface, shape, blocked, id):
         self.ip = ip
         self.mac = mac
@@ -36,7 +35,7 @@ class LBAccount():
         return qu
 
     def __str__(self):
-        return self.ip + ' ' + self.interface
+        return self.ip + ' ' + str(self.interface)
 
 
 class FakeNas(NasServer):
@@ -77,10 +76,8 @@ class Firewall(Old):
     def find_interface(self, account):
         return self.vg_dict[account.ip][1]
 
-
     def sync_route(self):
         print "ROUTE"
-
 
         query = self.api.talk(['/ip/route/print',
                                '?=comment={}'.format(self.address_list_name)])
@@ -99,7 +96,7 @@ class Firewall(Old):
                 if ip_address in net:
                     is_unnunberred = True
                     break
-            if not is_unnunberred:
+            if not is_unnunberred or not account.interface:
                 continue
             if account.ip in mik_rt:
                 if mik_rt[account.ip][0] != account.interface or mik_rt[account.ip][1] != LB_PREF_SRC:

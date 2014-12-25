@@ -81,16 +81,21 @@ class Command(BaseCommand):
                     tar.agenttype = 4
                     tar.changetime = str(date.today())
                     vg.tarrasp.append(tar)
-            else:
-                print "Tariff {} not found".format(account.tariff)
-
+                else:
+                    print "Tariff {} not found".format(account.tariff)
+            vg.vgroup.blocked = 0
+            block = cl.factory.create('soapBlockRasp')
             if account.active:
-                vg.vgroup.blocked = 0
-                block = cl.factory.create('soapBlockRasp')
                 block.blkreq = 0
-                block.requestby = 7
-                block.changetime = str(date.today())
-                vg.blockrasp.append(block)
+            else:
+                if exp_sub.subscriber.balance >= 0:
+                    block.blkreq = 3
+                else:
+                    block.blkreq = 1
+
+            block.requestby = 7
+            block.changetime = str(date.today())
+            vg.blockrasp.append(block)
 
             try:
                 vg_id = cl.service.insupdVgroup(val=vg, isInsert=long(1))

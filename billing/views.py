@@ -39,10 +39,12 @@ def sub_auth(fn):
     """
        Подменяет стандартного пользователя user на subscriber
        """
-    def new (request,*arg,**kwargs):
+    def new(request,*arg,**kwargs):
         if 'subscriber_id' in request.session:
             try:
                 request.user = Subscriber.objects.get(id=request.session['subscriber_id'])
+                if settings.BAD_REGION_REDIRECT and request.user.region.disabled:
+                    return HttpResponseRedirect(settings.BAD_REGION_REDIRECT)
             except ObjectDoesNotExist:
                 return logout(request)
             return fn(request,*arg,**kwargs)

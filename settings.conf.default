@@ -71,6 +71,7 @@ LOCAL_NAS_ID = 1
 
 #[http_redirect]
 #REDIRECT_TO = 127.0.0.1,8013
+#BAD_REGION_REDIRECT =
 
 #[lanbilling]
 #LB_NAS_ID = 0
