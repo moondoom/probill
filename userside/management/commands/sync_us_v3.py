@@ -104,7 +104,7 @@ class Command(BaseCommand):
         billing_tariff = {}
         for tar in Tariff.objects.all():
             billing_tariff[tar.name] = tar
-        for tar in TblGroup.objects.using('userside').filter(groupname__startswith="probill"):
+        for tar in TblGroup.objects.using('userside').filter(code__startswith="probill"):
             if tar.groupname in billing_tariff:
                 self.check_tariff(billing_tariff[tar.groupname],tar)
                 del billing_tariff[tar.groupname]
@@ -152,7 +152,7 @@ class Command(BaseCommand):
             print error
         try:
             p_tariff = user.account_set.exclude(tariff=None)[0].tariff
-            tariff = TblGroup.objects.using('userside').get(groupname=p_tariff.name)
+            tariff = TblGroup.objects.using('userside').get(groupname=p_tariff.name,code__startswith="probill")
             tariff = tariff.code
         except ObjectDoesNotExist as error:
             tariff = None
