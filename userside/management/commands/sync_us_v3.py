@@ -104,7 +104,7 @@ class Command(BaseCommand):
         billing_tariff = {}
         for tar in Tariff.objects.all():
             billing_tariff[tar.name] = tar
-        for tar in TblGroup.objects.using('userside').all():
+        for tar in TblGroup.objects.using('userside').filter(groupname__startswith="probill"):
             if tar.groupname in billing_tariff:
                 self.check_tariff(billing_tariff[tar.groupname],tar)
                 del billing_tariff[tar.groupname]
@@ -185,11 +185,11 @@ class Command(BaseCommand):
             housec = house,
             apart = flat_int or None,
             apart_b = flat_char or '',
-            tel = tel,
-            telmob = telmob,
-            balans = user.balance,
-            groupn = tariff,
-            billcode = 1,
+            tel=tel,
+            telmob=telmob,
+            balans=user.balance,
+            groupn=tariff,
+            billcode=2,
         )
 
     def create_user(self,user):
