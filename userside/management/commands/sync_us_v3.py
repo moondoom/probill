@@ -87,8 +87,9 @@ class Command(BaseCommand):
 
     def sync_users(self):
         billing_users = {}
-        query = Subscriber.objects.exclude(region=None).filter(region__disabled=False)
+        query = Subscriber.objects.exclude(region=None)
         query = query.exclude(deleted=True)
+        query = query.exclude(region__disabled=True)
         for user in query:
             billing_users[user.login] = user
         for user in TblBase.objects.using('userside').all():
