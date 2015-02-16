@@ -22,10 +22,13 @@ class Command(BaseCommand):
         for ac_d in ac_brief:
             try:
                 ac_f = cl.service.getVgroup(id=ac_d.vgid)[0]
-                ip = ac_f.macstaff[0].segment
-                mac = ac_f.macstaff[0].mac
+                if hasattr(ac_f,'macstaff'):
+                    ip = ac_f.macstaff[0].segment
+                    mac = ac_f.macstaff[0].mac
+                else:
+                    ip = ac_f.staff[0].ipmask.ip
+                    mac = [f.strvalue for f in ac_f.addons if f.name == 'mac'][0]
                 interface = [f.strvalue for f in ac_f.addons if f.name == 'interface'][0]
-
                 if ip in account_dicts:
                     PeriodicLog('Possible IP double (LOGIN: {} IP: {})'.format(ac_f.vgroup.login, ip))
                     continue
