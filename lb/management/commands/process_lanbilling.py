@@ -15,16 +15,17 @@ class Command(BaseCommand):
 
     def get_account(self, cl):
 
-        flt = cl.factory.create('flt')
+        flt = cl.factory.create('soapFilter')
         flt.type = 4
         ac_brief = cl.service.getVgroups(flt=flt)
         account_dicts = {}
         for ac_d in ac_brief:
             try:
                 ac_f = cl.service.getVgroup(id=ac_d.vgid)[0]
-                ip = ac_f.staff[0].ipmask.ip
+                ip = ac_f.macstaff[0].segment
+                mac = ac_f.macstaff[0].mac
                 interface = [f.strvalue for f in ac_f.addons if f.name == 'interface'][0]
-                mac = [f.strvalue for f in ac_f.addons if f.name == 'mac'][0]
+
                 if ip in account_dicts:
                     PeriodicLog('Possible IP double (LOGIN: {} IP: {})'.format(ac_f.vgroup.login, ip))
                     continue
@@ -62,7 +63,7 @@ class Command(BaseCommand):
             cl.service.Login(LB_USERNAME, LB_PASSWORD)
             fw = Firewall(LB_NAS_ID, self.get_account(cl))
             fw.sync_all()
-
+            cl.service.Logout()
 
 
 
