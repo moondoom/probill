@@ -36,6 +36,9 @@ class Command(BaseCommand):
                     blocked = True
                 else:
                     blocked = ac_f.vgroup.blocked
+                if not ip:
+                    print ac_f
+                    continue
                 account_dicts[ip] = [
                     mac,
                     interface,

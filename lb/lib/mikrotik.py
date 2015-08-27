@@ -35,7 +35,7 @@ class LBAccount():
         return qu
 
     def __str__(self):
-        return self.ip + ' ' + str(self.interface)
+        return str(self.ip) + ' ' + str(self.interface) +  ' ' + str(self.id)
 
 
 class FakeNas(NasServer):
@@ -125,3 +125,4 @@ class Firewall(Old):
         self.sync_qos()
         self.sync_dhcp()
         self.sync_route()
+        self.sync_blacklist()
