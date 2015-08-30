@@ -60,7 +60,7 @@ class FakeNas(NasServer):
 
     def get_lb_64k(self):
         c = connections['lanbilling'].cursor()
-        c.execute("select * from vg_blocks_64 where timeto IS NOT NULL")
+        c.execute("select * from vg_blocks_64 where timeto <> 'END'")
         good = {}
         old = []
         now = datetime.now()
@@ -68,9 +68,9 @@ class FakeNas(NasServer):
             if datetime.strptime(x[3],'%Y-%m-%d %H:%M:%S') > now:
                 good[x[1]] = x[1]
             else:
-                old.append(x[0])
+                old.append(str(x[0]))
         if old:
-            c.execute("update vg_blocks_64 set vg_id = vg_id where id in ({}) ".format(', '.join(old)))
+            c.execute("update vg_blocks_64 set timeto = 'END' where id in ({}) ".format(', '.join(old)))
         return good
 
 
