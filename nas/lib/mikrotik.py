@@ -138,20 +138,20 @@ class Firewall:
 
             if account.id in mik_qos_dict:
                 if mik_qos_dict[account.id][1] != mik_qos_dict[account.id][2] or \
-                    mik_qos_dict[account.id][2] != account.tariff.get_speed() or \
+                    mik_qos_dict[account.id][2] != account.get_speed() or \
                         mik_qos_dict[account.id][0] != ip or mik_qos_dict[account.id][4] != packet_marks_pull:
                     query_params = ['/queue/simple/set',
                                     '=.id={}'.format(mik_qos_dict[account.id][3]),
                                     '=target={}'.format(ip),
-                                    '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
+                                    '=max-limit={0}k/{0}k'.format(account.get_speed()),
                                     '=packet-marks={}'.format(packet_marks_push)]
                     if SQ_BURST_TIMEOUT:
-                        query_params += ['=burst-limit={0}k/{0}k'.format(account.tariff.get_speed()*SQ_BURST_MULTI),
-                                         '=burst-threshold={0}k/{0}k'.format(account.tariff.get_speed()),
+                        query_params += ['=burst-limit={0}k/{0}k'.format(account.get_speed()*SQ_BURST_MULTI),
+                                         '=burst-threshold={0}k/{0}k'.format(account.get_speed()),
                                          '=burst-time={0}s/{0}s'.format(SQ_BURST_TIMEOUT)]
                     query = self.api.talk(query_params)
                     mik_response = self.api.response_handler(query)
-                    print 'Update', account, mik_qos_dict[account.id], account.tariff.get_speed()
+                    print 'Update', account, mik_qos_dict[account.id], account.get_speed()
                 del mik_qos_dict[account.id]
             else:
 
@@ -159,12 +159,12 @@ class Firewall:
                                 '=target={}'.format(ip),
                                 '=comment={}'.format(self.address_list_name),
                                 '=name={}_{}'.format(self.address_list_name, account.id),
-                                '=max-limit={0}k/{0}k'.format(account.tariff.get_speed()),
+                                '=max-limit={0}k/{0}k'.format(account.get_speed()),
                                 '=queue={0}/{0}'.format(SQ_QUEUE_TYPE),
                                 '=packet-marks={}'.format(packet_marks_push)]
                 if SQ_BURST_TIMEOUT:
-                    query_params += ['=burst-limit={0}k/{0}k'.format(account.tariff.get_speed()*SQ_BURST_MULTI),
-                                     '=burst-threshold={0}k/{0}k'.format(account.tariff.get_speed()),
+                    query_params += ['=burst-limit={0}k/{0}k'.format(account.get_speed()*SQ_BURST_MULTI),
+                                     '=burst-threshold={0}k/{0}k'.format(account.get_speed()),
                                      '=burst-time={0}s/{0}s'.format(SQ_BURST_TIMEOUT)]
                 query = self.api.talk(query_params)
                 mik_response = self.api.response_handler(query)
@@ -178,11 +178,11 @@ class Firewall:
     def sync_qos_new(self):
         qos = {}
         for account in self.nas.get_accounts_query(tariff__qos_speed__gt=0):
-            speed = account.tariff.get_speed()
+            speed = account.get_speed()
             if speed in qos:
-                qos[account.tariff.get_speed()].append(account)
+                qos[account.get_speed()].append(account)
             else:
-                qos[account.tariff.get_speed()] = [account]
+                qos[account.get_speed()] = [account]
         for speed in qos:
             self.sync_table(qos[speed], '{}_QOS_{}'.format(self.address_list_name, speed))
         self.remove_bad_table('{}_QOS_{}'.format(self.address_list_name, '{}'), qos.keys())

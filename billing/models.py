@@ -530,12 +530,13 @@ class Account(models.Model):
         self.active = True
         self.save()
 
+    def get_speed(self):
+        return self.tariff.get_speed()
+
 
     @property
     def CIDR(self):
         return '/'.join([str(self.ip),'32'])
-
-
 
     @classmethod
     def process_traffic(cls,raw_traffic,traffic_datetime):

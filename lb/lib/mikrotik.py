@@ -3,9 +3,11 @@ __author__ = 'animage'
 from nas.lib.mikrotik import Firewall as Old
 from nas.models import NasServer
 from nas.lib.rosapi import Core
-from settings import LB_PREF_SRC
+from settings import LB_PREF_SRC, LB_BLOCK_SPEED
 from ipaddr import IPNetwork, IPAddress
 from settings import LB_IP_UN_NETS
+from django.db import connections
+from datetime import datetime
 
 class Tariff():
 
@@ -34,6 +36,12 @@ class LBAccount():
                                 dictionary[ip][3], dictionary[ip][4]))
         return qu
 
+    def get_speed(self):
+        if self.blocked:
+            return LB_BLOCK_SPEED
+        else:
+            return self.tariff.get_speed()
+
     def __str__(self):
         return str(self.ip) + ' ' + str(self.interface) +  ' ' + str(self.id)
 
@@ -50,13 +58,31 @@ class FakeNas(NasServer):
     def set_accounts_query(self, query):
         self.query = query
 
- 
+    def get_lb_64k(self):
+        c = connections['lanbilling'].cursor()
+        c.execute("select * from vg_blocks_64 where timeto IS NOT NULL")
+        good = {}
+        old = []
+        now = datetime.now()
+        for x in c.fetchall():
+            if datetime.strptime(x[3],'%Y-%m-%d %H:%M:%S') > now:
+                good[x[1]] = x[1]
+            else:
+                old.append(x[0])
+        if old:
+            c.execute("update vg_blocks_64 set vg_id = vg_id where id in ({}) ".format(', '.join(old)))
+        return good
+
+
+
     def get_accounts_query(self, **kwargs):
+
         if 'active' in kwargs:
             if kwargs['active']:
                 filtered_query = []
+                ac_64k = self.get_lb_64k()
                 for ac in self.query[:]:
-                    if not ac.blocked:
+                    if not ac.blocked or ac.id in ac_64k:
                         filtered_query.append(ac)
                 return filtered_query
         return self.query[:]

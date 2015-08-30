@@ -83,6 +83,13 @@ LOCAL_NAS_ID = 1
 #LB_US_EXTRA_ATR = 8,password
 #LB_AGENT_ID = 1
 #LB_IP_UN_NET = 8.8.8.0/24,4.2.2.0/24
+#LB_BLOCK_SPEED = 65536
+#DATABASE_USER = root
+#DATABASE_PASSWORD =
+#DATABASE_HOST = localhost
+#DATABASE_PORT =
+#DATABASE_ENGINE = django.db.backends.mysql
+#DATABASE_NAME = billing
 
 [qos]
 NEW_QOS = False

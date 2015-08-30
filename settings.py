@@ -239,6 +239,16 @@ else:
 
 if config.has_section('lanbilling'):
     INSTALLED_APPS = INSTALLED_APPS + ('lb',)
+    DATABASES.update({
+        'lanbilling': {
+            'USER': config.get('lanbilling', 'DATABASE_USER'),
+            'PASSWORD': config.get('lanbilling', 'DATABASE_PASSWORD'),
+            'HOST': config.get('lanbilling', 'DATABASE_HOST'),
+            'PORT': config.get('lanbilling', 'DATABASE_PORT'),
+            'ENGINE': config.get('lanbilling', 'DATABASE_ENGINE'),
+            'NAME': config.get('lanbilling', 'DATABASE_NAME'),
+    }
+    })
     LB_ENABLE = True
     LB_NAS_ID = config.get('lanbilling', 'LB_NAS_ID')
     LB_PREF_SRC = config.get('lanbilling', 'LB_PREF_SRC')
@@ -251,6 +261,7 @@ if config.has_section('lanbilling'):
     LB_AGENT_ID = config.get('lanbilling', 'LB_AGENT_ID')
     LB_IP_UN_NETS = config.get('lanbilling', 'LB_IP_UN_NETS')
     LB_IP_UN_NETS =[f for f in LB_IP_UN_NETS.split(',')]
+    LB_BLOCK_SPEED = config.get('lanbilling', 'LB_BLOCK_SPEED')
 
 else:
     LB_ENABLE = False
